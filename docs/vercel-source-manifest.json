@@ -1,0 +1,2251 @@
+{
+  "project": "beijing-qu-na-er-wan",
+  "project_id": "prj_aMNPlavG43ZNFGfzcWhGoH7eSbYK",
+  "deployment": {
+    "id": "dpl_2JCC5et7fHyfpjycTmYRuCUbKoqs",
+    "url": "beijing-qu-na-er-jmrk8xg5l-sereni1.vercel.app",
+    "createdAt": 1788357183713,
+    "state": "READY"
+  },
+  "downloaded_at": "2026-09-09T13:42:38.857Z",
+  "source_file_count": 519,
+  "excluded": [
+    {
+      "path": ".browser-profile/Crashpad/metadata",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Crashpad/reports/7229790c-9668-4524-a462-0895f22b4d0b.dmp",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Crashpad/settings.dat",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Account Web Data",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Account Web Data-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Affiliation Database-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/ClientCertificates/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/ClientCertificates/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension Rules/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension Rules/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension Rules/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension Rules/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension Rules/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension Scripts/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension Scripts/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension Scripts/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension Scripts/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension Scripts/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension State/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension State/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension State/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension State/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Extension State/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Favicons-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/History-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Login Data For Account-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Login Data-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Network Action Predictor",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Network/Cookies-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Network/Device Bound Sessions-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Network/NetworkDataMigrated",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Network/Reporting and NEL-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Network/Trust Tokens-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Network/Cookies",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Network/Device Bound Sessions",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Network/Reporting and NEL",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Network/Trust Tokens",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/PersistentOriginTrials/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/PersistentOriginTrials/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Safe Browsing Network/NetworkDataMigrated",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Segmentation Platform/SegmentInfoDB/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Segmentation Platform/SegmentInfoDB/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Segmentation Platform/SignalDB/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Segmentation Platform/SignalDB/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Segmentation Platform/SignalStorageConfigDB/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Segmentation Platform/SignalStorageConfigDB/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/ServerCertificate-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Service Worker/Database/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Service Worker/Database/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Service Worker/Database/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Service Worker/Database/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Service Worker/Database/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Service Worker/ScriptCache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Service Worker/ScriptCache/index-dir/the-real-index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Shared Dictionary/db-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Shared Dictionary/cache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Shared Dictionary/cache/index-dir/the-real-index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Shared Dictionary/db",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Site Characteristics Database/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Site Characteristics Database/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Site Characteristics Database/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Site Characteristics Database/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Site Characteristics Database/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Sync Data/LevelDB/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Sync Data/LevelDB/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Sync Data/LevelDB/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Sync Data/LevelDB/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Sync Data/LevelDB/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Top Sites-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Web Data-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/chrome_cart_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/chrome_cart_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/commerce_subscription_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/commerce_subscription_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/declarative_performance_observer.db-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/discount_infos_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/discount_infos_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/discounts_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/discounts_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/parcel_tracking_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/parcel_tracking_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/shared_proto_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/shared_proto_db/metadata/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/shared_proto_db/metadata/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/shared_proto_db/metadata/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/shared_proto_db/metadata/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/shared_proto_db/metadata/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/shared_proto_db/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/shared_proto_db/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/shared_proto_db/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/shared_proto_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Affiliation Database",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Cache/Cache_Data/data_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Cache/Cache_Data/data_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Cache/Cache_Data/data_2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Cache/Cache_Data/data_3",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Cache/Cache_Data/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Cache/No_Vary_Search/journal.baj",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Cache/No_Vary_Search/snapshot.baf",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/DawnGraphiteCache/data_3",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/DawnGraphiteCache/data_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/DawnGraphiteCache/data_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/DawnGraphiteCache/data_2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/DawnGraphiteCache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/DawnWebGPUCache/data_3",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/DawnWebGPUCache/data_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/DawnWebGPUCache/data_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/DawnWebGPUCache/data_2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/DawnWebGPUCache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/GPUCache/data_3",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/GPUCache/data_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/GPUCache/data_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/GPUCache/data_2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/GPUCache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Code Cache/js/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Code Cache/js/index-dir/the-real-index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Code Cache/wasm/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Code Cache/wasm/index-dir/the-real-index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Favicons",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/History",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Login Data",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Login Data For Account",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/README",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/ServerCertificate",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Top Sites",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/Web Data",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/WebStorage/QuotaManager",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/WebStorage/QuotaManager-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/declarative_performance_observer.db",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Default/engine_allowlist.bf",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/GPUPersistentCache/DawnGraphiteCache/LM4HLUYPEPEQCVCS7WUD63O7S5RDUCDG/cache.db",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/GPUPersistentCache/DawnGraphiteCache/LM4HLUYPEPEQCVCS7WUD63O7S5RDUCDG/cache.db-wal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/GPUPersistentCache/DawnGraphiteCache/LM4HLUYPEPEQCVCS7WUD63O7S5RDUCDG/cache.journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/ShaderCache/data_3",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/ShaderCache/data_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/ShaderCache/data_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/ShaderCache/data_2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/ShaderCache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Last Version",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Local State",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/Variations",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/VariationsSafeSeedV2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/VariationsSeedV2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/segmentation_platform/ukm_db",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile/segmentation_platform/ukm_db-wal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Crashpad/metadata",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Crashpad/settings.dat",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Trusted Icons/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Trusted Icons/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Trusted Icons/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Trusted Icons/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Trusted Icons/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Trusted Icons/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Trusted Icons/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/aghbiahbpaijignceidepookljebhfak/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Trusted Icons/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Trusted Icons/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Trusted Icons/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Trusted Icons/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Trusted Icons/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Trusted Icons/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Trusted Icons/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/agimnkijcaahngcdmfeangaknmldooml/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Trusted Icons/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Trusted Icons/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Trusted Icons/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Trusted Icons/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Trusted Icons/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Trusted Icons/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Trusted Icons/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fhihpiojkbmbpdjeoajapmgkhlnakfjf/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Trusted Icons/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Trusted Icons/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Trusted Icons/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Trusted Icons/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Trusted Icons/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Trusted Icons/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Trusted Icons/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/fmgjjmmmlfnkbppncabfkddbjimcfncm/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Trusted Icons/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Trusted Icons/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Trusted Icons/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Trusted Icons/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Trusted Icons/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Trusted Icons/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Trusted Icons/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/kefjledonklijopmnomlcbpllchaibag/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Trusted Icons/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Trusted Icons/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Trusted Icons/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Trusted Icons/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Trusted Icons/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Trusted Icons/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Trusted Icons/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/mpnpojknpmmopombnjdcgaaiekajbnjb/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Trusted Icons/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Trusted Icons/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Trusted Icons/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Trusted Icons/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Trusted Icons/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Trusted Icons/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Trusted Icons/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Icons/128.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Icons/192.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Icons/256.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Icons/32.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Icons/48.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Icons/64.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Applications/Manifest Resources/pommaclcbfghclhalboakcipcmmndhcj/Icons/96.png",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Account Web Data",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Account Web Data-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Affiliation Database-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/AutofillAiModelCache/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/AutofillAiModelCache/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/AutofillStrikeDatabase/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/AutofillStrikeDatabase/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/BudgetDatabase/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/BudgetDatabase/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/ClientCertificates/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/ClientCertificates/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension Rules/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension Rules/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension Rules/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension Rules/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension Rules/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension Scripts/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension Scripts/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension Scripts/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension Scripts/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension Scripts/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension State/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension State/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension State/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension State/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Extension State/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Favicons-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GCM Store/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GCM Store/Encryption/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GCM Store/Encryption/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GCM Store/Encryption/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GCM Store/Encryption/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GCM Store/Encryption/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GCM Store/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GCM Store/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GCM Store/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GCM Store/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/History-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Local Storage/leveldb/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Local Storage/leveldb/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Local Storage/leveldb/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Local Storage/leveldb/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Local Storage/leveldb/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Login Data For Account-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Login Data-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network Action Predictor-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network/Cookies-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network/Device Bound Sessions-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network/NetworkDataMigrated",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network/Reporting and NEL-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network/Trust Tokens-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network/Cookies",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network/Device Bound Sessions",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network/Reporting and NEL",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network/Trust Tokens",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network/Network Persistent State",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/PersistentOriginTrials/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/PersistentOriginTrials/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Safe Browsing Network/NetworkDataMigrated",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Segmentation Platform/SegmentInfoDB/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Segmentation Platform/SegmentInfoDB/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Segmentation Platform/SignalDB/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Segmentation Platform/SignalDB/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Segmentation Platform/SignalStorageConfigDB/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Segmentation Platform/SignalStorageConfigDB/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/ServerCertificate-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Service Worker/Database/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Service Worker/Database/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Service Worker/Database/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Service Worker/Database/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Service Worker/Database/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Service Worker/ScriptCache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Service Worker/ScriptCache/2cc80dabc69f58b6_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Service Worker/ScriptCache/4cb013792b196a35_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Service Worker/ScriptCache/4cb013792b196a35_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Service Worker/ScriptCache/index-dir/the-real-index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Session Storage/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Session Storage/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Session Storage/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Session Storage/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Session Storage/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Shared Dictionary/db-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Shared Dictionary/cache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Shared Dictionary/cache/index-dir/the-real-index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Shared Dictionary/db",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Shortcuts-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Site Characteristics Database/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Site Characteristics Database/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Site Characteristics Database/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Site Characteristics Database/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Site Characteristics Database/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Sync Data/LevelDB/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Sync Data/LevelDB/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Sync Data/LevelDB/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Sync Data/LevelDB/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Sync Data/LevelDB/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Top Sites-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Data-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/WebStorage/QuotaManager-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/WebStorage/QuotaManager",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/chrome_cart_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/chrome_cart_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/commerce_subscription_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/commerce_subscription_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/declarative_performance_observer.db-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/discount_infos_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/discount_infos_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/discounts_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/discounts_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/heavy_ad_intervention_opt_out.db-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/optimization_guide_hint_cache_store/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/optimization_guide_hint_cache_store/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/parcel_tracking_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/parcel_tracking_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/shared_proto_db/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/shared_proto_db/metadata/LOCK",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/shared_proto_db/metadata/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/shared_proto_db/metadata/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/shared_proto_db/metadata/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/shared_proto_db/metadata/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/shared_proto_db/CURRENT",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/shared_proto_db/MANIFEST-000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/shared_proto_db/000003.log",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/shared_proto_db/LOG",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Affiliation Database",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/DawnGraphiteCache/data_3",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/DawnGraphiteCache/data_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/DawnGraphiteCache/data_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/DawnGraphiteCache/data_2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/DawnGraphiteCache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/DawnWebGPUCache/data_3",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/DawnWebGPUCache/data_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/DawnWebGPUCache/data_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/DawnWebGPUCache/data_2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/DawnWebGPUCache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GPUCache/data_3",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GPUCache/data_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GPUCache/data_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GPUCache/data_2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/GPUCache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/No_Vary_Search/journal.baj",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/No_Vary_Search/snapshot.baf",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/data_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/data_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/data_2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/data_3",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/f_000001",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/f_000002",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/f_000003",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/f_000004",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/f_000005",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/f_000006",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/f_000007",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/f_000008",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/f_000009",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/f_00000a",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Cache/Cache_Data/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/103a59be32e6cfea_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/12460b06a62615a2_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/1c432b91181fda90_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/1edc4a4c6d075d43_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/6c165b6e9e29bb66_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/87cc6fe3e5db4357_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/aa8330fb8bfccfc3_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/ba678a2fbd8c358c_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/bb6a07e2c04fbdc5_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/c2201a66c239f02d_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/ea89537cddc9d2e8_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/f8da06b1cf153096_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/fa1296c4aa0c0c5d_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/js/index-dir/the-real-index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/wasm/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Code Cache/wasm/index-dir/the-real-index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Favicons",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Login Data",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Login Data For Account",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/README",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/ServerCertificate",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Top Sites",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/declarative_performance_observer.db",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/engine_allowlist.bf",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/BookmarkMergedSurfaceOrdering",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/DIPS",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/History",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Network Action Predictor",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Preferences",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/PreferredApps",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Secure Preferences",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Sessions/Session_13432637378780278",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Sessions/Tabs_13432637381663553",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Shortcuts",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/Web Data",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Default/heavy_ad_intervention_opt_out.db",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/GPUPersistentCache/DawnGraphiteCache/LM4HLUYPEPEQCVCS7WUD63O7S5RDUCDG/cache.db",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/GPUPersistentCache/DawnGraphiteCache/LM4HLUYPEPEQCVCS7WUD63O7S5RDUCDG/cache.db-wal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/GPUPersistentCache/DawnGraphiteCache/LM4HLUYPEPEQCVCS7WUD63O7S5RDUCDG/cache.journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/first_party_sets.db-journal",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/GrShaderCache/data_3",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/GrShaderCache/data_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/GrShaderCache/data_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/GrShaderCache/data_2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/GrShaderCache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/ShaderCache/data_3",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/ShaderCache/data_0",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/ShaderCache/data_1",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/ShaderCache/data_2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/ShaderCache/index",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Last Version",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/VariationsSafeSeedV2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/en-US-10-1.bdic",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Last Browser",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Local State",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/Variations",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/VariationsSeedV2",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/extensions_crx_cache/metadata.json",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/first_party_sets.db",
+      "reason": "browser credentials or private environment file"
+    },
+    {
+      "path": ".browser-profile2/segmentation_platform/ukm_db",
+      "reason": "browser credentials or private environment file"
+    }
+  ],
+  "empty_directories": [],
+  "files": [
+    {
+      "path": ".env.example",
+      "uid": "fc3675ef2bdae66aac5c03abd11c09391561867f",
+      "mode": 33206,
+      "bytes": 555,
+      "sha256": "835f01afb9a50d85509ce779fa691159f2e0d8219d2048dfc165eda1ec7d1f90"
+    },
+    {
+      "path": "AGENTS.md",
+      "uid": "8a38a9be445fb29e9ce77bb23d1086eb2dc3d656",
+      "mode": 33206,
+      "bytes": 678,
+      "sha256": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "uid": "95900af97348503e21625593dc184e3a27a5b10f",
+      "mode": 33206,
+      "bytes": 4137,
+      "sha256": "71083cdbfd403bf5ee4bc733ae70ab1cdfc58e3d6cac3383fd35d6bf455aa5b3"
+    },
+    {
+      "path": "CLAUDE.md",
+      "uid": "c140473a3a5fbe89301c99d9d0d1b76c5971f2c3",
+      "mode": 33206,
+      "bytes": 11,
+      "sha256": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49"
+    },
+    {
+      "path": "db/001_initial.sql",
+      "uid": "f9014cdf334b935c0e5df3bbac5d31c1dae0e796",
+      "mode": 33206,
+      "bytes": 5259,
+      "sha256": "34664b684833d62bed8e98b97d83587353d902323d5bc7ef80d2cd4e31aa40fd"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "uid": "f2ac7b8c025263f492d8b643094ff34959a12a92",
+      "mode": 33206,
+      "bytes": 309,
+      "sha256": "927cc3e7a3599cc1d6386a5fa73a6db71be3bd5f0c0d0e5222366614c7d5f9e5"
+    },
+    {
+      "path": "next-env.d.ts",
+      "uid": "915946e261450f4fb6aab2ca862c8b440b748240",
+      "mode": 33206,
+      "bytes": 288,
+      "sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b"
+    },
+    {
+      "path": "next.config.ts",
+      "uid": "753befb4ca1b9606b56b91fda4af6f8eb0d41983",
+      "mode": 33206,
+      "bytes": 130,
+      "sha256": "c5efcdb15ee66db5a3a749082d8a2d68abdd0555ce251baee0e3fd920b4c55b5"
+    },
+    {
+      "path": "package.json",
+      "uid": "4edc142af7eda5ea194a3c91a6f44e2d4bcbfdeb",
+      "mode": 33206,
+      "bytes": 718,
+      "sha256": "4366e569b0c1a74c13150f6ff95b7c3a280cb18d2ecda326d9ec4074acc6d859"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "uid": "6184f6b75e8513fd336f4f70b61c36853d3320b5",
+      "mode": 33206,
+      "bytes": 135490,
+      "sha256": "2328c552db9d60f268a8c645497677a168fdbff420267831ca3c86c1f84048fa"
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "uid": "ff3e0ebe6231591b5aebb1ea186c59db9afc80e9",
+      "mode": 33206,
+      "bytes": 107,
+      "sha256": "22a3e2628ddc06dd2eb02dae7c53bb01c64b138f22bb6a5f85ed0e49804d7383"
+    },
+    {
+      "path": "preview-desktop.png",
+      "uid": "7793ad06609cb97ee63aba5717baefc1ea62f5be",
+      "mode": 33206,
+      "bytes": 381842,
+      "sha256": "92576d6717f4ded549ee3d672483fd01b51c45188d9d864dd2d7d05b12f60e9e"
+    },
+    {
+      "path": "preview-final-desktop.png",
+      "uid": "34318ffc9601b54498aafd07dee3f874e9a1bb03",
+      "mode": 33206,
+      "bytes": 543235,
+      "sha256": "da5aa311501d7a566386b82b7f862e8f7ae6471afcf97811c5893bd815be56c8"
+    },
+    {
+      "path": "preview-mobile.png",
+      "uid": "9bbdd9ab8ee7eb065224a424a505dd95cfa50590",
+      "mode": 33206,
+      "bytes": 260992,
+      "sha256": "4964ee5f3d5b1cfbc16f0e98fc360790ca9c01273269aa4feb1db08a40c0e2d8"
+    },
+    {
+      "path": "public/hero-weekend.png",
+      "uid": "195d30cc93f99310dfbf906bc3b21abb401927fc",
+      "mode": 33206,
+      "bytes": 2320442,
+      "sha256": "95de6e78f0c591a3bc487ae18ccf4887f797b7cc66e62e9bfe989c6bd2026ae4"
+    },
+    {
+      "path": "README.md",
+      "uid": "5779082ddaa51f879b9616d361fdcbe2d823ae69",
+      "mode": 33206,
+      "bytes": 2433,
+      "sha256": "c39c543053b7bc80304e6b884d4c858debd84b768a6a6cc49dfd4917b68ee14c"
+    },
+    {
+      "path": "src/app/_AMapService/[...path]/route.ts",
+      "uid": "d03e14db398aff495ce2a722672dc4224efd246a",
+      "mode": 33206,
+      "bytes": 1321,
+      "sha256": "a135c2c10e941e52a5932a7a41df1cfb25ebd54feae80da6d8c7fdaa5a767c89"
+    },
+    {
+      "path": "src/app/api/ai/parse/route.ts",
+      "uid": "dd82c3e8ef6c38f340765dbc096713298e307b82",
+      "mode": 33206,
+      "bytes": 5159,
+      "sha256": "9e89331710174dc94b5d1def11795fffae32ed4a17afa94681a6897774f0acbd"
+    },
+    {
+      "path": "src/app/api/amap/directions/route.ts",
+      "uid": "4f72905b6ddc8737e5ab52e6ae0dcdce56194c7c",
+      "mode": 33206,
+      "bytes": 1225,
+      "sha256": "a593ac2345769dc241c7f13a0177b65c5da47c3e773c13956fe53498f38e6f55"
+    },
+    {
+      "path": "src/app/api/amap/geocode/route.ts",
+      "uid": "ba1271e2fbae341f6cd2c62fc0159b26a8ce5158",
+      "mode": 33206,
+      "bytes": 908,
+      "sha256": "f4ce3f93b5a30d722f10eada1cd1c264ed0c4f0162f18c4ce9c8477f86cad6bc"
+    },
+    {
+      "path": "src/app/api/amap/plan/route.ts",
+      "uid": "0dc91e2448ba586c0c770be5560fa47d15d6c579",
+      "mode": 33206,
+      "bytes": 4333,
+      "sha256": "aced0cffaf1e43ea1338cdc560cb323bc2c8e5d271652a511af6287e45aecec2"
+    },
+    {
+      "path": "src/app/api/amap/weather/route.ts",
+      "uid": "215e45ed6f18829ccaea1f647530de2678bbb4c1",
+      "mode": 33206,
+      "bytes": 596,
+      "sha256": "b0045f297237565aa29f373361a502b62dbec83e3f85287c4dc0fbc3e024df4a"
+    },
+    {
+      "path": "src/app/api/auth/login/route.ts",
+      "uid": "9056f0191a5b52becebe4b5c75a7c33bafb75f38",
+      "mode": 33206,
+      "bytes": 1830,
+      "sha256": "b2d5bdbdd080f823ec92277c1e01ed022264c1e2d898a8030b0681cf38e2e898"
+    },
+    {
+      "path": "src/app/api/auth/session/route.ts",
+      "uid": "35a45e39f282f5fa1ec1e7daac1672b4bcb59009",
+      "mode": 33206,
+      "bytes": 298,
+      "sha256": "8240a39b9aca7809b59daa0df90cc0696afcba144ffd0015b6a7d1aaa1117add"
+    },
+    {
+      "path": "src/app/api/integrations/status/route.ts",
+      "uid": "c1ec157e62e720cb55565945bac4131c4923b820",
+      "mode": 33206,
+      "bytes": 651,
+      "sha256": "ed8e048792b341ece2680b56d6ee2bbb8c01cff93006fa0e3ef3f31324b373dd"
+    },
+    {
+      "path": "src/app/api/recommendations/route.ts",
+      "uid": "e3895ea693295ca0f1d5ba9e3bd7bfab2603074c",
+      "mode": 33206,
+      "bytes": 13102,
+      "sha256": "312b2034d029fb462f4e6e9369c138793c13ed693e9f11ae61bc7e769b32d925"
+    },
+    {
+      "path": "src/app/api/week/search/route.ts",
+      "uid": "9511e7ceb0e17b3d6188b8555fe07ed60cc24a70",
+      "mode": 33206,
+      "bytes": 7521,
+      "sha256": "cbb797798a30e3e774a2be3521b14ff4540d4452e4df7e327a514e9bf5df2a37"
+    },
+    {
+      "path": "src/app/api/workspace/route.ts",
+      "uid": "fc815bc0de2388a0b3644e972b2a60fd4fb4de2d",
+      "mode": 33206,
+      "bytes": 3204,
+      "sha256": "21a12e4035c34f6c6a8b120099535bdbb646d634dacd83a13594ac486cd98329"
+    },
+    {
+      "path": "src/app/globals.css",
+      "uid": "30c61a9106486f70bd1d834c314851793ffdbfc0",
+      "mode": 33206,
+      "bytes": 41990,
+      "sha256": "713124db8e7be6edb148c4ad217d5a0b6a6d5397a94380b305c3317d4929c3cc"
+    },
+    {
+      "path": "src/app/layout.tsx",
+      "uid": "ed2a17d38f2588f5670d7d9572135b15c0f00d68",
+      "mode": 33206,
+      "bytes": 618,
+      "sha256": "ee411cff996874ae54c38d67b5d92e606ccd246162a51f7b56b8a68ddd518489"
+    },
+    {
+      "path": "src/app/page.tsx",
+      "uid": "70d38c4e461936b55a985efbd5e7b12f4388cca1",
+      "mode": 33206,
+      "bytes": 132,
+      "sha256": "064f4c37eba523f3ad6ae8911e16b91480f763535c68432ba5b82c0401e91bb6"
+    },
+    {
+      "path": "src/components/amap-route-map.tsx",
+      "uid": "cdcf9719df7a7f2b0965d25a035ca9ebaca6349b",
+      "mode": 33206,
+      "bytes": 3636,
+      "sha256": "993fe19390ba7316dcf29af7dcc155c3d46207d5adbec4d9b54a55905b290d41"
+    },
+    {
+      "path": "src/components/app-frame.tsx",
+      "uid": "b99d646d0ae3c4260039a2bd0e4c8210a8d319d3",
+      "mode": 33206,
+      "bytes": 5131,
+      "sha256": "01ae2a76c7fcce835432b4cd3807bd16854f920bfd20832fed8c7e6026afac7c"
+    },
+    {
+      "path": "src/components/dashboard-view.tsx",
+      "uid": "1abb8b047180e336bb5ee108a428dd21c43b99e5",
+      "mode": 33206,
+      "bytes": 6076,
+      "sha256": "ff1bad9c9ee1bd3c41095da18652ff4c1c81760b0a83bf70375900d64a83252c"
+    },
+    {
+      "path": "src/components/home-experience.tsx",
+      "uid": "a59794f85ff26b672f194db25a997c8e562398ea",
+      "mode": 33206,
+      "bytes": 12067,
+      "sha256": "b12b986fd9297b1a01ecf31d22de1d513c472ae323458a09089dd07c5516c279"
+    },
+    {
+      "path": "src/components/library-view.tsx",
+      "uid": "afdd51ffb14897f97a5f9d8d71c531fa61538b81",
+      "mode": 33206,
+      "bytes": 3791,
+      "sha256": "8d405f572fcdd4003904125952a35d2e3681bfc1541f0a820866cebd8cdb1c04"
+    },
+    {
+      "path": "src/components/login-view.tsx",
+      "uid": "a3f8893dea02ef93ce32512dc821cb61fad481de",
+      "mode": 33206,
+      "bytes": 2983,
+      "sha256": "8fe6e9ba278fd58a80422fa9b9e2cac591737647902ed9777219e9914c7228e1"
+    },
+    {
+      "path": "src/components/questionnaire-view.tsx",
+      "uid": "2c593f2e80c335c13e82c6947fe39cf6b47edbb6",
+      "mode": 33206,
+      "bytes": 18371,
+      "sha256": "ee747a491ac6f213f6c194cdac81ace713052ede267670feb66cae2a96647f08"
+    },
+    {
+      "path": "src/components/recommendations-view.tsx",
+      "uid": "d2da4dfdb6525558543fb813cd54313374cfbef4",
+      "mode": 33206,
+      "bytes": 6177,
+      "sha256": "7f834552f09188cdefd8a7998732873065385ab3f9267f352dcd80ccd858603c"
+    },
+    {
+      "path": "src/components/route-view.tsx",
+      "uid": "c5c0caf805b3956d47c8a6bb2ded0aeb99b34d4d",
+      "mode": 33206,
+      "bytes": 8421,
+      "sha256": "d9ff9fbf5d2aad4b8ff73cdb099d11cd05368729ff064465225f2f9ae15835ea"
+    },
+    {
+      "path": "src/components/utility-views.tsx",
+      "uid": "8521fe773540caee2dda4c9440e3c11ed3c94e7c",
+      "mode": 33206,
+      "bytes": 9351,
+      "sha256": "9084cf151fd9c103d7223057245c90e2c74d0f624c7fa7cb829cd2ebf55ef7ed"
+    },
+    {
+      "path": "src/lib/activity-data.ts",
+      "uid": "44416f8b4528200325168e251f271c44f4fff39c",
+      "mode": 33206,
+      "bytes": 16479,
+      "sha256": "42a57cd5eff66160bfdc50b0456010c3155757574e3bda3a73ddabb54190cf0d"
+    },
+    {
+      "path": "src/lib/amap-types.ts",
+      "uid": "ac2427a906f0bc9df4e310b845dc8bd61d012054",
+      "mode": 33206,
+      "bytes": 1198,
+      "sha256": "94fca287a5878263cae1f3115983db83d1ab509b6b4c0d21ba3b16e766f1b9bd"
+    },
+    {
+      "path": "src/lib/recommendation.ts",
+      "uid": "bc373b0816c11c06039504fb850c43d1258959f7",
+      "mode": 33206,
+      "bytes": 6024,
+      "sha256": "ec8f55184ca278d655571ac09e1bb952be4c0c544b2d0effcfe99a99659ce8f7"
+    },
+    {
+      "path": "src/lib/server/amap.ts",
+      "uid": "1d86adb6a22f92ae37f36ae7cee27aae081ebf4b",
+      "mode": 33206,
+      "bytes": 8552,
+      "sha256": "706b898ede8df5829aa1829a1b5b0e6673e88732f602fd632f8a331b36ef418d"
+    },
+    {
+      "path": "src/lib/server/deepseek.ts",
+      "uid": "6953f74eb19ed94f596064860a45de07fb156776",
+      "mode": 33206,
+      "bytes": 5310,
+      "sha256": "9a6ae77571def31c4341dbbb744117c0a83c224716925cf6b5a09a237ee7d5bd"
+    },
+    {
+      "path": "src/lib/server/session.ts",
+      "uid": "2fd46bad25fcfdf4162821bd939f9902c5eb74ce",
+      "mode": 33206,
+      "bytes": 1901,
+      "sha256": "314b5dffb2c2b4a9d253ac8da03fdb83bd523f91c3b53f6cd6189e5729d1248f"
+    },
+    {
+      "path": "src/lib/server/workspace.ts",
+      "uid": "dd3dc55e48b0ab6d124c7b6cec21576120d51b22",
+      "mode": 33206,
+      "bytes": 4191,
+      "sha256": "8d6d6d65d40b2e09fb473e5eacd249480a046cfadeb0b90c70ce1aa219d0d507"
+    },
+    {
+      "path": "src/lib/types.ts",
+      "uid": "8f7053e62d80937435cd8c5876d0ee851727ff77",
+      "mode": 33206,
+      "bytes": 3802,
+      "sha256": "0560ed26b31d5742bf69f40e329cac7021b79d5cff779fa194edee726a335703"
+    },
+    {
+      "path": "src/lib/week-types.ts",
+      "uid": "6cc3c0c86ad57942bc851d35a6099be67a537887",
+      "mode": 33206,
+      "bytes": 626,
+      "sha256": "60d2dfb3039db8dca8b9e6f3e0f89546913ffe2d9546b0eb43c2b159147642bf"
+    },
+    {
+      "path": "tsconfig.json",
+      "uid": "44fb7b98742c1872c8fa9f97e6892016eda50863",
+      "mode": 33206,
+      "bytes": 704,
+      "sha256": "acf32a7a059465614785e8142ba5a727eb94c27f99aea71fb2e4972276fed65c"
+    },
+    {
+      "path": "tsconfig.tsbuildinfo",
+      "uid": "893498a178d47074947bfc5d8bfaaf434e95d2f1",
+      "mode": 33206,
+      "bytes": 164047,
+      "sha256": "b399fa6620b87d8069eaccd7954878d5ac3afb8095981182d06128f8b9ee8f50"
+    }
+  ],
+  "failures": [],
+  "complete": true
+}

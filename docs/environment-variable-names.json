@@ -1,0 +1,170 @@
+[
+  {
+    "key": "NEXT_PUBLIC_REQUIRE_AUTH",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "ZZZ_PASSWORD_SCRYPT",
+    "type": "sensitive",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "SERENITY_PASSWORD_SCRYPT",
+    "type": "sensitive",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "AUTH_SECRET",
+    "type": "sensitive",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "DATABASE_URL",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "DATABASE_URL_UNPOOLED",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "POSTGRES_HOST",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "PGHOST",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "PGDATABASE",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "POSTGRES_URL_NO_SSL",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "POSTGRES_DATABASE",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "PGHOST_UNPOOLED",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "PGPASSWORD",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "POSTGRES_URL",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "PGUSER",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "POSTGRES_PRISMA_URL",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "POSTGRES_PASSWORD",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "NEON_PROJECT_ID",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "POSTGRES_USER",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "POSTGRES_URL_NON_POOLING",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "AMAP_WEB_SERVICE_KEY",
+    "type": "sensitive",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "NEXT_PUBLIC_AMAP_JS_KEY",
+    "type": "encrypted",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "AMAP_SECURITY_JS_CODE",
+    "type": "sensitive",
+    "target": [
+      "production"
+    ]
+  },
+  {
+    "key": "DEEPSEEK_API_KEY",
+    "type": "sensitive",
+    "target": [
+      "production"
+    ]
+  }
+]

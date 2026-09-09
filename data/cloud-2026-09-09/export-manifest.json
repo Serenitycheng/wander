@@ -1,0 +1,17 @@
+{
+  "exported_at": "2026-09-09T13:53:00.812Z",
+  "consistent_snapshot": true,
+  "read_only": true,
+  "tables": [
+    {
+      "table_schema": "public",
+      "table_name": "beijing_play_workspace_versions",
+      "rows": 2
+    },
+    {
+      "table_schema": "public",
+      "table_name": "beijing_play_workspaces",
+      "rows": 1
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "title": "北京去哪儿玩",
+  "source_files": 52,
+  "source_bytes": 4028352,
+  "production_deployment": "dpl_2JCC5et7fHyfpjycTmYRuCUbKoqs",
+  "vercel_history": [
+    {
+      "project": "beijing-qu-na-er-wan",
+      "deployments": 6
+    }
+  ],
+  "historical_deployments_total": 6,
+  "attachments": null,
+  "database_tables": [
+    {
+      "table_schema": "public",
+      "table_name": "beijing_play_workspace_versions",
+      "rows": 2
+    },
+    {
+      "table_schema": "public",
+      "table_name": "beijing_play_workspaces",
+      "rows": 1
+    }
+  ],
+  "redis_key_count": null,
+  "game_save_excluded": false
+}

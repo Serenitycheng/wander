@@ -1,0 +1,114 @@
+[
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspaces",
+    "conname": "beijing_play_workspaces_space_id_not_null",
+    "contype": "n",
+    "definition": "NOT NULL space_id"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspaces",
+    "conname": "beijing_play_workspaces_draft_not_null",
+    "contype": "n",
+    "definition": "NOT NULL draft"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspaces",
+    "conname": "beijing_play_workspaces_revision_not_null",
+    "contype": "n",
+    "definition": "NOT NULL revision"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspaces",
+    "conname": "beijing_play_workspaces_editor_not_null",
+    "contype": "n",
+    "definition": "NOT NULL editor"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspaces",
+    "conname": "beijing_play_workspaces_saved_trip_not_null",
+    "contype": "n",
+    "definition": "NOT NULL saved_trip"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspaces",
+    "conname": "beijing_play_workspaces_updated_at_not_null",
+    "contype": "n",
+    "definition": "NOT NULL updated_at"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspaces",
+    "conname": "beijing_play_workspaces_pkey",
+    "contype": "p",
+    "definition": "PRIMARY KEY (space_id)"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspace_versions",
+    "conname": "beijing_play_workspace_versions_id_not_null",
+    "contype": "n",
+    "definition": "NOT NULL id"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspace_versions",
+    "conname": "beijing_play_workspace_versions_space_id_not_null",
+    "contype": "n",
+    "definition": "NOT NULL space_id"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspace_versions",
+    "conname": "beijing_play_workspace_versions_draft_not_null",
+    "contype": "n",
+    "definition": "NOT NULL draft"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspace_versions",
+    "conname": "beijing_play_workspace_versions_revision_not_null",
+    "contype": "n",
+    "definition": "NOT NULL revision"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspace_versions",
+    "conname": "beijing_play_workspace_versions_editor_not_null",
+    "contype": "n",
+    "definition": "NOT NULL editor"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspace_versions",
+    "conname": "beijing_play_workspace_versions_saved_trip_not_null",
+    "contype": "n",
+    "definition": "NOT NULL saved_trip"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspace_versions",
+    "conname": "beijing_play_workspace_versions_created_at_not_null",
+    "contype": "n",
+    "definition": "NOT NULL created_at"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspace_versions",
+    "conname": "beijing_play_workspace_versions_pkey",
+    "contype": "p",
+    "definition": "PRIMARY KEY (id)"
+  },
+  {
+    "schema": "public",
+    "table_name": "beijing_play_workspace_versions",
+    "conname": "beijing_play_workspace_versions_space_id_revision_key",
+    "contype": "u",
+    "definition": "UNIQUE (space_id, revision)"
+  }
+]

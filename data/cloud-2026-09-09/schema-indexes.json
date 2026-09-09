@@ -1,0 +1,30 @@
+[
+  {
+    "schemaname": "public",
+    "tablename": "beijing_play_workspaces",
+    "indexname": "beijing_play_workspaces_pkey",
+    "tablespace": null,
+    "indexdef": "CREATE UNIQUE INDEX beijing_play_workspaces_pkey ON public.beijing_play_workspaces USING btree (space_id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "beijing_play_workspace_versions",
+    "indexname": "beijing_play_workspace_versions_pkey",
+    "tablespace": null,
+    "indexdef": "CREATE UNIQUE INDEX beijing_play_workspace_versions_pkey ON public.beijing_play_workspace_versions USING btree (id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "beijing_play_workspace_versions",
+    "indexname": "beijing_play_workspace_versions_space_id_revision_key",
+    "tablespace": null,
+    "indexdef": "CREATE UNIQUE INDEX beijing_play_workspace_versions_space_id_revision_key ON public.beijing_play_workspace_versions USING btree (space_id, revision)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "beijing_play_workspace_versions",
+    "indexname": "beijing_play_versions_space_idx",
+    "tablespace": null,
+    "indexdef": "CREATE INDEX beijing_play_versions_space_idx ON public.beijing_play_workspace_versions USING btree (space_id, id DESC)"
+  }
+]

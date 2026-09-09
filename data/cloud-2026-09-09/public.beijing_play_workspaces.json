@@ -1,0 +1,72 @@
+[
+  {
+    "space_id": "serenity",
+    "draft": {
+      "id": "trip-1788169850884",
+      "date": "",
+      "mode": "surprise",
+      "roll": 4,
+      "title": "下个周末去哪儿",
+      "energy": "轻松",
+      "answers": {
+        "zzz": {
+          "vibes": [
+            "来点没试过的"
+          ],
+          "vetoes": [
+            "夜间太晚",
+            "高消费",
+            "强社交表达",
+            "人多拥挤",
+            "水上项目",
+            "不想运动"
+          ],
+          "address": "远洋山水",
+          "freeText": "",
+          "completed": false,
+          "interests": [
+            "城市与摄影"
+          ]
+        },
+        "serenity": {
+          "vibes": [
+            "来点没试过的"
+          ],
+          "vetoes": [
+            "夜间太晚",
+            "高消费",
+            "强社交表达",
+            "不想户外 / 怕晒",
+            "不想运动",
+            "人多拥挤"
+          ],
+          "address": "阳光邑上",
+          "freeText": "不想早起，想要有意思一点的活动",
+          "aiSummary": "",
+          "completed": true,
+          "interests": [
+            "城市与摄影"
+          ],
+          "aiConstraints": []
+        }
+      },
+      "transport": [
+        "公共交通",
+        "市郊铁路",
+        "骑行步行"
+      ],
+      "updatedAt": "2026-09-02T12:04:45.487Z",
+      "availableHours": 7,
+      "participantIds": [
+        "serenity",
+        "zzz"
+      ],
+      "budgetPerPerson": 150,
+      "maxOneWayMinutes": 75
+    },
+    "revision": "2",
+    "editor": "serenity",
+    "saved_trip": false,
+    "updated_at": "2026-09-02T13:12:29.257Z"
+  }
+]

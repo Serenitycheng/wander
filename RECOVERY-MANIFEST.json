@@ -1,0 +1,1558 @@
+{
+  "generated_at": "2026-09-09",
+  "scope": "All recovery repository files except this manifest and Git internals",
+  "file_count": 310,
+  "total_bytes": 24236039,
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 9,
+      "sha256": "8b9c3028d6467ff3be7c793141927841d70f47f52d0590677438f488ca154992"
+    },
+    {
+      "path": "data/cloud-2026-09-09/export-manifest.json",
+      "bytes": 341,
+      "sha256": "7b7a50c8b9591b21d64da655bab1698854a352239363bd2ccfddb418e838612e"
+    },
+    {
+      "path": "data/cloud-2026-09-09/public.beijing_play_workspace_versions.json",
+      "bytes": 3426,
+      "sha256": "81812651b04741063c1f4daf3a07982d45fe9af6aeea4a9cac29eff41258c981"
+    },
+    {
+      "path": "data/cloud-2026-09-09/public.beijing_play_workspaces.json",
+      "bytes": 1699,
+      "sha256": "06a513e2b22bc899ab29040faf25ec5f0000c0dd212a8eb73a3219be397972bb"
+    },
+    {
+      "path": "data/cloud-2026-09-09/schema-columns.json",
+      "bytes": 17499,
+      "sha256": "ad698949946525f67104595ffb1e98ccde478fa0eaf66d5bb2ef07906ea0ac15"
+    },
+    {
+      "path": "data/cloud-2026-09-09/schema-constraints.json",
+      "bytes": 3258,
+      "sha256": "b6f45195370234c808bd6327c14aab33b63fda47de96bce50d8f1c478120a260"
+    },
+    {
+      "path": "data/cloud-2026-09-09/schema-indexes.json",
+      "bytes": 1240,
+      "sha256": "e25578d3b2d7a267c422c5d99f174a5578fa962b72d671f115cbd9d40c9aedb1"
+    },
+    {
+      "path": "data/cloud-2026-09-09/schema-policies.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "data/cloud-2026-09-09/schema-sequences.json",
+      "bytes": 341,
+      "sha256": "6c0148e2c80677dbd2316132cc53811c0564cc3db208134ec18e7c4d14144b08"
+    },
+    {
+      "path": "data/cloud-2026-09-09/schema-views.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "data-2026-09-09.zip",
+      "bytes": 3425,
+      "sha256": "078038a0b98c1c9e772db3242ef3f0fdd17393250d25ee52d75dc1385ef55d77"
+    },
+    {
+      "path": "docs/credential-scan-result.json",
+      "bytes": 160,
+      "sha256": "c42052c4f43186475249616238c1d881cfa3f71ee4a1fadf684a448974a53f46"
+    },
+    {
+      "path": "docs/environment-variable-names.json",
+      "bytes": 2549,
+      "sha256": "af90a216c1c1d984ba41a15c2bc7f85d8fadb930f9ff5c36d65b97765f031da3"
+    },
+    {
+      "path": "docs/recovery-summary.json",
+      "bytes": 646,
+      "sha256": "5e062aaf68d6b1566579f412420fb2ef9827bc30f90e0ad9fe7c57fb636d1680"
+    },
+    {
+      "path": "docs/vercel-source-manifest.json",
+      "bytes": 87973,
+      "sha256": "eb38b742dadfea575f0be489cc69a450d64db9585c7954381bfb3e2261301b31"
+    },
+    {
+      "path": "docs-2026-09-09.zip",
+      "bytes": 916,
+      "sha256": "ed9a4bd05dcfc49dac10155f0f1c2345fdde481803673249caae4687e6a412b6"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/manifest.json",
+      "bytes": 46363,
+      "sha256": "9569e0bed4e47d8db4fb1e8d61636be123dcd7d004667726977db68b3804922b"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/.env.example",
+      "bytes": 555,
+      "sha256": "835f01afb9a50d85509ce779fa691159f2e0d8219d2048dfc165eda1ec7d1f90"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/AGENTS.md",
+      "bytes": 678,
+      "sha256": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/CHANGELOG.md",
+      "bytes": 3321,
+      "sha256": "00a00ccbe74c23c644af5a605e18a89a58b96bdd38ed0a4fac78fed413679318"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/CLAUDE.md",
+      "bytes": 11,
+      "sha256": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/db/001_initial.sql",
+      "bytes": 5259,
+      "sha256": "34664b684833d62bed8e98b97d83587353d902323d5bc7ef80d2cd4e31aa40fd"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/eslint.config.mjs",
+      "bytes": 309,
+      "sha256": "927cc3e7a3599cc1d6386a5fa73a6db71be3bd5f0c0d0e5222366614c7d5f9e5"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/next-env.d.ts",
+      "bytes": 288,
+      "sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/next.config.ts",
+      "bytes": 130,
+      "sha256": "c5efcdb15ee66db5a3a749082d8a2d68abdd0555ce251baee0e3fd920b4c55b5"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/package.json",
+      "bytes": 718,
+      "sha256": "d7d0a515631c91b7f23a400ec521a834cf7cd49e645cc61a851496b4315d97d8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/pnpm-lock.yaml",
+      "bytes": 135490,
+      "sha256": "2328c552db9d60f268a8c645497677a168fdbff420267831ca3c86c1f84048fa"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/pnpm-workspace.yaml",
+      "bytes": 107,
+      "sha256": "22a3e2628ddc06dd2eb02dae7c53bb01c64b138f22bb6a5f85ed0e49804d7383"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/preview-desktop.png",
+      "bytes": 381842,
+      "sha256": "92576d6717f4ded549ee3d672483fd01b51c45188d9d864dd2d7d05b12f60e9e"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/preview-final-desktop.png",
+      "bytes": 543235,
+      "sha256": "da5aa311501d7a566386b82b7f862e8f7ae6471afcf97811c5893bd815be56c8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/preview-mobile.png",
+      "bytes": 260992,
+      "sha256": "4964ee5f3d5b1cfbc16f0e98fc360790ca9c01273269aa4feb1db08a40c0e2d8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/public/hero-weekend.png",
+      "bytes": 2320442,
+      "sha256": "95de6e78f0c591a3bc487ae18ccf4887f797b7cc66e62e9bfe989c6bd2026ae4"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/README.md",
+      "bytes": 2232,
+      "sha256": "548348881647ccc9a0e85eb010dff3a8f2ee203276e25bb8f868c65aa2c075e7"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/_AMapService/[...path]/route.ts",
+      "bytes": 1321,
+      "sha256": "a135c2c10e941e52a5932a7a41df1cfb25ebd54feae80da6d8c7fdaa5a767c89"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/api/ai/parse/route.ts",
+      "bytes": 5180,
+      "sha256": "91e98d1e3021ba547aae98981f96563a6c90030510a31b1ee65424a6ab8e7ab0"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/api/amap/directions/route.ts",
+      "bytes": 1225,
+      "sha256": "a593ac2345769dc241c7f13a0177b65c5da47c3e773c13956fe53498f38e6f55"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/api/amap/geocode/route.ts",
+      "bytes": 908,
+      "sha256": "f4ce3f93b5a30d722f10eada1cd1c264ed0c4f0162f18c4ce9c8477f86cad6bc"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/api/amap/plan/route.ts",
+      "bytes": 4333,
+      "sha256": "aced0cffaf1e43ea1338cdc560cb323bc2c8e5d271652a511af6287e45aecec2"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/api/amap/weather/route.ts",
+      "bytes": 596,
+      "sha256": "b0045f297237565aa29f373361a502b62dbec83e3f85287c4dc0fbc3e024df4a"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/api/auth/login/route.ts",
+      "bytes": 1830,
+      "sha256": "b2d5bdbdd080f823ec92277c1e01ed022264c1e2d898a8030b0681cf38e2e898"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/api/auth/session/route.ts",
+      "bytes": 298,
+      "sha256": "8240a39b9aca7809b59daa0df90cc0696afcba144ffd0015b6a7d1aaa1117add"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/api/integrations/status/route.ts",
+      "bytes": 651,
+      "sha256": "ed8e048792b341ece2680b56d6ee2bbb8c01cff93006fa0e3ef3f31324b373dd"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/api/recommendations/route.ts",
+      "bytes": 12775,
+      "sha256": "8cc08d1731807f1be426e03dd00842164ef4248a2070dfd01983bcbcc719ecf4"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/api/week/search/route.ts",
+      "bytes": 7521,
+      "sha256": "966088fe43bdf743018b64f47fe998cdafc649e1cf839eafc1c96f621026a9d6"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/api/workspace/route.ts",
+      "bytes": 3204,
+      "sha256": "21a12e4035c34f6c6a8b120099535bdbb646d634dacd83a13594ac486cd98329"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/globals.css",
+      "bytes": 41990,
+      "sha256": "713124db8e7be6edb148c4ad217d5a0b6a6d5397a94380b305c3317d4929c3cc"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/layout.tsx",
+      "bytes": 618,
+      "sha256": "ee411cff996874ae54c38d67b5d92e606ccd246162a51f7b56b8a68ddd518489"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/app/page.tsx",
+      "bytes": 132,
+      "sha256": "064f4c37eba523f3ad6ae8911e16b91480f763535c68432ba5b82c0401e91bb6"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/components/amap-route-map.tsx",
+      "bytes": 3636,
+      "sha256": "993fe19390ba7316dcf29af7dcc155c3d46207d5adbec4d9b54a55905b290d41"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/components/app-frame.tsx",
+      "bytes": 5131,
+      "sha256": "c4c3457ab68a6df364569543ea656c0d2643983e82f911a8649b65a1d38079c4"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/components/dashboard-view.tsx",
+      "bytes": 6076,
+      "sha256": "ff1bad9c9ee1bd3c41095da18652ff4c1c81760b0a83bf70375900d64a83252c"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/components/home-experience.tsx",
+      "bytes": 11997,
+      "sha256": "dd44bca24bde2dda897b5418999d9331651e538f83454d75d9cedb110a6f4dc9"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/components/library-view.tsx",
+      "bytes": 3791,
+      "sha256": "8d405f572fcdd4003904125952a35d2e3681bfc1541f0a820866cebd8cdb1c04"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/components/login-view.tsx",
+      "bytes": 2983,
+      "sha256": "3e168439f4b884ba02a219dcbb18996c88bde1cf535ebd6c691740f4c33a000b"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/components/questionnaire-view.tsx",
+      "bytes": 16293,
+      "sha256": "28a36dac8b9341eacca974ebad606afb84c645175dfe0770b086bb2270e60c47"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/components/recommendations-view.tsx",
+      "bytes": 5759,
+      "sha256": "62bfcdc56962c0a1e017f0ac0a6f91fdeeebf4d197b91e5bf36c64c78416bee6"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/components/route-view.tsx",
+      "bytes": 8421,
+      "sha256": "d9ff9fbf5d2aad4b8ff73cdb099d11cd05368729ff064465225f2f9ae15835ea"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/components/utility-views.tsx",
+      "bytes": 9351,
+      "sha256": "9084cf151fd9c103d7223057245c90e2c74d0f624c7fa7cb829cd2ebf55ef7ed"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/lib/activity-data.ts",
+      "bytes": 16500,
+      "sha256": "081c60160022778117e29900ffb1249f1b890611c39fd373e352b8bdcba92844"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/lib/amap-types.ts",
+      "bytes": 1198,
+      "sha256": "94fca287a5878263cae1f3115983db83d1ab509b6b4c0d21ba3b16e766f1b9bd"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/lib/recommendation.ts",
+      "bytes": 5755,
+      "sha256": "a1248733c06732ddaccec9972b36a5aa0e916e8e377f0da0b70097b4701296e7"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/lib/server/amap.ts",
+      "bytes": 8552,
+      "sha256": "706b898ede8df5829aa1829a1b5b0e6673e88732f602fd632f8a331b36ef418d"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/lib/server/deepseek.ts",
+      "bytes": 4963,
+      "sha256": "f0ecde140887fa90c05c9ee4a7da30dc713af461e9e2aace5e412ceb1ea0fd65"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/lib/server/session.ts",
+      "bytes": 1901,
+      "sha256": "314b5dffb2c2b4a9d253ac8da03fdb83bd523f91c3b53f6cd6189e5729d1248f"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/lib/server/workspace.ts",
+      "bytes": 4191,
+      "sha256": "8d6d6d65d40b2e09fb473e5eacd249480a046cfadeb0b90c70ce1aa219d0d507"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/lib/types.ts",
+      "bytes": 2645,
+      "sha256": "d784c9db44fb19852869a1a2e7afa12dfae47f8830924f748da5ae54d88b782b"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/src/lib/week-types.ts",
+      "bytes": 626,
+      "sha256": "60d2dfb3039db8dca8b9e6f3e0f89546913ffe2d9546b0eb43c2b159147642bf"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/tsconfig.json",
+      "bytes": 704,
+      "sha256": "acf32a7a059465614785e8142ba5a727eb94c27f99aea71fb2e4972276fed65c"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN/source/tsconfig.tsbuildinfo",
+      "bytes": 165321,
+      "sha256": "01759dd522b98fe847374019bd56c7cbeb2dad14cef3c602f89a657c79ef3db6"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/manifest.json",
+      "bytes": 43934,
+      "sha256": "cd8d2356932206415e4a6b08b37a262993d095f6982d4c82de48398bab1829fa"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/.env.example",
+      "bytes": 555,
+      "sha256": "835f01afb9a50d85509ce779fa691159f2e0d8219d2048dfc165eda1ec7d1f90"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/AGENTS.md",
+      "bytes": 678,
+      "sha256": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/CHANGELOG.md",
+      "bytes": 1461,
+      "sha256": "63c79061e6877a4b0d2b6ad42ad6e6d06404ff22d373aaedc148464859989953"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/CLAUDE.md",
+      "bytes": 11,
+      "sha256": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/db/001_initial.sql",
+      "bytes": 5259,
+      "sha256": "34664b684833d62bed8e98b97d83587353d902323d5bc7ef80d2cd4e31aa40fd"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/eslint.config.mjs",
+      "bytes": 309,
+      "sha256": "927cc3e7a3599cc1d6386a5fa73a6db71be3bd5f0c0d0e5222366614c7d5f9e5"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/next-env.d.ts",
+      "bytes": 288,
+      "sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/next.config.ts",
+      "bytes": 130,
+      "sha256": "c5efcdb15ee66db5a3a749082d8a2d68abdd0555ce251baee0e3fd920b4c55b5"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/package.json",
+      "bytes": 697,
+      "sha256": "1023d9b8893a3591a71bd686872f99fe57a7fc65f266b2b149ba055d00f407c6"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/pnpm-lock.yaml",
+      "bytes": 132691,
+      "sha256": "90c925d4b404f7f30f3b3ca72d480d85b5a26ecd353e55e736556c3cb739f1a4"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/pnpm-workspace.yaml",
+      "bytes": 107,
+      "sha256": "22a3e2628ddc06dd2eb02dae7c53bb01c64b138f22bb6a5f85ed0e49804d7383"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/preview-desktop.png",
+      "bytes": 381842,
+      "sha256": "92576d6717f4ded549ee3d672483fd01b51c45188d9d864dd2d7d05b12f60e9e"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/preview-final-desktop.png",
+      "bytes": 543235,
+      "sha256": "da5aa311501d7a566386b82b7f862e8f7ae6471afcf97811c5893bd815be56c8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/preview-mobile.png",
+      "bytes": 260992,
+      "sha256": "4964ee5f3d5b1cfbc16f0e98fc360790ca9c01273269aa4feb1db08a40c0e2d8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/public/hero-weekend.png",
+      "bytes": 2320442,
+      "sha256": "95de6e78f0c591a3bc487ae18ccf4887f797b7cc66e62e9bfe989c6bd2026ae4"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/README.md",
+      "bytes": 1475,
+      "sha256": "2efbd1affc0289d7fbf994f0abf42b430a98b9d53b82716679ab63b7bca6832e"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/app/api/ai/parse/route.ts",
+      "bytes": 5180,
+      "sha256": "91e98d1e3021ba547aae98981f96563a6c90030510a31b1ee65424a6ab8e7ab0"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/app/api/amap/directions/route.ts",
+      "bytes": 1225,
+      "sha256": "a593ac2345769dc241c7f13a0177b65c5da47c3e773c13956fe53498f38e6f55"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/app/api/amap/geocode/route.ts",
+      "bytes": 908,
+      "sha256": "f4ce3f93b5a30d722f10eada1cd1c264ed0c4f0162f18c4ce9c8477f86cad6bc"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/app/api/auth/login/route.ts",
+      "bytes": 1830,
+      "sha256": "b2d5bdbdd080f823ec92277c1e01ed022264c1e2d898a8030b0681cf38e2e898"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/app/api/auth/session/route.ts",
+      "bytes": 298,
+      "sha256": "8240a39b9aca7809b59daa0df90cc0696afcba144ffd0015b6a7d1aaa1117add"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/app/api/integrations/status/route.ts",
+      "bytes": 509,
+      "sha256": "45898deab82e0a78f513e56ec1014d2e6237906d5f439f41c4de7a340ebfdd38"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/app/api/workspace/route.ts",
+      "bytes": 468,
+      "sha256": "8f86d611825270d2bd9c4339d6e52acd5fa013414a8bcc0223d737da67e36d05"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/app/globals.css",
+      "bytes": 35988,
+      "sha256": "b9e9c7bbb98a834975eea4ce383924cf94c2bc4fc89f7b77fb3fad266f76c230"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/app/layout.tsx",
+      "bytes": 618,
+      "sha256": "ee411cff996874ae54c38d67b5d92e606ccd246162a51f7b56b8a68ddd518489"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/app/page.tsx",
+      "bytes": 132,
+      "sha256": "064f4c37eba523f3ad6ae8911e16b91480f763535c68432ba5b82c0401e91bb6"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/components/app-frame.tsx",
+      "bytes": 4954,
+      "sha256": "f834be26ec8598624b73c4206c1a67e7313c60c2136ca88abe05eed8a28396c3"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/components/dashboard-view.tsx",
+      "bytes": 5813,
+      "sha256": "ab06c3f08cec51f65f7849da0f8c371d85007e01812c6ab053306d481e07dc41"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/components/home-experience.tsx",
+      "bytes": 7045,
+      "sha256": "f82a6be859c19f98d34f9ab1c8c3beaa20a9e7bd254463b88ec377c7ababb63a"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/components/library-view.tsx",
+      "bytes": 3791,
+      "sha256": "8d405f572fcdd4003904125952a35d2e3681bfc1541f0a820866cebd8cdb1c04"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/components/login-view.tsx",
+      "bytes": 2983,
+      "sha256": "1f1ce70889685e772ca98aca9c4747591f1919c2d3a00b0479a12b41f94715b0"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/components/questionnaire-view.tsx",
+      "bytes": 16293,
+      "sha256": "28a36dac8b9341eacca974ebad606afb84c645175dfe0770b086bb2270e60c47"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/components/recommendations-view.tsx",
+      "bytes": 4690,
+      "sha256": "dcd22eaf6a1ac9e30534fb13872694aa391a55fef223fc8d98b638acbdc3ce51"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/components/route-view.tsx",
+      "bytes": 4634,
+      "sha256": "f8c98fb175e17bc0ca9f6dd4e3ccdc3d871418612ec751f16c8cd78d64d12686"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/components/utility-views.tsx",
+      "bytes": 1910,
+      "sha256": "65f8071c10d5db1f0b60bf036d7defa520bbc303958211333acbd519ce8f29de"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/lib/activity-data.ts",
+      "bytes": 16500,
+      "sha256": "081c60160022778117e29900ffb1249f1b890611c39fd373e352b8bdcba92844"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/lib/recommendation.ts",
+      "bytes": 4196,
+      "sha256": "5484804ea559a3f69b465f03fdc069841a21c51a3bc7171b24a49daf7d33b536"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/lib/server/amap.ts",
+      "bytes": 1458,
+      "sha256": "277f9b1f2c7e65e08a73e4114b3b6795a93c7aab079de6de8c180934baddb964"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/lib/server/session.ts",
+      "bytes": 1901,
+      "sha256": "314b5dffb2c2b4a9d253ac8da03fdb83bd523f91c3b53f6cd6189e5729d1248f"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/src/lib/types.ts",
+      "bytes": 2292,
+      "sha256": "c00cce99968b958246cd639bf99476e8422c209f265c6154445eb60b6cc1348f"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/tsconfig.json",
+      "bytes": 704,
+      "sha256": "acf32a7a059465614785e8142ba5a727eb94c27f99aea71fb2e4972276fed65c"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7YpQRP6bTx43BrFnac8d593kxryM/source/tsconfig.tsbuildinfo",
+      "bytes": 156611,
+      "sha256": "a605aed6592875f57ed243545e159fc549207fe9c9d032b7edde8ced783ee8e9"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/manifest.json",
+      "bytes": 43932,
+      "sha256": "b5532d6ea9a7ade44ffff821a4ef7792987d1dd087ac08eb6f0fe16fdb277f37"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/.env.example",
+      "bytes": 538,
+      "sha256": "0dbc51bef83f6d9d3222d402ecc638d259266403da9e1fce16bd5229221a52da"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/AGENTS.md",
+      "bytes": 678,
+      "sha256": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/CHANGELOG.md",
+      "bytes": 862,
+      "sha256": "1bbfec4be9dd0bef91c007c349a9c6fced71bdc36ed4cabca3c0c9fc5dc5d430"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/CLAUDE.md",
+      "bytes": 11,
+      "sha256": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/db/001_initial.sql",
+      "bytes": 5259,
+      "sha256": "34664b684833d62bed8e98b97d83587353d902323d5bc7ef80d2cd4e31aa40fd"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/eslint.config.mjs",
+      "bytes": 309,
+      "sha256": "927cc3e7a3599cc1d6386a5fa73a6db71be3bd5f0c0d0e5222366614c7d5f9e5"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/next-env.d.ts",
+      "bytes": 296,
+      "sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/next.config.ts",
+      "bytes": 130,
+      "sha256": "c5efcdb15ee66db5a3a749082d8a2d68abdd0555ce251baee0e3fd920b4c55b5"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/package.json",
+      "bytes": 697,
+      "sha256": "bc830f24e25220907a43136c842048f6f6cb68fb7deb0bc2acfddb34e3fe6e79"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/pnpm-lock.yaml",
+      "bytes": 132691,
+      "sha256": "90c925d4b404f7f30f3b3ca72d480d85b5a26ecd353e55e736556c3cb739f1a4"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/pnpm-workspace.yaml",
+      "bytes": 107,
+      "sha256": "22a3e2628ddc06dd2eb02dae7c53bb01c64b138f22bb6a5f85ed0e49804d7383"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/preview-desktop.png",
+      "bytes": 381842,
+      "sha256": "92576d6717f4ded549ee3d672483fd01b51c45188d9d864dd2d7d05b12f60e9e"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/preview-final-desktop.png",
+      "bytes": 543235,
+      "sha256": "da5aa311501d7a566386b82b7f862e8f7ae6471afcf97811c5893bd815be56c8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/preview-mobile.png",
+      "bytes": 260992,
+      "sha256": "4964ee5f3d5b1cfbc16f0e98fc360790ca9c01273269aa4feb1db08a40c0e2d8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/public/hero-weekend.png",
+      "bytes": 2320442,
+      "sha256": "95de6e78f0c591a3bc487ae18ccf4887f797b7cc66e62e9bfe989c6bd2026ae4"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/README.md",
+      "bytes": 1303,
+      "sha256": "a1155d682dff9af961df0acf1189c8981b99e4273a4b4b8825bc65c005a839fe"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/app/api/ai/parse/route.ts",
+      "bytes": 304,
+      "sha256": "115a9567e7945336bd4d16af4cc9441672e2ecf460d53aa91182dd4caafca3b9"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/app/api/amap/directions/route.ts",
+      "bytes": 1225,
+      "sha256": "a593ac2345769dc241c7f13a0177b65c5da47c3e773c13956fe53498f38e6f55"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/app/api/amap/geocode/route.ts",
+      "bytes": 908,
+      "sha256": "f4ce3f93b5a30d722f10eada1cd1c264ed0c4f0162f18c4ce9c8477f86cad6bc"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/app/api/auth/login/route.ts",
+      "bytes": 1830,
+      "sha256": "b2d5bdbdd080f823ec92277c1e01ed022264c1e2d898a8030b0681cf38e2e898"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/app/api/auth/session/route.ts",
+      "bytes": 298,
+      "sha256": "8240a39b9aca7809b59daa0df90cc0696afcba144ffd0015b6a7d1aaa1117add"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/app/api/integrations/status/route.ts",
+      "bytes": 509,
+      "sha256": "45898deab82e0a78f513e56ec1014d2e6237906d5f439f41c4de7a340ebfdd38"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/app/api/workspace/route.ts",
+      "bytes": 468,
+      "sha256": "8f86d611825270d2bd9c4339d6e52acd5fa013414a8bcc0223d737da67e36d05"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/app/globals.css",
+      "bytes": 34717,
+      "sha256": "708f0d3e810c14dd9d5fe8eec9da005a4d88527129da6775171d3b9320868be4"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/app/layout.tsx",
+      "bytes": 618,
+      "sha256": "ee411cff996874ae54c38d67b5d92e606ccd246162a51f7b56b8a68ddd518489"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/app/page.tsx",
+      "bytes": 132,
+      "sha256": "064f4c37eba523f3ad6ae8911e16b91480f763535c68432ba5b82c0401e91bb6"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/components/app-frame.tsx",
+      "bytes": 4954,
+      "sha256": "90b0adc7e84633ab958b0baaa77e55d590a4c0160046e31a3388ba8079104ff9"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/components/dashboard-view.tsx",
+      "bytes": 5894,
+      "sha256": "56418ef70e43e4683ea219c24c8142a950e893f8dd9acd827662c45e70ca6775"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/components/home-experience.tsx",
+      "bytes": 7002,
+      "sha256": "ebcd44b9266aceaad2c4ffa48bff10c74c59983fa5afce932423be548153dd35"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/components/library-view.tsx",
+      "bytes": 3791,
+      "sha256": "8d405f572fcdd4003904125952a35d2e3681bfc1541f0a820866cebd8cdb1c04"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/components/login-view.tsx",
+      "bytes": 2983,
+      "sha256": "57fc616c235ea8f98b0ef738cb14493f8a7173a29161c6724c3d64b37459bbc2"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/components/questionnaire-view.tsx",
+      "bytes": 11983,
+      "sha256": "0d62e714a3fedd6d973bdcc2702ec79549b3976d7b2d6d17ad4fa9a0ce1a6756"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/components/recommendations-view.tsx",
+      "bytes": 4690,
+      "sha256": "dcd22eaf6a1ac9e30534fb13872694aa391a55fef223fc8d98b638acbdc3ce51"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/components/route-view.tsx",
+      "bytes": 4634,
+      "sha256": "f8c98fb175e17bc0ca9f6dd4e3ccdc3d871418612ec751f16c8cd78d64d12686"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/components/utility-views.tsx",
+      "bytes": 1910,
+      "sha256": "65f8071c10d5db1f0b60bf036d7defa520bbc303958211333acbd519ce8f29de"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/lib/activity-data.ts",
+      "bytes": 16500,
+      "sha256": "081c60160022778117e29900ffb1249f1b890611c39fd373e352b8bdcba92844"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/lib/recommendation.ts",
+      "bytes": 4127,
+      "sha256": "0d40da0a460c925073c4829508cf2813e4f966d7d07a035da46324da1113e8b7"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/lib/server/amap.ts",
+      "bytes": 1458,
+      "sha256": "277f9b1f2c7e65e08a73e4114b3b6795a93c7aab079de6de8c180934baddb964"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/lib/server/session.ts",
+      "bytes": 1901,
+      "sha256": "314b5dffb2c2b4a9d253ac8da03fdb83bd523f91c3b53f6cd6189e5729d1248f"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/src/lib/types.ts",
+      "bytes": 2206,
+      "sha256": "680096fa3fe7200689067074ab47cfff7903706be4185058f8504905f13f671c"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/tsconfig.json",
+      "bytes": 704,
+      "sha256": "acf32a7a059465614785e8142ba5a727eb94c27f99aea71fb2e4972276fed65c"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_7z65DZiU4tPHgXJcapofGSw3Txxf/source/tsconfig.tsbuildinfo",
+      "bytes": 156611,
+      "sha256": "a605aed6592875f57ed243545e159fc549207fe9c9d032b7edde8ced783ee8e9"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/manifest.json",
+      "bytes": 43934,
+      "sha256": "e31830f2855f4ec355085faf73786797d67a686b31d00ae12e6c3d6096ec5cf3"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/.env.example",
+      "bytes": 555,
+      "sha256": "835f01afb9a50d85509ce779fa691159f2e0d8219d2048dfc165eda1ec7d1f90"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/AGENTS.md",
+      "bytes": 678,
+      "sha256": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/CHANGELOG.md",
+      "bytes": 1461,
+      "sha256": "63c79061e6877a4b0d2b6ad42ad6e6d06404ff22d373aaedc148464859989953"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/CLAUDE.md",
+      "bytes": 11,
+      "sha256": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/db/001_initial.sql",
+      "bytes": 5259,
+      "sha256": "34664b684833d62bed8e98b97d83587353d902323d5bc7ef80d2cd4e31aa40fd"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/eslint.config.mjs",
+      "bytes": 309,
+      "sha256": "927cc3e7a3599cc1d6386a5fa73a6db71be3bd5f0c0d0e5222366614c7d5f9e5"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/next-env.d.ts",
+      "bytes": 288,
+      "sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/next.config.ts",
+      "bytes": 130,
+      "sha256": "c5efcdb15ee66db5a3a749082d8a2d68abdd0555ce251baee0e3fd920b4c55b5"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/package.json",
+      "bytes": 697,
+      "sha256": "1023d9b8893a3591a71bd686872f99fe57a7fc65f266b2b149ba055d00f407c6"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/pnpm-lock.yaml",
+      "bytes": 132691,
+      "sha256": "90c925d4b404f7f30f3b3ca72d480d85b5a26ecd353e55e736556c3cb739f1a4"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/pnpm-workspace.yaml",
+      "bytes": 107,
+      "sha256": "22a3e2628ddc06dd2eb02dae7c53bb01c64b138f22bb6a5f85ed0e49804d7383"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/preview-desktop.png",
+      "bytes": 381842,
+      "sha256": "92576d6717f4ded549ee3d672483fd01b51c45188d9d864dd2d7d05b12f60e9e"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/preview-final-desktop.png",
+      "bytes": 543235,
+      "sha256": "da5aa311501d7a566386b82b7f862e8f7ae6471afcf97811c5893bd815be56c8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/preview-mobile.png",
+      "bytes": 260992,
+      "sha256": "4964ee5f3d5b1cfbc16f0e98fc360790ca9c01273269aa4feb1db08a40c0e2d8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/public/hero-weekend.png",
+      "bytes": 2320442,
+      "sha256": "95de6e78f0c591a3bc487ae18ccf4887f797b7cc66e62e9bfe989c6bd2026ae4"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/README.md",
+      "bytes": 1475,
+      "sha256": "2efbd1affc0289d7fbf994f0abf42b430a98b9d53b82716679ab63b7bca6832e"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/app/api/ai/parse/route.ts",
+      "bytes": 5180,
+      "sha256": "91e98d1e3021ba547aae98981f96563a6c90030510a31b1ee65424a6ab8e7ab0"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/app/api/amap/directions/route.ts",
+      "bytes": 1225,
+      "sha256": "a593ac2345769dc241c7f13a0177b65c5da47c3e773c13956fe53498f38e6f55"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/app/api/amap/geocode/route.ts",
+      "bytes": 908,
+      "sha256": "f4ce3f93b5a30d722f10eada1cd1c264ed0c4f0162f18c4ce9c8477f86cad6bc"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/app/api/auth/login/route.ts",
+      "bytes": 1830,
+      "sha256": "b2d5bdbdd080f823ec92277c1e01ed022264c1e2d898a8030b0681cf38e2e898"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/app/api/auth/session/route.ts",
+      "bytes": 298,
+      "sha256": "8240a39b9aca7809b59daa0df90cc0696afcba144ffd0015b6a7d1aaa1117add"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/app/api/integrations/status/route.ts",
+      "bytes": 509,
+      "sha256": "45898deab82e0a78f513e56ec1014d2e6237906d5f439f41c4de7a340ebfdd38"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/app/api/workspace/route.ts",
+      "bytes": 468,
+      "sha256": "8f86d611825270d2bd9c4339d6e52acd5fa013414a8bcc0223d737da67e36d05"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/app/globals.css",
+      "bytes": 35988,
+      "sha256": "b9e9c7bbb98a834975eea4ce383924cf94c2bc4fc89f7b77fb3fad266f76c230"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/app/layout.tsx",
+      "bytes": 618,
+      "sha256": "ee411cff996874ae54c38d67b5d92e606ccd246162a51f7b56b8a68ddd518489"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/app/page.tsx",
+      "bytes": 132,
+      "sha256": "064f4c37eba523f3ad6ae8911e16b91480f763535c68432ba5b82c0401e91bb6"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/components/app-frame.tsx",
+      "bytes": 4954,
+      "sha256": "f834be26ec8598624b73c4206c1a67e7313c60c2136ca88abe05eed8a28396c3"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/components/dashboard-view.tsx",
+      "bytes": 5813,
+      "sha256": "ab06c3f08cec51f65f7849da0f8c371d85007e01812c6ab053306d481e07dc41"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/components/home-experience.tsx",
+      "bytes": 7045,
+      "sha256": "f82a6be859c19f98d34f9ab1c8c3beaa20a9e7bd254463b88ec377c7ababb63a"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/components/library-view.tsx",
+      "bytes": 3791,
+      "sha256": "8d405f572fcdd4003904125952a35d2e3681bfc1541f0a820866cebd8cdb1c04"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/components/login-view.tsx",
+      "bytes": 2983,
+      "sha256": "1f1ce70889685e772ca98aca9c4747591f1919c2d3a00b0479a12b41f94715b0"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/components/questionnaire-view.tsx",
+      "bytes": 16293,
+      "sha256": "28a36dac8b9341eacca974ebad606afb84c645175dfe0770b086bb2270e60c47"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/components/recommendations-view.tsx",
+      "bytes": 4690,
+      "sha256": "dcd22eaf6a1ac9e30534fb13872694aa391a55fef223fc8d98b638acbdc3ce51"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/components/route-view.tsx",
+      "bytes": 4634,
+      "sha256": "f8c98fb175e17bc0ca9f6dd4e3ccdc3d871418612ec751f16c8cd78d64d12686"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/components/utility-views.tsx",
+      "bytes": 1910,
+      "sha256": "65f8071c10d5db1f0b60bf036d7defa520bbc303958211333acbd519ce8f29de"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/lib/activity-data.ts",
+      "bytes": 16500,
+      "sha256": "081c60160022778117e29900ffb1249f1b890611c39fd373e352b8bdcba92844"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/lib/recommendation.ts",
+      "bytes": 4196,
+      "sha256": "5484804ea559a3f69b465f03fdc069841a21c51a3bc7171b24a49daf7d33b536"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/lib/server/amap.ts",
+      "bytes": 1458,
+      "sha256": "277f9b1f2c7e65e08a73e4114b3b6795a93c7aab079de6de8c180934baddb964"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/lib/server/session.ts",
+      "bytes": 1901,
+      "sha256": "314b5dffb2c2b4a9d253ac8da03fdb83bd523f91c3b53f6cd6189e5729d1248f"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/src/lib/types.ts",
+      "bytes": 2292,
+      "sha256": "c00cce99968b958246cd639bf99476e8422c209f265c6154445eb60b6cc1348f"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/tsconfig.json",
+      "bytes": 704,
+      "sha256": "acf32a7a059465614785e8142ba5a727eb94c27f99aea71fb2e4972276fed65c"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT/source/tsconfig.tsbuildinfo",
+      "bytes": 156611,
+      "sha256": "a605aed6592875f57ed243545e159fc549207fe9c9d032b7edde8ced783ee8e9"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/manifest.json",
+      "bytes": 45632,
+      "sha256": "b2c321718cb050a23489074f35d8c41549e2f56e23639a6cc8890dd77a009648"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/.env.example",
+      "bytes": 555,
+      "sha256": "835f01afb9a50d85509ce779fa691159f2e0d8219d2048dfc165eda1ec7d1f90"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/AGENTS.md",
+      "bytes": 678,
+      "sha256": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/CHANGELOG.md",
+      "bytes": 2207,
+      "sha256": "d698bf34cf3862cd80c1c603737bbd9f18d716c727692492d8a95ccef9518802"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/CLAUDE.md",
+      "bytes": 11,
+      "sha256": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/db/001_initial.sql",
+      "bytes": 5259,
+      "sha256": "34664b684833d62bed8e98b97d83587353d902323d5bc7ef80d2cd4e31aa40fd"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/eslint.config.mjs",
+      "bytes": 309,
+      "sha256": "927cc3e7a3599cc1d6386a5fa73a6db71be3bd5f0c0d0e5222366614c7d5f9e5"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/next-env.d.ts",
+      "bytes": 288,
+      "sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/next.config.ts",
+      "bytes": 130,
+      "sha256": "c5efcdb15ee66db5a3a749082d8a2d68abdd0555ce251baee0e3fd920b4c55b5"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/package.json",
+      "bytes": 718,
+      "sha256": "be336c9ea29ce30f678ff98f937618e4fbf806574e323db7f177a120dd8ae15f"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/pnpm-lock.yaml",
+      "bytes": 135490,
+      "sha256": "2328c552db9d60f268a8c645497677a168fdbff420267831ca3c86c1f84048fa"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/pnpm-workspace.yaml",
+      "bytes": 107,
+      "sha256": "22a3e2628ddc06dd2eb02dae7c53bb01c64b138f22bb6a5f85ed0e49804d7383"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/preview-desktop.png",
+      "bytes": 381842,
+      "sha256": "92576d6717f4ded549ee3d672483fd01b51c45188d9d864dd2d7d05b12f60e9e"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/preview-final-desktop.png",
+      "bytes": 543235,
+      "sha256": "da5aa311501d7a566386b82b7f862e8f7ae6471afcf97811c5893bd815be56c8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/preview-mobile.png",
+      "bytes": 260992,
+      "sha256": "4964ee5f3d5b1cfbc16f0e98fc360790ca9c01273269aa4feb1db08a40c0e2d8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/public/hero-weekend.png",
+      "bytes": 2320442,
+      "sha256": "95de6e78f0c591a3bc487ae18ccf4887f797b7cc66e62e9bfe989c6bd2026ae4"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/README.md",
+      "bytes": 1814,
+      "sha256": "aa3215a041aed5747c472831791836f1565eb1d01bb95b47217001ec23c41cf8"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/_AMapService/[...path]/route.ts",
+      "bytes": 1321,
+      "sha256": "a135c2c10e941e52a5932a7a41df1cfb25ebd54feae80da6d8c7fdaa5a767c89"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/api/ai/parse/route.ts",
+      "bytes": 5180,
+      "sha256": "91e98d1e3021ba547aae98981f96563a6c90030510a31b1ee65424a6ab8e7ab0"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/api/amap/directions/route.ts",
+      "bytes": 1225,
+      "sha256": "a593ac2345769dc241c7f13a0177b65c5da47c3e773c13956fe53498f38e6f55"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/api/amap/geocode/route.ts",
+      "bytes": 908,
+      "sha256": "f4ce3f93b5a30d722f10eada1cd1c264ed0c4f0162f18c4ce9c8477f86cad6bc"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/api/amap/plan/route.ts",
+      "bytes": 4333,
+      "sha256": "aced0cffaf1e43ea1338cdc560cb323bc2c8e5d271652a511af6287e45aecec2"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/api/amap/weather/route.ts",
+      "bytes": 596,
+      "sha256": "b0045f297237565aa29f373361a502b62dbec83e3f85287c4dc0fbc3e024df4a"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/api/auth/login/route.ts",
+      "bytes": 1830,
+      "sha256": "b2d5bdbdd080f823ec92277c1e01ed022264c1e2d898a8030b0681cf38e2e898"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/api/auth/session/route.ts",
+      "bytes": 298,
+      "sha256": "8240a39b9aca7809b59daa0df90cc0696afcba144ffd0015b6a7d1aaa1117add"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/api/integrations/status/route.ts",
+      "bytes": 546,
+      "sha256": "4c5c7141e51dc1c4091f744777f2ca1c0390f5bbe695ac5c568cce5ebc637064"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/api/week/search/route.ts",
+      "bytes": 9016,
+      "sha256": "e319ff76f0576925e87e000011a6728fa17aee3113612f125107f7e3ec6eb4fe"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/api/workspace/route.ts",
+      "bytes": 468,
+      "sha256": "8f86d611825270d2bd9c4339d6e52acd5fa013414a8bcc0223d737da67e36d05"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/globals.css",
+      "bytes": 40763,
+      "sha256": "c17f26dacb0fbf864d70babad3a2be3c763082304c7ecd9fcdfedf5ca6c97af7"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/layout.tsx",
+      "bytes": 618,
+      "sha256": "ee411cff996874ae54c38d67b5d92e606ccd246162a51f7b56b8a68ddd518489"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/app/page.tsx",
+      "bytes": 132,
+      "sha256": "064f4c37eba523f3ad6ae8911e16b91480f763535c68432ba5b82c0401e91bb6"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/components/amap-route-map.tsx",
+      "bytes": 3636,
+      "sha256": "993fe19390ba7316dcf29af7dcc155c3d46207d5adbec4d9b54a55905b290d41"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/components/app-frame.tsx",
+      "bytes": 4954,
+      "sha256": "9d759a3a669036982b284d4a42bfdcc298e5f4b03436825b5ac2e39562c0a3c3"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/components/dashboard-view.tsx",
+      "bytes": 5813,
+      "sha256": "ab06c3f08cec51f65f7849da0f8c371d85007e01812c6ab053306d481e07dc41"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/components/home-experience.tsx",
+      "bytes": 7158,
+      "sha256": "b57f82f455ad0ab26a5a1a1569096a36228e102774f5b40f484140bbcf1f4581"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/components/library-view.tsx",
+      "bytes": 3791,
+      "sha256": "8d405f572fcdd4003904125952a35d2e3681bfc1541f0a820866cebd8cdb1c04"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/components/login-view.tsx",
+      "bytes": 2983,
+      "sha256": "2bf019b82ab7c78ce91afa82b6373293536dfbb2c0c971d46dbadb6686c5e00a"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/components/questionnaire-view.tsx",
+      "bytes": 16293,
+      "sha256": "28a36dac8b9341eacca974ebad606afb84c645175dfe0770b086bb2270e60c47"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/components/recommendations-view.tsx",
+      "bytes": 4690,
+      "sha256": "dcd22eaf6a1ac9e30534fb13872694aa391a55fef223fc8d98b638acbdc3ce51"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/components/route-view.tsx",
+      "bytes": 8421,
+      "sha256": "d9ff9fbf5d2aad4b8ff73cdb099d11cd05368729ff064465225f2f9ae15835ea"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/components/utility-views.tsx",
+      "bytes": 8977,
+      "sha256": "401732e32e7e1ab9d322dca69ea47fc6e82f78b1a77eede87c7df9608ec4b099"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/lib/activity-data.ts",
+      "bytes": 16500,
+      "sha256": "081c60160022778117e29900ffb1249f1b890611c39fd373e352b8bdcba92844"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/lib/amap-types.ts",
+      "bytes": 1198,
+      "sha256": "94fca287a5878263cae1f3115983db83d1ab509b6b4c0d21ba3b16e766f1b9bd"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/lib/recommendation.ts",
+      "bytes": 4196,
+      "sha256": "5484804ea559a3f69b465f03fdc069841a21c51a3bc7171b24a49daf7d33b536"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/lib/server/amap.ts",
+      "bytes": 7870,
+      "sha256": "a13b3afd3c0d68a34cbf18f8757c4ca37162272fc1579fbdca34fea65cc18084"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/lib/server/session.ts",
+      "bytes": 1901,
+      "sha256": "314b5dffb2c2b4a9d253ac8da03fdb83bd523f91c3b53f6cd6189e5729d1248f"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/lib/types.ts",
+      "bytes": 2292,
+      "sha256": "c00cce99968b958246cd639bf99476e8422c209f265c6154445eb60b6cc1348f"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/src/lib/week-types.ts",
+      "bytes": 626,
+      "sha256": "60d2dfb3039db8dca8b9e6f3e0f89546913ffe2d9546b0eb43c2b159147642bf"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/tsconfig.json",
+      "bytes": 704,
+      "sha256": "acf32a7a059465614785e8142ba5a727eb94c27f99aea71fb2e4972276fed65c"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd/source/tsconfig.tsbuildinfo",
+      "bytes": 187477,
+      "sha256": "b2ef8de1f35c765c7eeb55c24b35521a0b16304642cb2e6881cbbe1041d8d655"
+    },
+    {
+      "path": "history/vercel/beijing-qu-na-er-wan/index.json",
+      "bytes": 1647,
+      "sha256": "324b52477cae7fbb9cd7e445792dda120a572ea636bb722bdcd484a609a72152"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2719,
+      "sha256": "b103924b495f75c5bc599018bbe2c89008149f5a42ae8105138dfe4734e86813"
+    },
+    {
+      "path": "recovered/data/beijing_play_workspace_versions.json",
+      "bytes": 3426,
+      "sha256": "81812651b04741063c1f4daf3a07982d45fe9af6aeea4a9cac29eff41258c981"
+    },
+    {
+      "path": "recovered/data/beijing_play_workspaces.json",
+      "bytes": 1699,
+      "sha256": "06a513e2b22bc899ab29040faf25ec5f0000c0dd212a8eb73a3219be397972bb"
+    },
+    {
+      "path": "recovered/data/export-manifest.json",
+      "bytes": 259,
+      "sha256": "78c76634fc1c9e840c406d27a45170f4ba9625138b3b69ef1241af5c43c00293"
+    },
+    {
+      "path": "recovered/data/schema-metadata.json",
+      "bytes": 23129,
+      "sha256": "0cdb40d80f0a03609f63e30ca098a7ae3da53a033eacbf0fb658be8619fbfdaf"
+    },
+    {
+      "path": "recovered/docs/RECOVERY_STATUS.md",
+      "bytes": 1115,
+      "sha256": "6e6a02376934efa6a666d9ce3b48002bfd80a6a875cd8f1ffe2bfb06ebcc52e9"
+    },
+    {
+      "path": "RESTORE.py",
+      "bytes": 1691,
+      "sha256": "720bbe41736c18c431f93cc1b0ad981928ca4d718b076618fcdc14d7974539ac"
+    },
+    {
+      "path": "SHA256SUMS.txt",
+      "bytes": 249,
+      "sha256": "4f3c4662f32bea6e90383151658d63a974c5efcb9845bd25d57339674db144bb"
+    },
+    {
+      "path": "source/.env.example",
+      "bytes": 555,
+      "sha256": "835f01afb9a50d85509ce779fa691159f2e0d8219d2048dfc165eda1ec7d1f90"
+    },
+    {
+      "path": "source/AGENTS.md",
+      "bytes": 678,
+      "sha256": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb"
+    },
+    {
+      "path": "source/CHANGELOG.md",
+      "bytes": 4137,
+      "sha256": "71083cdbfd403bf5ee4bc733ae70ab1cdfc58e3d6cac3383fd35d6bf455aa5b3"
+    },
+    {
+      "path": "source/CLAUDE.md",
+      "bytes": 11,
+      "sha256": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49"
+    },
+    {
+      "path": "source/db/001_initial.sql",
+      "bytes": 5259,
+      "sha256": "34664b684833d62bed8e98b97d83587353d902323d5bc7ef80d2cd4e31aa40fd"
+    },
+    {
+      "path": "source/eslint.config.mjs",
+      "bytes": 309,
+      "sha256": "927cc3e7a3599cc1d6386a5fa73a6db71be3bd5f0c0d0e5222366614c7d5f9e5"
+    },
+    {
+      "path": "source/next-env.d.ts",
+      "bytes": 288,
+      "sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b"
+    },
+    {
+      "path": "source/next.config.ts",
+      "bytes": 130,
+      "sha256": "c5efcdb15ee66db5a3a749082d8a2d68abdd0555ce251baee0e3fd920b4c55b5"
+    },
+    {
+      "path": "source/package.json",
+      "bytes": 718,
+      "sha256": "4366e569b0c1a74c13150f6ff95b7c3a280cb18d2ecda326d9ec4074acc6d859"
+    },
+    {
+      "path": "source/pnpm-lock.yaml",
+      "bytes": 135490,
+      "sha256": "2328c552db9d60f268a8c645497677a168fdbff420267831ca3c86c1f84048fa"
+    },
+    {
+      "path": "source/pnpm-workspace.yaml",
+      "bytes": 107,
+      "sha256": "22a3e2628ddc06dd2eb02dae7c53bb01c64b138f22bb6a5f85ed0e49804d7383"
+    },
+    {
+      "path": "source/preview-desktop.png",
+      "bytes": 381842,
+      "sha256": "92576d6717f4ded549ee3d672483fd01b51c45188d9d864dd2d7d05b12f60e9e"
+    },
+    {
+      "path": "source/preview-final-desktop.png",
+      "bytes": 543235,
+      "sha256": "da5aa311501d7a566386b82b7f862e8f7ae6471afcf97811c5893bd815be56c8"
+    },
+    {
+      "path": "source/preview-mobile.png",
+      "bytes": 260992,
+      "sha256": "4964ee5f3d5b1cfbc16f0e98fc360790ca9c01273269aa4feb1db08a40c0e2d8"
+    },
+    {
+      "path": "source/public/hero-weekend.png",
+      "bytes": 2320442,
+      "sha256": "95de6e78f0c591a3bc487ae18ccf4887f797b7cc66e62e9bfe989c6bd2026ae4"
+    },
+    {
+      "path": "source/README.md",
+      "bytes": 2433,
+      "sha256": "c39c543053b7bc80304e6b884d4c858debd84b768a6a6cc49dfd4917b68ee14c"
+    },
+    {
+      "path": "source/src/app/_AMapService/[...path]/route.ts",
+      "bytes": 1321,
+      "sha256": "a135c2c10e941e52a5932a7a41df1cfb25ebd54feae80da6d8c7fdaa5a767c89"
+    },
+    {
+      "path": "source/src/app/api/ai/parse/route.ts",
+      "bytes": 5159,
+      "sha256": "9e89331710174dc94b5d1def11795fffae32ed4a17afa94681a6897774f0acbd"
+    },
+    {
+      "path": "source/src/app/api/amap/directions/route.ts",
+      "bytes": 1225,
+      "sha256": "a593ac2345769dc241c7f13a0177b65c5da47c3e773c13956fe53498f38e6f55"
+    },
+    {
+      "path": "source/src/app/api/amap/geocode/route.ts",
+      "bytes": 908,
+      "sha256": "f4ce3f93b5a30d722f10eada1cd1c264ed0c4f0162f18c4ce9c8477f86cad6bc"
+    },
+    {
+      "path": "source/src/app/api/amap/plan/route.ts",
+      "bytes": 4333,
+      "sha256": "aced0cffaf1e43ea1338cdc560cb323bc2c8e5d271652a511af6287e45aecec2"
+    },
+    {
+      "path": "source/src/app/api/amap/weather/route.ts",
+      "bytes": 596,
+      "sha256": "b0045f297237565aa29f373361a502b62dbec83e3f85287c4dc0fbc3e024df4a"
+    },
+    {
+      "path": "source/src/app/api/auth/login/route.ts",
+      "bytes": 1830,
+      "sha256": "b2d5bdbdd080f823ec92277c1e01ed022264c1e2d898a8030b0681cf38e2e898"
+    },
+    {
+      "path": "source/src/app/api/auth/session/route.ts",
+      "bytes": 298,
+      "sha256": "8240a39b9aca7809b59daa0df90cc0696afcba144ffd0015b6a7d1aaa1117add"
+    },
+    {
+      "path": "source/src/app/api/integrations/status/route.ts",
+      "bytes": 651,
+      "sha256": "ed8e048792b341ece2680b56d6ee2bbb8c01cff93006fa0e3ef3f31324b373dd"
+    },
+    {
+      "path": "source/src/app/api/recommendations/route.ts",
+      "bytes": 13102,
+      "sha256": "312b2034d029fb462f4e6e9369c138793c13ed693e9f11ae61bc7e769b32d925"
+    },
+    {
+      "path": "source/src/app/api/week/search/route.ts",
+      "bytes": 7521,
+      "sha256": "cbb797798a30e3e774a2be3521b14ff4540d4452e4df7e327a514e9bf5df2a37"
+    },
+    {
+      "path": "source/src/app/api/workspace/route.ts",
+      "bytes": 3204,
+      "sha256": "21a12e4035c34f6c6a8b120099535bdbb646d634dacd83a13594ac486cd98329"
+    },
+    {
+      "path": "source/src/app/globals.css",
+      "bytes": 41990,
+      "sha256": "713124db8e7be6edb148c4ad217d5a0b6a6d5397a94380b305c3317d4929c3cc"
+    },
+    {
+      "path": "source/src/app/layout.tsx",
+      "bytes": 618,
+      "sha256": "ee411cff996874ae54c38d67b5d92e606ccd246162a51f7b56b8a68ddd518489"
+    },
+    {
+      "path": "source/src/app/page.tsx",
+      "bytes": 132,
+      "sha256": "064f4c37eba523f3ad6ae8911e16b91480f763535c68432ba5b82c0401e91bb6"
+    },
+    {
+      "path": "source/src/components/amap-route-map.tsx",
+      "bytes": 3636,
+      "sha256": "993fe19390ba7316dcf29af7dcc155c3d46207d5adbec4d9b54a55905b290d41"
+    },
+    {
+      "path": "source/src/components/app-frame.tsx",
+      "bytes": 5131,
+      "sha256": "01ae2a76c7fcce835432b4cd3807bd16854f920bfd20832fed8c7e6026afac7c"
+    },
+    {
+      "path": "source/src/components/dashboard-view.tsx",
+      "bytes": 6076,
+      "sha256": "ff1bad9c9ee1bd3c41095da18652ff4c1c81760b0a83bf70375900d64a83252c"
+    },
+    {
+      "path": "source/src/components/home-experience.tsx",
+      "bytes": 12067,
+      "sha256": "b12b986fd9297b1a01ecf31d22de1d513c472ae323458a09089dd07c5516c279"
+    },
+    {
+      "path": "source/src/components/library-view.tsx",
+      "bytes": 3791,
+      "sha256": "8d405f572fcdd4003904125952a35d2e3681bfc1541f0a820866cebd8cdb1c04"
+    },
+    {
+      "path": "source/src/components/login-view.tsx",
+      "bytes": 2983,
+      "sha256": "8fe6e9ba278fd58a80422fa9b9e2cac591737647902ed9777219e9914c7228e1"
+    },
+    {
+      "path": "source/src/components/questionnaire-view.tsx",
+      "bytes": 18371,
+      "sha256": "ee747a491ac6f213f6c194cdac81ace713052ede267670feb66cae2a96647f08"
+    },
+    {
+      "path": "source/src/components/recommendations-view.tsx",
+      "bytes": 6177,
+      "sha256": "7f834552f09188cdefd8a7998732873065385ab3f9267f352dcd80ccd858603c"
+    },
+    {
+      "path": "source/src/components/route-view.tsx",
+      "bytes": 8421,
+      "sha256": "d9ff9fbf5d2aad4b8ff73cdb099d11cd05368729ff064465225f2f9ae15835ea"
+    },
+    {
+      "path": "source/src/components/utility-views.tsx",
+      "bytes": 9351,
+      "sha256": "9084cf151fd9c103d7223057245c90e2c74d0f624c7fa7cb829cd2ebf55ef7ed"
+    },
+    {
+      "path": "source/src/lib/activity-data.ts",
+      "bytes": 16479,
+      "sha256": "42a57cd5eff66160bfdc50b0456010c3155757574e3bda3a73ddabb54190cf0d"
+    },
+    {
+      "path": "source/src/lib/amap-types.ts",
+      "bytes": 1198,
+      "sha256": "94fca287a5878263cae1f3115983db83d1ab509b6b4c0d21ba3b16e766f1b9bd"
+    },
+    {
+      "path": "source/src/lib/recommendation.ts",
+      "bytes": 6024,
+      "sha256": "ec8f55184ca278d655571ac09e1bb952be4c0c544b2d0effcfe99a99659ce8f7"
+    },
+    {
+      "path": "source/src/lib/server/amap.ts",
+      "bytes": 8552,
+      "sha256": "706b898ede8df5829aa1829a1b5b0e6673e88732f602fd632f8a331b36ef418d"
+    },
+    {
+      "path": "source/src/lib/server/deepseek.ts",
+      "bytes": 5310,
+      "sha256": "9a6ae77571def31c4341dbbb744117c0a83c224716925cf6b5a09a237ee7d5bd"
+    },
+    {
+      "path": "source/src/lib/server/session.ts",
+      "bytes": 1901,
+      "sha256": "314b5dffb2c2b4a9d253ac8da03fdb83bd523f91c3b53f6cd6189e5729d1248f"
+    },
+    {
+      "path": "source/src/lib/server/workspace.ts",
+      "bytes": 4191,
+      "sha256": "8d6d6d65d40b2e09fb473e5eacd249480a046cfadeb0b90c70ce1aa219d0d507"
+    },
+    {
+      "path": "source/src/lib/types.ts",
+      "bytes": 3802,
+      "sha256": "0560ed26b31d5742bf69f40e329cac7021b79d5cff779fa194edee726a335703"
+    },
+    {
+      "path": "source/src/lib/week-types.ts",
+      "bytes": 626,
+      "sha256": "60d2dfb3039db8dca8b9e6f3e0f89546913ffe2d9546b0eb43c2b159147642bf"
+    },
+    {
+      "path": "source/tsconfig.json",
+      "bytes": 704,
+      "sha256": "acf32a7a059465614785e8142ba5a727eb94c27f99aea71fb2e4972276fed65c"
+    },
+    {
+      "path": "source/tsconfig.tsbuildinfo",
+      "bytes": 164047,
+      "sha256": "b399fa6620b87d8069eaccd7954878d5ac3afb8095981182d06128f8b9ee8f50"
+    },
+    {
+      "path": "VERIFY.py",
+      "bytes": 1741,
+      "sha256": "e25f861e3be63b784fcefdb3920ffdf588e9a4a0ef205b2b42f9ac691cbdec3e"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "exportedAt": "2026-09-09T06:50:32.881Z",
+  "tables": [
+    {
+      "table": "beijing_play_workspace_versions",
+      "rows": 2
+    },
+    {
+      "table": "beijing_play_workspaces",
+      "rows": 1
+    }
+  ],
+  "transaction": "RepeatableRead, readOnly"
+}

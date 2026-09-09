@@ -1,0 +1,67 @@
+{
+  "project": {
+    "id": "prj_aMNPlavG43ZNFGfzcWhGoH7eSbYK",
+    "name": "beijing-qu-na-er-wan",
+    "production": {
+      "id": "dpl_2JCC5et7fHyfpjycTmYRuCUbKoqs",
+      "url": "beijing-qu-na-er-jmrk8xg5l-sereni1.vercel.app",
+      "createdAt": 1788357183713,
+      "state": "READY"
+    },
+    "latest": [
+      {
+        "id": "dpl_2JCC5et7fHyfpjycTmYRuCUbKoqs",
+        "url": "beijing-qu-na-er-jmrk8xg5l-sereni1.vercel.app",
+        "createdAt": 1788357183713,
+        "state": "READY"
+      },
+      {
+        "id": "dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN",
+        "url": "beijing-qu-na-er-peptuyy0j-sereni1.vercel.app",
+        "createdAt": 1788354282545,
+        "state": "READY"
+      }
+    ]
+  },
+  "retrieved_at": "2026-09-09T13:57:44.111Z",
+  "deployments": [
+    {
+      "id": "dpl_2JCC5et7fHyfpjycTmYRuCUbKoqs",
+      "url": "beijing-qu-na-er-jmrk8xg5l-sereni1.vercel.app",
+      "createdAt": 1788357183713,
+      "state": "READY",
+      "target": "production",
+      "current_source": "source/"
+    },
+    {
+      "id": "dpl_6BQXYpkSDtTDSbxY9UHUW9jKiKhN",
+      "files": 52,
+      "excluded": 467,
+      "complete": true
+    },
+    {
+      "id": "dpl_D34fb9QVSmQ7ub82qZ95KtojNoVd",
+      "files": 49,
+      "excluded": 467,
+      "complete": true
+    },
+    {
+      "id": "dpl_7YpQRP6bTx43BrFnac8d593kxryM",
+      "files": 42,
+      "excluded": 467,
+      "complete": true
+    },
+    {
+      "id": "dpl_9DqezpSLvuUM2AgavZ7yDMJJ7dqT",
+      "files": 42,
+      "excluded": 467,
+      "complete": true
+    },
+    {
+      "id": "dpl_7z65DZiU4tPHgXJcapofGSw3Txxf",
+      "files": 42,
+      "excluded": 467,
+      "complete": true
+    }
+  ]
+}

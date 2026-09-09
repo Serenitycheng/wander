@@ -1,0 +1,5 @@
+allowBuilds:
+  agent-browser: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - lucide-react@1.38.0
