@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { AmapCoordinate, AmapPlace, AmapWeather, TravelEstimate, TravelMode } from "@/lib/amap-types";
+import type { AmapCoordinate, AmapPlace, AmapWeather, TravelEstimate, TravelMode } from "@/features/beijing/lib/amap-types";
 
 const amapKey = () => {
   const key = process.env.AMAP_WEB_SERVICE_KEY;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { DeepSeekRequestError, deepSeekStructuredSearch } from "@/lib/server/deepseek";
-import type { WeekItem, WeekSearchResult } from "@/lib/week-types";
+import type { WeekItem, WeekSearchResult } from "@/features/beijing/lib/week-types";
 
 export const maxDuration = 60;
 

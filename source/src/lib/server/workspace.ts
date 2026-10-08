@@ -1,7 +1,7 @@
 import "server-only";
 
 import { neon } from "@neondatabase/serverless";
-import type { TripDraft, UserId } from "@/lib/types";
+import type { TripDraft, UserId } from "@/features/beijing/lib/types";
 
 export type CloudWorkspace = {
   draft: TripDraft;

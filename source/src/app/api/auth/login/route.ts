@@ -1,7 +1,7 @@
 import { scryptSync, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createSessionToken, sessionCookie } from "@/lib/server/session";
-import type { UserId } from "@/lib/types";
+import type { UserId } from "@/features/beijing/lib/types";
 
 const verifyPassword = (password: string, stored: string | undefined) => {
   if (!stored) return false;

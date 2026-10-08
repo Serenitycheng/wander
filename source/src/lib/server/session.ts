@@ -2,7 +2,7 @@ import "server-only";
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
-import type { UserId } from "@/lib/types";
+import type { UserId } from "@/features/beijing/lib/types";
 
 const COOKIE_NAME = "beijing_play_session";
 

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { activityCategories } from "@/lib/activity-data";
-import { buildRecommendations } from "@/lib/recommendation";
+import { activityCategories } from "@/features/beijing/lib/activity-data";
+import { buildRecommendations } from "@/features/beijing/lib/recommendation";
 import { searchBeijingPlaces } from "@/lib/server/amap";
 import { DeepSeekRequestError, deepSeekStructuredSearch } from "@/lib/server/deepseek";
-import { normalizeActivityCategory, normalizeTripDraft } from "@/lib/types";
-import type { Activity, ActivityCategory, Recommendation, RecommendationSearchResult, RecommendationSource, TripDraft } from "@/lib/types";
+import { normalizeActivityCategory, normalizeTripDraft } from "@/features/beijing/lib/types";
+import type { Activity, ActivityCategory, Recommendation, RecommendationSearchResult, RecommendationSource, TripDraft } from "@/features/beijing/lib/types";
 
 export const maxDuration = 60;
 

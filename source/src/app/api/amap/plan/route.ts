@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { AmapTripPlan, TravelEstimate, TravelMode } from "@/lib/amap-types";
+import type { AmapTripPlan, TravelEstimate, TravelMode } from "@/features/beijing/lib/amap-types";
 import { estimateRoute, findMeetingPoint, resolveBeijingAddress, resolveBeijingPlace } from "@/lib/server/amap";
 
 const modes: TravelMode[] = ["transit", "driving", "walking", "bicycling"];

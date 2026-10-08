@@ -1,0 +1,198 @@
+.exploration-color-picker {
+  position: relative;
+  z-index: 100;
+}
+.exploration-color-picker summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--e-muted);
+  list-style: none;
+  cursor: pointer;
+  font-size: 11px;
+}
+.exploration-color-picker summary::-webkit-details-marker {
+  display: none;
+}
+.exploration-color-picker summary:hover,
+.exploration-color-picker[open] summary {
+  color: var(--e-primary);
+  background: var(--e-soft);
+}
+.exploration-color-panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 330px;
+  max-width: calc(100vw - 32px);
+  padding: 23px;
+  background: var(--e-paper);
+  border: 1px solid var(--e-line);
+  border-radius: 17px;
+  box-shadow: 0 14px 50px #242b241c;
+}
+.exploration-color-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.exploration-color-panel-heading strong {
+  font-family: var(--e-serif);
+  font-size: 18px;
+  font-weight: 600;
+}
+.exploration-color-current {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1px solid #00000012;
+}
+.exploration-color-panel > p {
+  color: var(--e-muted);
+  font-size: 11px;
+  margin: 7px 0 21px;
+}
+.exploration-tone-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px 9px;
+}
+.exploration-tone-options button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: none;
+  padding: 3px;
+  border-radius: 8px;
+  color: var(--e-muted);
+  font-size: 10px;
+}
+.exploration-tone-options button:hover {
+  background: var(--e-soft);
+}
+.exploration-tone-swatch {
+  height: 28px;
+  width: 28px;
+  border-radius: 50%;
+  background: var(--swatch);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  border: 1px solid #00000008;
+}
+.exploration-tone-options button[aria-pressed="true"] .exploration-tone-swatch {
+  outline: 1px solid var(--e-primary);
+  outline-offset: 3px;
+}
+.exploration-custom-tone {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--e-line);
+}
+.exploration-custom-tone > span {
+  display: block;
+  color: var(--e-muted);
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+.exploration-custom-tone-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.exploration-custom-tone-row input[type="color"] {
+  width: 35px;
+  min-width: 35px;
+  height: 35px;
+  padding: 2px;
+  border: 1px solid var(--e-line);
+  border-radius: 7px;
+  background: var(--e-paper);
+  cursor: pointer;
+}
+.exploration-custom-tone-row input:not([type="color"]) {
+  width: 100%;
+  min-width: 0;
+  min-height: 35px;
+  border: 1px solid var(--e-line);
+  border-radius: 7px;
+  padding: 7px 10px;
+  background: var(--e-bg);
+  color: var(--e-ink);
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+}
+.exploration-custom-tone-row button {
+  min-height: 35px;
+  padding: 7px 12px;
+  background: var(--e-primary);
+  color: #fffefa;
+  border: 0;
+  border-radius: 7px;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.exploration-custom-tone > p {
+  margin-top: 9px;
+  color: #965541;
+  font-size: 11px;
+}
+.exploration-color-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  padding: 0;
+  margin-top: 20px;
+  font-size: 11px;
+  background: none;
+  color: var(--e-muted) !important;
+}
+.exploration-color-reset:hover:not(:disabled) {
+  color: var(--e-primary) !important;
+}
+.exploration-appearance-setting {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+}
+.exploration-appearance-controls .exploration-tone-options {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.exploration-appearance-controls .exploration-custom-tone {
+  margin-top: 18px;
+}
+@media (max-width: 1000px) {
+  .exploration-color-picker summary > span {
+    display: none;
+  }
+}
+@media (max-width: 800px) {
+  .exploration-color-picker summary {
+    width: 37px;
+    padding: 8px;
+  }
+  .exploration-color-panel {
+    right: -45px;
+    max-width: calc(100vw - 48px);
+  }
+}
+@media (max-width: 700px) {
+  .exploration-appearance-setting {
+    grid-template-columns: 1fr;
+    gap: 21px;
+  }
+}
+@media (max-width: 420px) {
+  .exploration-appearance-controls .exploration-tone-options {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px 8px;
+  }
+}

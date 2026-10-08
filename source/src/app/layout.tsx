@@ -3,19 +3,22 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "北京去哪儿玩",
-    template: "%s · 北京去哪儿玩",
+    default: "自由探索 · 去试一点新的",
+    template: "%s · 自由探索",
   },
-  description: "为你和朋友综合兴趣、距离、天气与实时活动，找到这次周末真正适合去的地方。",
+  description:
+    "出去走走、在家探索、学点东西、做点东西。给自己一个轻轻开始的入口，随时换个方向。",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#738a78",
+  themeColor: "#f6f5ef",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-CN">
       <body>{children}</body>

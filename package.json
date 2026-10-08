@@ -1,0 +1,14 @@
+{
+  "name": "free-exploration-workspace",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "dev": "pnpm --filter free-exploration dev",
+    "build": "pnpm --filter free-exploration build",
+    "start": "pnpm --filter free-exploration start",
+    "lint": "pnpm --filter free-exploration lint",
+    "typecheck": "pnpm --filter free-exploration typecheck",
+    "test": "pnpm --filter free-exploration test",
+    "verify:archive": "node scripts/verify-archive.mjs"
+  }
+}

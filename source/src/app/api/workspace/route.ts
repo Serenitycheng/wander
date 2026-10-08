@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/server/session";
 import { cloudDatabaseConfigured, readWorkspace, saveWorkspace } from "@/lib/server/workspace";
-import type { TripDraft, UserId } from "@/lib/types";
+import type { TripDraft, UserId } from "@/features/beijing/lib/types";
 
 const allowedSpace = (value: string | null): value is UserId => value === "serenity" || value === "zzz";
 const canAccess = (session: { userId: UserId; role: "admin" | "member" }, spaceId: UserId) => session.userId === spaceId || session.role === "admin";

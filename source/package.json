@@ -1,14 +1,16 @@
 {
-  "name": "beijing-play",
-  "version": "1.3.1",
+  "name": "free-exploration",
+  "version": "2.0.0",
   "private": true,
-  "packageManager": "pnpm@11.19.0",
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "node --test src/features/exploration/generator.test.ts src/features/exploration/storage.test.ts src/features/exploration/appearance.test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
