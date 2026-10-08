@@ -286,13 +286,13 @@ function SpaceShell({
           <Link
             href="/"
             className="exploration-brand"
-            aria-label="自由探索首页"
+            aria-label="漫游首页"
           >
             <span className="exploration-brand-mark">
               <Compass size={23} strokeWidth={1.35} aria-hidden="true" />
             </span>
             <span>
-              <strong>自由探索</strong>
+              <strong>漫游</strong>
               <small>给日常一点新的可能</small>
             </span>
           </Link>

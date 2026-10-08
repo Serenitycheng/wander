@@ -8,7 +8,7 @@ export default function NotFound() {
         <h1>换个方向，也可以。</h1>
         <p>回去看看，还有别的小可能。</p>
         <Link href="/" className="exploration-primary">
-          回到自由探索
+          回到漫游
         </Link>
       </main>
     </div>

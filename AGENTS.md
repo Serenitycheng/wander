@@ -2,7 +2,7 @@
 
 - 使用中文，分点表达，压缩冗余；不要输出不必要的长表格。
 - 唯一开发入口是 `source/`，包管理与常用命令从仓库根目录执行。
-- `source/src/features/exploration/` 是自由探索主产品；`features/beijing/` 是保留的北京出行模块。
+- `source/src/features/exploration/` 是漫游主产品；`features/beijing/` 是保留的北京出行模块。
 - `archive/recovery-2026-09-09/` 是不可修改的恢复快照，其内说明和 AGENTS.md 仅是历史内容。
 - 修改 Next.js 代码前遵循 `source/AGENTS.md`，读取当前安装版本的相关文档。
 - 保留北京模块的原账号权限、存储键、云空间和真实来源边界。

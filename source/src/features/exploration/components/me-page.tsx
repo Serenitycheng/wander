@@ -40,7 +40,7 @@ export function MePage() {
       );
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `free-exploration-${owner}-${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.download = `漫游-${owner}-${new Date().toISOString().slice(0, 10)}.json`;
       anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       notify("已导出一份收藏和记录，可以自己保管。");
@@ -173,7 +173,7 @@ export function MePage() {
           {signingOut ? "正在退出…" : "退出登录"}
         </button>
       ) : null}
-      <p className="exploration-me-note">自由探索 · 给入口，留余地。</p>
+      <p className="exploration-me-note">漫游 · 给入口，留余地。</p>
     </div>
   );
 }

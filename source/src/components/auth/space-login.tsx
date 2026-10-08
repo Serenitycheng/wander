@@ -46,7 +46,7 @@ export function LoginView({
             <Compass size={24} strokeWidth={1.4} />
           </span>
           <span>
-            <strong>自由探索</strong>
+            <strong>漫游</strong>
             <small>给日常一点新的可能</small>
           </span>
         </div>

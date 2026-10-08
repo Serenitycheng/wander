@@ -47,12 +47,12 @@ export function AppFrame({
   return (
     <main className={`app-shell theme-${theme}`}>
       <aside className="sidebar" aria-label="主要导航">
-        <Link href="/" className="city-return">← 回到自由探索</Link>
+        <Link href="/" className="city-return">← 回到漫游</Link>
         <button className="brand brand-button" type="button" onClick={() => onNavigate("dashboard")}>
           <span className="brand-mark">北</span>
           <span>
             <strong>北京去哪儿玩</strong>
-            <small>自由探索 · 北京出行</small>
+            <small>漫游 · 北京出行</small>
           </span>
         </button>
 
@@ -86,7 +86,7 @@ export function AppFrame({
       </aside>
 
       <section className="workspace">
-        <Link href="/" className="city-return city-return-mobile">← 回到自由探索</Link>
+        <Link href="/" className="city-return city-return-mobile">← 回到漫游</Link>
         <header className="topbar">
           <div>
             <p className="eyebrow">北京 · 周末决策工作台</p>
