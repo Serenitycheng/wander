@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, NotebookPen, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { findIdea } from "../ideas";
 import { categoryLabels, feelingOptions } from "../types";
 import type { ExplorationCategory, ExplorationRecord } from "../types";
 import { useExploration } from "./exploration-app";
@@ -27,8 +26,8 @@ function RecordForm({
   ideaId?: string;
   onClose: () => void;
 }) {
-  const idea = findIdea(ideaId);
-  const { saveRecord, notify } = useExploration();
+  const { saveRecord, notify, resolveIdea } = useExploration();
+  const idea = resolveIdea(ideaId);
   const [title, setTitle] = useState(initial?.title ?? idea?.title ?? "");
   const [category, setCategory] = useState<ExplorationCategory>(
     initial?.category ?? idea?.category ?? "home",
@@ -195,10 +194,10 @@ function RecordForm({
 }
 
 export function RecordsPage({ initialIdeaId }: { initialIdeaId?: string }) {
-  const { space, removeRecord } = useExploration();
+  const { space, removeRecord, resolveIdea } = useExploration();
   const router = useRouter();
   const [form, setForm] = useState<"new" | ExplorationRecord | null>(() =>
-    findIdea(initialIdeaId) ? "new" : null,
+    resolveIdea(initialIdeaId) ? "new" : null,
   );
   const closeForm = () => {
     setForm(null);

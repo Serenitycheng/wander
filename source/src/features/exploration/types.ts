@@ -29,6 +29,9 @@ export type ExplorationIdea = {
   place?: string;
   search?: string;
   source?: { name: string; url: string; action?: string };
+  domain?: string;
+  approach?: "open" | "specific";
+  discoveredAt?: string;
 };
 
 export type ExplorationSuggestion = {
@@ -62,6 +65,8 @@ export type ExplorationSpace = {
     ExplorationAppearance & { theme: ExplorationTheme };
   favorites: ExplorationFavorite[];
   records: ExplorationRecord[];
+  shownIdeaIds: string[];
+  discoveredIdeas: ExplorationIdea[];
 };
 
 export const modes: Array<{

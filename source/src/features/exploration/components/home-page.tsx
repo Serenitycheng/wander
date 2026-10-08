@@ -7,8 +7,7 @@ import { useExploration } from "./exploration-app";
 import { ModeIcon } from "./idea-card";
 
 export function ExplorationHome() {
-  const { space, owner, generate } = useExploration();
-  const randomFilters = { ...space.preferences, mode: "random" as const };
+  const { owner } = useExploration();
   return (
     <>
       <section className="exploration-home-hero" aria-labelledby="home-heading">
@@ -28,7 +27,6 @@ export function ExplorationHome() {
           <Link
             className="exploration-primary"
             href="/explore?mode=random"
-            onClick={() => generate(randomFilters)}
           >
             <Shuffle size={18} aria-hidden="true" />
             随机开始探索
@@ -62,9 +60,6 @@ export function ExplorationHome() {
                 key={mode.id}
                 className={`exploration-mode-tile category-${mode.id}`}
                 href={`/explore?mode=${mode.id}`}
-                onClick={() =>
-                  generate({ ...space.preferences, mode: mode.id })
-                }
               >
                 <span className="exploration-mode-icon">
                   <ModeIcon mode={mode.id} size={28} />

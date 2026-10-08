@@ -117,3 +117,15 @@ export function IdeaDetail({ idea }: { idea: ExplorationIdea }) {
     </article>
   );
 }
+
+export function DiscoveredIdeaDetail({ id }: { id: string }) {
+  const { resolveIdea } = useExploration();
+  const idea = resolveIdea(id);
+  return idea ? <IdeaDetail idea={idea} /> : (
+    <div className="exploration-empty-page">
+      <h1>这个入口还没保存在当前空间。</h1>
+      <p>在线内容保存在发现它的浏览器和账号里。可以导入包含它的备份，或回到探索再看看。</p>
+      <Link href="/explore" className="exploration-secondary">回到探索 <ArrowUpRight size={16} /></Link>
+    </div>
+  );
+}

@@ -7,11 +7,13 @@ import {
 } from "./types.ts";
 import type {
   ExplorationFavorite,
+  ExplorationIdea,
   ExplorationRecord,
   ExplorationSpace,
   SpaceOwner,
 } from "./types.ts";
 import { parseAppearance } from "./appearance.ts";
+import { parseDiscoveredIdea, rememberShown } from "./discovery.ts";
 
 type BrowserStorage = Pick<Storage, "getItem" | "setItem">;
 type ReadResult = {
@@ -33,6 +35,8 @@ export const createEmptySpace = (owner: SpaceOwner): ExplorationSpace => ({
   preferences: { ...defaultFilters, theme: "sage" },
   favorites: [],
   records: [],
+  shownIdeaIds: [],
+  discoveredIdeas: [],
 });
 
 const object = (value: unknown): value is Record<string, unknown> =>
@@ -76,6 +80,13 @@ export function parseSpace(
   value: unknown,
   owner: SpaceOwner,
 ): ExplorationSpace | null {
+  const shownIdeaIds = object(value) ? value.shownIdeaIds ?? [] : [];
+  const rawIdeas = object(value) ? value.discoveredIdeas ?? [] : [];
+  if (!Array.isArray(shownIdeaIds) || shownIdeaIds.length > 600 ||
+    !shownIdeaIds.every((id) => text(id, 100) && Boolean(id.trim())) ||
+    new Set(shownIdeaIds).size !== shownIdeaIds.length || !Array.isArray(rawIdeas)) return null;
+  const discoveredIdeas = rawIdeas.map(parseDiscoveredIdea);
+  if (discoveredIdeas.some((idea) => !idea) || new Set(discoveredIdeas.map((idea) => idea?.id)).size !== discoveredIdeas.length) return null;
   const appearance =
     object(value) && object(value.preferences)
       ? parseAppearance(value.preferences)
@@ -113,6 +124,8 @@ export function parseSpace(
     owner,
     revision: Number(value.revision),
     updatedAt: value.updatedAt,
+    shownIdeaIds: [...shownIdeaIds],
+    discoveredIdeas: discoveredIdeas as ExplorationIdea[],
     preferences: {
       mode: value.preferences.mode,
       time: value.preferences.time,
@@ -212,8 +225,9 @@ export function mergeSpaces(
   const records = new Map(imported.records.map((item) => [item.id, item]));
   // An imported backup adds missing entries; existing reflections are retained.
   for (const item of current.records) records.set(item.id, item);
-  return {
+  const merged = {
     ...current,
+    shownIdeaIds: rememberShown(imported.shownIdeaIds, current.shownIdeaIds),
     favorites: [...favorites.values()].sort((a, b) =>
       b.addedAt.localeCompare(a.addedAt),
     ),
@@ -221,4 +235,15 @@ export function mergeSpaces(
       b.createdAt.localeCompare(a.createdAt),
     ),
   };
+  return { ...merged, discoveredIdeas: mergeDiscoveredIdeas(merged, imported.discoveredIdeas) };
+}
+
+export function mergeDiscoveredIdeas(space: ExplorationSpace, incoming: ExplorationIdea[]): ExplorationIdea[] {
+  const pinned = new Set([...space.favorites.map((item) => item.ideaId), ...space.records.flatMap((item) => item.ideaId ? [item.ideaId] : [])]);
+  const ideas = new Map(space.discoveredIdeas.map((idea) => [idea.id, idea]));
+  for (const idea of incoming) {
+    if (!pinned.has(idea.id) || !ideas.has(idea.id)) ideas.set(idea.id, idea);
+  }
+  const ordered = [...ideas.values()].sort((a, b) => (b.discoveredAt ?? "").localeCompare(a.discoveredAt ?? ""));
+  return [...ordered.filter((idea) => pinned.has(idea.id)), ...ordered.filter((idea) => !pinned.has(idea.id)).slice(0, 240)];
 }

@@ -15,15 +15,19 @@ import type { CSSProperties, ReactNode } from "react";
 import { appearancePage, isTone, pageTone, readableTone } from "../appearance";
 import { PageColorPicker } from "./page-color-picker";
 import { LoginView } from "@/components/auth/space-login";
-import { generateSuggestions } from "../generator";
+import { findIdea } from "../ideas";
+import { requestDiscovery, selectDiscoveredSuggestions } from "../discovery-client";
+import { rememberShown } from "../discovery";
 import {
   createEmptySpace,
   readStoredSpace,
   saveStoredSpace,
   explorationStorageKey,
+  mergeDiscoveredIdeas,
 } from "../storage";
 import type {
   ExplorationFilters,
+  ExplorationIdea,
   ExplorationRecord,
   ExplorationSpace,
   ExplorationSuggestion,
@@ -45,7 +49,10 @@ type ExplorationContextValue = {
   switchOwner: (owner: SpaceOwner) => void;
   notify: (message: string) => void;
   suggestions: ExplorationSuggestion[];
-  generate: (filters: ExplorationFilters) => void;
+  generating: boolean;
+  discoveryNote: string;
+  resolveIdea: (id: string | null | undefined) => ExplorationIdea | undefined;
+  generate: (filters: ExplorationFilters) => Promise<void>;
   signOut: () => Promise<void>;
 };
 const ExplorationContext = createContext<ExplorationContextValue | null>(null);
@@ -86,6 +93,11 @@ function SpaceShell({
   const [removed, setRemoved] = useState<ExplorationRecord | null>(null);
   const [suggestions, setSuggestions] = useState<ExplorationSuggestion[]>([]);
   const previousIdeas = useRef<string[]>([]);
+  const [generating, setGenerating] = useState(false);
+  const [discoveryNote, setDiscoveryNote] = useState("");
+  const pendingDiscovery = useRef<AbortController | null>(null);
+  const generation = useRef(0);
+  useEffect(() => () => { generation.current++; pendingDiscovery.current?.abort(); }, []);
   const apply = useCallback(
     (next: ExplorationSpace, nextStatus: SaveStatus) => {
       current.current = next;
@@ -164,12 +176,19 @@ function SpaceShell({
     },
     [apply],
   );
+  const withIdeaSnapshot = (next: ExplorationSpace, ideaId: string | null) => {
+    const idea = current.current.discoveredIdeas.find((item) => item.id === ideaId)
+      ?? suggestions.find((item) => item.idea.id === ideaId)?.idea;
+    return idea?.discoveredAt
+      ? { ...next, discoveredIdeas: mergeDiscoveredIdeas(next, [idea]) }
+      : next;
+  };
   const toggleFavorite = (ideaId: string) => {
     const exists = current.current.favorites.some(
       (item) => item.ideaId === ideaId,
     );
     if (
-      update((value) => ({
+      update((value) => withIdeaSnapshot({
         ...value,
         favorites: exists
           ? value.favorites.filter((item) => item.ideaId !== ideaId)
@@ -177,26 +196,56 @@ function SpaceShell({
               { ideaId, soon: false, addedAt: new Date().toISOString() },
               ...value.favorites,
             ],
-      }))
+      }, ideaId))
     )
       setMessage(
         exists ? "已从收藏里移开。" : "已放进收藏，什么时候想试都可以。",
       );
   };
   const generate = useCallback(
-    (filters: ExplorationFilters) => {
-      const next = generateSuggestions(filters, {
-        previousIds: previousIdeas.current,
-        recentIds: current.current.records
-          .slice(0, 8)
-          .flatMap((item) => (item.ideaId ? [item.ideaId] : [])),
-      });
-      previousIdeas.current = next.map((item) => item.idea.id);
-      setSuggestions(next);
+    async (filters: ExplorationFilters) => {
+      pendingDiscovery.current?.abort();
+      const controller = new AbortController();
+      pendingDiscovery.current = controller;
+      const sequence = ++generation.current;
+      setGenerating(true);
+      setDiscoveryNote("正在发现新的作品和活动…");
       update((value) => ({
         ...value,
         preferences: { ...value.preferences, ...filters },
       }));
+      try {
+        const online = await requestDiscovery(filters, current.current,
+          AbortSignal.any([controller.signal, AbortSignal.timeout(28000)]));
+        if (controller.signal.aborted || sequence !== generation.current) return;
+        const next = selectDiscoveredSuggestions(filters, current.current, online, previousIdeas.current);
+        const ids = next.map((item) => item.idea.id);
+        update((value) => ({
+          ...value,
+          shownIdeaIds: rememberShown(value.shownIdeaIds, ids),
+          discoveredIdeas: mergeDiscoveredIdeas(value, [...online, ...next.flatMap((item) => item.idea.discoveredAt ? [item.idea] : [])]),
+        }));
+        previousIdeas.current = ids;
+        setSuggestions(next);
+        const onlineCount = next.filter((item) => item.idea.discoveredAt).length;
+        setDiscoveryNote(onlineCount === next.length && next.length
+          ? online.length ? "从在线内容里，发现了几个新入口。" : "本轮来自此前发现、还没看过的在线内容。"
+          : onlineCount ? online.length ? "新发现的在线内容，加一点自由发挥的灵感。" : "此前发现、还没看过的在线内容，加一点本地灵感。"
+          : "这次先给你 3 个本地灵感，下次继续寻找新内容。");
+      } catch {
+        if (controller.signal.aborted || sequence !== generation.current) return;
+        const next = selectDiscoveredSuggestions(filters, current.current, [], previousIdeas.current);
+        const ids = next.map((item) => item.idea.id);
+        update((value) => ({ ...value, shownIdeaIds: rememberShown(value.shownIdeaIds, ids) }));
+        previousIdeas.current = ids;
+        setSuggestions(next);
+        setDiscoveryNote("联网暂时没有响应，先看看已保存的内容和本地灵感。");
+      } finally {
+        if (sequence === generation.current) {
+          setGenerating(false);
+          pendingDiscovery.current = null;
+        }
+      }
     },
     [update],
   );
@@ -209,13 +258,13 @@ function SpaceShell({
     }));
   };
   const saveRecord = (record: ExplorationRecord) =>
-    update((value) => ({
+    update((value) => withIdeaSnapshot({
       ...value,
       records: [
         record,
         ...value.records.filter((item) => item.id !== record.id),
       ].sort((left, right) => right.createdAt.localeCompare(left.createdAt)),
-    }));
+    }, record.ideaId));
   const removeRecord = (id: string) => {
     const existing = current.current.records.find((item) => item.id === id);
     if (
@@ -266,6 +315,9 @@ function SpaceShell({
         switchOwner,
         notify: setMessage,
         suggestions,
+        generating,
+        discoveryNote,
+        resolveIdea: (id) => findIdea(id) ?? space.discoveredIdeas.find((idea) => idea.id === id) ?? suggestions.find((item) => item.idea.id === id)?.idea,
         generate,
         signOut,
       }}

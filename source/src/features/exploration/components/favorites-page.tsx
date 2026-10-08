@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { ArrowRight, Bookmark, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { findIdea } from "../ideas";
 import { categoryLabels } from "../types";
 import type { ExplorationCategory } from "../types";
 import { useExploration } from "./exploration-app";
 import { IdeaCard } from "./idea-card";
 
 export function FavoritesPage() {
-  const { space, toggleSoon, toggleFavorite } = useExploration();
+  const { space, toggleSoon, toggleFavorite, resolveIdea } = useExploration();
   const [filter, setFilter] = useState<"all" | "soon" | ExplorationCategory>(
     "all",
   );
@@ -22,7 +21,7 @@ export function FavoritesPage() {
   ];
   const favorites = space.favorites
     .flatMap((favorite) => {
-      const idea = findIdea(favorite.ideaId);
+      const idea = resolveIdea(favorite.ideaId);
       return idea ? [{ favorite, idea }] : [];
     })
     .filter(
@@ -33,7 +32,7 @@ export function FavoritesPage() {
     .sort(
       (left, right) => Number(right.favorite.soon) - Number(left.favorite.soon),
     );
-  const unavailable = space.favorites.filter((item) => !findIdea(item.ideaId));
+  const unavailable = space.favorites.filter((item) => !resolveIdea(item.ideaId));
   return (
     <div className="exploration-page">
       <header className="exploration-page-heading">

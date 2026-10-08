@@ -6,7 +6,7 @@
 
 首页集中展示随机开始按钮和四个探索方向。右上角可单独调整当前页面颜色；“我的”可设置整个空间的底色，支持七种预设与自定义颜色。
 
-当前有 50 个推荐活动，涉及具体书籍、纪录片、音乐、运动、烹饪、桌游、手作、自然和技术等领域。活动提供明确的开始方式；部分作品和教程可直接打开。
+推荐优先联网发现作品、教程和活动，附可打开的来源；每组给出 3 个选择，混合具体推荐与可以自行选题的活动。在线结果不足或缺少开放选择时，从已发现内容和 70 个本地活动中补足。按账号记住已展示的内容，换组和刷新优先避开重复，不增加兴趣问卷。
 
 ## 本地运行
 
@@ -32,6 +32,7 @@ pnpm verify:archive
 - `source/`：唯一开发应用；包含 Next.js 16、React 19 和 TypeScript。
 - `source/src/features/exploration/`：新探索内容、推荐生成、收藏、记录及页面组件。
 - `source/src/features/exploration/content/`：探索活动内容；`ideas.ts` 管理推荐池及旧条目查询。
+- `source/src/features/exploration/online-discovery.ts`：在线来源解析；`discovery-client.ts`：联网优先与本地回退；`src/lib/server/exploration-discovery.ts`：服务端检索。
 - `source/src/features/exploration/styles/`：基础布局、首页、探索、内容页与配色控件的独立样式。
 - `source/src/features/beijing/`：保留的原北京出行功能。
 - `docs/`：产品原文、架构说明、更新记录、验证结果和界面参考。
@@ -47,6 +48,21 @@ pnpm verify:archive
 - 北京模块的天气、地图、AI 检索和云同步需要原服务配置，模板在 `source/.env.example`。
 - 登录沿用原 scrypt 密码验证；启用 `NEXT_PUBLIC_REQUIRE_AUTH=true` 后继续限制账号访问。
 - 本地密钥放在 `source/.env.local`，不要提交；本次重构没有读取或更改线上密钥、生产数据。
+
+## 在线发现
+
+- 有 `DEEPSEEK_API_KEY` 时，使用 DeepSeek 的 Anthropic 兼容接口调用原生网页搜索；推荐网址必须出现在本轮检索结果中。新接口不使用旧北京模块的 Responses 搜索实现。
+- 没有密钥或模型搜索失败时，继续查询 Open Library、Apple Podcasts、TheMealDB 与维基百科地点资料。每组固定 3 条，既有具体作品或活动，也有读一本新书、试一种手工等开放方向；在线结果不足时用本地活动补齐，并在页面说明。尽量分散活动形式，避免整组都是播客或菜谱。
+- 公共书目不保证全文可读，英文食谱会明确标注语言；地点资料不代表当天开放。在线来源也可能暂时不可访问。
+- 只发送探索条件和最近展示的活动标题用于去重，不发送记录里的感受、账号姓名或出发地址。
+- 在线条目、收藏和展示历史保存在当前浏览器对应账号中，随备份导出/导入；跨设备打开在线详情需要导入包含该条目的备份。
+- 新检索默认模型为 `deepseek-flash`；如需覆盖，使用独立的 `EXPLORATION_DEEPSEEK_MODEL`，避免影响北京模块。接口、超时与来源边界见 [架构说明](docs/architecture.md)。
+
+### Vercel 配置入口
+
+打开 [本项目的环境变量设置](https://vercel.com/sereni1/beijing-qu-na-er-wan/settings/environment-variables)，添加或更新服务端变量 `DEEPSEEK_API_KEY`，勾选需要使用的 Production / Preview 环境。探索默认使用 `deepseek-flash`，可选覆盖为 `EXPLORATION_DEEPSEEK_MODEL`；官方接口地址默认无需另填。
+
+保存环境变量后重新部署，设置才会应用到新部署；见 [Vercel 环境变量说明](https://vercel.com/docs/environment-variables)。不要使用公开给浏览器的 `NEXT_PUBLIC_` 前缀存放密钥。
 
 ## 关于恢复备份
 

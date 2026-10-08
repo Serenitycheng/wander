@@ -67,11 +67,17 @@ export function IdeaCard({
       <span className="exploration-duration">
         {minutesLabel(idea.minutes)}
         {idea.place ? " · 北京" : ""}
+        {idea.discoveredAt ? ` · ${idea.domain ?? "在线发现"}` : ""}
       </span>
       <h3>
         <Link href={`/explore/${idea.id}`}>{idea.title}</Link>
       </h3>
       <p>{idea.description}</p>
+      {idea.discoveredAt && idea.source ? (
+        <a className="exploration-source-link" href={idea.source.url} target="_blank" rel="noopener noreferrer">
+          {idea.source.name} <ArrowUpRight size={13} aria-hidden="true" />
+        </a>
+      ) : null}
       {!compact ? (
         <div className="exploration-card-why">{reasons[0] ?? idea.why}</div>
       ) : null}

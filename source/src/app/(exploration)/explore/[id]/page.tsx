@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { allExplorationIdeas, findIdea } from "@/features/exploration/ideas";
-import { IdeaDetail } from "@/features/exploration/components/detail-page";
+import { IdeaDetail, DiscoveredIdeaDetail } from "@/features/exploration/components/detail-page";
+import { isOnlineIdeaId } from "@/features/exploration/discovery";
 
 export function generateStaticParams() {
   return allExplorationIdeas.map((idea) => ({ id: idea.id }));
@@ -21,6 +22,7 @@ export default async function Page({
 }) {
   const { id } = await params;
   const idea = findIdea(id);
+  if (!idea && isOnlineIdeaId(id)) return <DiscoveredIdeaDetail id={id} />;
   if (!idea) notFound();
   return <IdeaDetail idea={idea} />;
 }

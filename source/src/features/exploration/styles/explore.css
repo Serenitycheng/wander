@@ -373,3 +373,24 @@
     gap: 10px;
   }
 }
+.exploration-app .exploration-discovery-note {
+  color: var(--e-muted);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  margin: 0 0 1.1rem;
+}
+.exploration-app .exploration-source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--e-muted);
+  margin: 0 0 0.8rem;
+}
+.exploration-results .exploration-card-grid[data-count="2"] .exploration-idea-card:first-child {
+  grid-column: auto;
+}
+.exploration-loading-icon { animation: exploration-loading 1.3s linear infinite; }
+.exploration-primary:disabled { cursor: wait; opacity: 0.72; }
+@keyframes exploration-loading { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .exploration-loading-icon { animation: none; } }

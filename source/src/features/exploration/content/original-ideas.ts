@@ -15,7 +15,7 @@ export const idea = (
   moods: ExplorationMood[],
   why: string,
   firstStep: string,
-  extra: Pick<ExplorationIdea, "place" | "search" | "source"> = {},
+  extra: Pick<ExplorationIdea, "place" | "search" | "source" | "domain" | "approach"> = {},
 ): ExplorationIdea => ({
   id,
   category,

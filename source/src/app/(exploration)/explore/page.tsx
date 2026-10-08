@@ -13,7 +13,7 @@ export default async function Page({
     <ExplorePage
       key={query.mode ?? "default"}
       initialMode={isMode(query.mode) ? query.mode : undefined}
-      autoStart={query.start === "1"}
+      autoStart={isMode(query.mode) || query.start === "1"}
     />
   );
 }

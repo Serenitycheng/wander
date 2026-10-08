@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, LoaderCircle, RefreshCw, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { modes, moodOptions, timeOptions } from "../types";
 import type { ExplorationFilters, ExplorationMode } from "../types";
@@ -15,7 +15,7 @@ export function ExplorePage({
   initialMode?: ExplorationMode;
   autoStart?: boolean;
 }) {
-  const { space, owner, suggestions, generate } = useExploration();
+  const { space, owner, suggestions, generate, generating, discoveryNote } = useExploration();
   const [filters, setFilters] = useState<ExplorationFilters>(() => ({
     ...space.preferences,
     mode: initialMode ?? space.preferences.mode,
@@ -113,8 +113,11 @@ export function ExplorePage({
               type="button"
               className="exploration-primary"
               onClick={explore}
+              disabled={generating}
             >
-              {suggestions.length && !changed ? (
+              {generating ? (
+                <><LoaderCircle size={17} className="exploration-loading-icon" />正在找新的内容</>
+              ) : suggestions.length && !changed ? (
                 <>
                   <RefreshCw size={17} />
                   换一组新的可能
@@ -125,14 +128,16 @@ export function ExplorePage({
                 </>
               )}
             </button>
-            <span>只给几个小入口，选不选都由你。</span>
+            <span>每次 3 个选择，挑一个感兴趣的。</span>
           </div>
         </section>
         <section
           className="exploration-results"
           aria-label="探索建议"
           aria-live="polite"
+          aria-busy={generating}
         >
+          {discoveryNote ? <p className="exploration-discovery-note" role="status">{discoveryNote}</p> : null}
           {suggestions.length ? (
             <>
               <div className="exploration-section-heading">
@@ -148,7 +153,7 @@ export function ExplorePage({
                   时长只是活动参考，不含往返路程
                 </span>
               </div>
-              <div className="exploration-card-grid">
+              <div className="exploration-card-grid" data-count={suggestions.length}>
                 {suggestions.map((suggestion) => (
                   <IdeaCard key={suggestion.idea.id} suggestion={suggestion} />
                 ))}
@@ -158,9 +163,9 @@ export function ExplorePage({
             <div className="exploration-before-start">
               <Sparkles size={25} strokeWidth={1.2} />
               <p>
-                不用回答很多问题。
+                {generating ? "看看别的领域里，有什么值得一试。" : "不用回答很多问题。"}
                 <br />
-                点一下，让新的可能自己出现。
+                {generating ? "找到后，会放在这里。" : "点一下，让新的可能自己出现。"}
               </p>
             </div>
           )}
