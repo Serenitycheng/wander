@@ -12,7 +12,8 @@ import type {
   ExplorationSpace,
   SpaceOwner,
 } from "./types.ts";
-import { parseAppearance } from "./appearance.ts";
+import { maxColorSchemes, parseAppearance } from "./appearance.ts";
+import { parseProfile } from "./profile.ts";
 import { parseDiscoveredIdea, rememberShown } from "./discovery.ts";
 
 type BrowserStorage = Pick<Storage, "getItem" | "setItem">;
@@ -91,8 +92,11 @@ export function parseSpace(
     object(value) && object(value.preferences)
       ? parseAppearance(value.preferences)
       : null;
+  const profile = object(value) && object(value.preferences) && value.preferences.profile !== undefined
+    ? parseProfile(value.preferences.profile) : undefined;
   if (
     !appearance ||
+    profile === null ||
     !object(value) ||
     value.schemaVersion !== 1 ||
     value.owner !== owner ||
@@ -132,6 +136,7 @@ export function parseSpace(
       mood: value.preferences.mood,
       theme: value.preferences.theme as "sage" | "lavender",
       ...appearance,
+      ...(profile ? { profile } : {}),
     },
     favorites: value.favorites.map((item) => ({
       ideaId: item.ideaId,
@@ -227,6 +232,14 @@ export function mergeSpaces(
   for (const item of current.records) records.set(item.id, item);
   const merged = {
     ...current,
+    preferences: {
+      ...current.preferences,
+      ...((current.preferences.colorSchemes || imported.preferences.colorSchemes) ? {
+        colorSchemes: [...(current.preferences.colorSchemes ?? []), ...(imported.preferences.colorSchemes ?? [])]
+          .filter((scheme, index, schemes) => schemes.findIndex((other) => other.id === scheme.id || other.name.toLowerCase() === scheme.name.toLowerCase()) === index)
+          .slice(0, maxColorSchemes),
+      } : {}),
+    },
     shownIdeaIds: rememberShown(imported.shownIdeaIds, current.shownIdeaIds),
     favorites: [...favorites.values()].sort((a, b) =>
       b.addedAt.localeCompare(a.addedAt),

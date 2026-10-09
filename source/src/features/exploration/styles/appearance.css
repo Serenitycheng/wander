@@ -34,6 +34,8 @@
   border: 1px solid var(--e-line);
   border-radius: 17px;
   box-shadow: 0 14px 50px #242b241c;
+  max-height: calc(100svh - 160px);
+  overflow-y: auto;
 }
 .exploration-color-panel-heading {
   display: flex;
@@ -168,6 +170,53 @@
 }
 .exploration-appearance-controls .exploration-custom-tone {
   margin-top: 18px;
+}
+.exploration-saved-colors {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--e-line);
+}
+.exploration-saved-colors form > label {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--e-muted);
+  font-size: 11px;
+}
+.exploration-scheme-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px !important;
+}
+.exploration-scheme-options legend {
+  color: var(--e-muted);
+  font-size: 11px;
+  margin-bottom: 9px;
+}
+.exploration-scheme-options button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--e-line);
+  background: var(--e-bg);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.exploration-scheme-options button[aria-pressed="true"] {
+  border-color: var(--e-primary);
+}
+.exploration-scheme-options button > span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.exploration-saved-colors form > p {
+  margin-top: 9px;
+  color: #965541;
+  font-size: 11px;
 }
 @media (max-width: 1000px) {
   .exploration-color-picker summary > span {

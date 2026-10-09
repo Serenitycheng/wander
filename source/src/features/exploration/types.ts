@@ -8,7 +8,15 @@ export type ExplorationPage =
   "home" | "explore" | "favorites" | "records" | "me";
 export type ExplorationAppearance = {
   tone?: string;
+  // Retained for reading older v1 storage and backups; new choices use tone.
   pageColors?: Partial<Record<ExplorationPage, string>>;
+  colorSchemes?: Array<{ id: string; name: string; tone: string }>;
+};
+export type ExplorationProfile = {
+  personalized: boolean;
+  interests: string;
+  readingList: string;
+  allowFeeds: boolean;
 };
 
 export type ExplorationFilters = {
@@ -62,7 +70,7 @@ export type ExplorationSpace = {
   revision: number;
   updatedAt: string | null;
   preferences: ExplorationFilters &
-    ExplorationAppearance & { theme: ExplorationTheme };
+    ExplorationAppearance & { theme: ExplorationTheme; profile?: ExplorationProfile };
   favorites: ExplorationFavorite[];
   records: ExplorationRecord[];
   shownIdeaIds: string[];

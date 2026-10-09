@@ -374,6 +374,10 @@
   }
 }
 .exploration-app .exploration-discovery-note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
   color: var(--e-muted);
   font-size: 0.88rem;
   line-height: 1.7;

@@ -15,12 +15,13 @@ export function contentKey(title: string): string {
 export function activityKind(idea: ExplorationIdea): string {
   const title = idea.title;
   const url = idea.source?.url ?? "";
+  if (/唱首|唱一首|跟唱|声乐/.test(title)) return "歌唱";
   if (/podcasts\.apple\.com/.test(url) || /^听|专辑|爵士|音乐/.test(title)) return "聆听";
   if (/themealdb\.com/.test(url) || /烹饪|烘焙|面包|咖啡|料理|食谱|做.*(面|饭|汤|饼|菜|蛋|三明治|酸奶)/.test(title)) return "烹饪";
   if (idea.place || idea.category === "outside") return "出门";
   if (/抄写|书法|写.*诗|日记/.test(title)) return "书写";
   if (/openlibrary\.org/.test(url) || /^读|翻开|阅读/.test(title)) return "阅读";
-  if (/纪录片|电影|看一集|短片/.test(title)) return "观看";
+  if (/bilibili\.com/.test(url) || /纪录片|电影|看一集|短片|视频/.test(title)) return "观看";
   if (/棋|桌游|UNO|游戏|拼图/.test(title)) return "游戏";
   return idea.domain ?? idea.category;
 }
@@ -28,6 +29,11 @@ export function activityKind(idea: ExplorationIdea): string {
 export function isChildrensPodcast(idea: ExplorationIdea): boolean {
   return /podcasts\.apple\.com/.test(idea.source?.url ?? "") &&
     /儿童|幼儿|宝宝|早教|胎教|儿歌|学龄前|[0-9]-[0-9]岁/.test(`${idea.title} ${idea.domain ?? ""}`);
+}
+
+export function isFeedIdea(idea: ExplorationIdea): boolean {
+  return /podcasts\.apple\.com|xiaoyuzhoufm\.com|ximalaya\.com|(^|\/)blog\.|\/blogs?\/|medium\.com|substack\.com/i.test(idea.source?.url ?? "") ||
+    /播客|博客|podcast|\bblog\b|newsletter/i.test(`${idea.title} ${idea.domain ?? ""} ${idea.source?.name ?? ""}`);
 }
 
 export function sourceUrl(value: unknown): string | null {

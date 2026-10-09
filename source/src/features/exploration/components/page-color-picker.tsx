@@ -1,10 +1,9 @@
 "use client";
 
 import { Check, Palette, RotateCcw } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { CSSProperties, FormEvent } from "react";
-import { colorPresets, defaultTone, isTone, pageNames } from "../appearance";
-import type { ExplorationPage } from "../types";
+import { colorPresets, isTone, maxColorSchemes, resetSpaceTone, saveColorScheme, spaceTone, withSpaceTone } from "../appearance";
 import { useExploration } from "./exploration-app";
 
 export function ToneOptions({
@@ -92,14 +91,59 @@ function CustomTone({
   );
 }
 
+function SavedColorSchemes() {
+  const { space, update, notify } = useExploration();
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+  const nameId = useId();
+  const schemes = space.preferences.colorSchemes ?? [];
+  const color = spaceTone(space.preferences);
+  const save = (event: FormEvent) => {
+    event.preventDefault();
+    const id = crypto.randomUUID();
+    const next = saveColorScheme(space.preferences, name, id);
+    if (!next) {
+      setError(name.trim() ? `最多保存 ${maxColorSchemes} 个方案；输入已有名称可更新它。` : "给这个配色起个名字。");
+      return;
+    }
+    if (update((value) => {
+      const preferences = saveColorScheme(value.preferences, name, id);
+      return preferences ? { ...value, preferences } : value;
+    })) {
+      setName("");
+      setError("");
+      notify("配色方案已保存。");
+    }
+  };
+  return (
+    <div className="exploration-saved-colors">
+      {schemes.length ? <fieldset className="exploration-scheme-options">
+        <legend>已存方案</legend>
+        {schemes.map((scheme) => <button type="button" key={scheme.id}
+          aria-label={`使用配色方案：${scheme.name}`} aria-pressed={scheme.tone === color}
+          onClick={() => update((value) => ({ ...value, preferences: withSpaceTone(value.preferences, scheme.tone) }))}>
+          <span style={{ background: scheme.tone }} aria-hidden="true" />{scheme.name}
+        </button>)}
+      </fieldset> : null}
+      <form onSubmit={save}>
+        <label htmlFor={nameId}>保存当前配色</label>
+        <div className="exploration-custom-tone-row">
+          <input id={nameId} aria-label="配色方案名称" value={name} maxLength={24}
+            placeholder="例如：晚霞" onChange={(event) => { setName(event.target.value); setError(""); }} />
+          <button type="submit">保存方案</button>
+        </div>
+        {error ? <p role="alert">{error}</p> : null}
+      </form>
+    </div>
+  );
+}
+
 export function PageColorPicker({
-  page,
   color,
   choose,
   reset,
   custom,
 }: {
-  page: ExplorationPage;
   color: string;
   choose: (color: string) => void;
   reset: () => void;
@@ -140,15 +184,16 @@ export function PageColorPicker({
         aria-label="页面颜色设置"
       >
         <div className="exploration-color-panel-heading">
-          <strong>给{pageNames[page]}换个颜色</strong>
+          <strong>给漫游换个颜色</strong>
           <span
             className="exploration-color-current"
             style={{ background: color }}
           />
         </div>
-        <p>只调整当前页面，会自动记住。</p>
+        <p>所有页面一起换色，会自动记住。</p>
         <ToneOptions color={color} choose={choose} label="预设页面颜色" />
         <CustomTone color={color} choose={choose} />
+        <SavedColorSchemes />
         <button
           type="button"
           className="exploration-color-reset"
@@ -156,7 +201,7 @@ export function PageColorPicker({
           onClick={reset}
         >
           <RotateCcw size={13} />
-          跟随空间配色
+          恢复默认配色
         </button>
       </div>
     </details>
@@ -165,37 +210,28 @@ export function PageColorPicker({
 
 export function AppearanceSettings() {
   const { space, update } = useExploration();
-  const color =
-    space.preferences.tone ??
-    (space.preferences.theme === "lavender" ? "#80769a" : defaultTone);
+  const color = spaceTone(space.preferences);
   const choose = (tone: string) => {
     update((value) => ({
       ...value,
-      preferences: { ...value.preferences, tone },
+      preferences: withSpaceTone(value.preferences, tone),
     }));
   };
   return (
     <section className="exploration-setting exploration-appearance-setting">
       <div>
         <h2>给空间选个底色</h2>
-        <p>每个页面也可以有自己的颜色，右上角随时调整。</p>
+        <p>首页、探索、收藏和记录使用同一配色，右上角也能随时调整。</p>
       </div>
       <div className="exploration-appearance-controls">
         <ToneOptions color={color} choose={choose} label="空间预设颜色" />
         <CustomTone color={color} choose={choose} />
+        <SavedColorSchemes />
         <button
           type="button"
           className="exploration-color-reset"
           onClick={() =>
-            update((value) => {
-              const preferences = { ...value.preferences };
-              delete preferences.tone;
-              delete preferences.pageColors;
-              return {
-                ...value,
-                preferences: { ...preferences, theme: "sage" },
-              };
-            })
+            update((value) => ({ ...value, preferences: resetSpaceTone(value.preferences) }))
           }
         >
           <RotateCcw size={13} />

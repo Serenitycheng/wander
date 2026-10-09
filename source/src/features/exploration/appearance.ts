@@ -24,23 +24,52 @@ export const pageNames: Record<ExplorationPage, string> = {
 export const isTone = (value: unknown): value is string =>
   typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
 
-export function appearancePage(pathname: string): ExplorationPage {
-  if (pathname.startsWith("/explore")) return "explore";
-  if (pathname.startsWith("/favorites")) return "favorites";
-  if (pathname.startsWith("/records")) return "records";
-  if (pathname.startsWith("/me")) return "me";
-  return "home";
-}
-
-export function pageTone(
+export function spaceTone(
   preferences: ExplorationSpace["preferences"],
-  page: ExplorationPage,
 ) {
+  // Old per-page colors remain readable in v1 backups. Use one stable fallback
+  // for the whole space until the user chooses a new shared color.
   return (
-    preferences.pageColors?.[page] ??
     preferences.tone ??
+    Object.values(preferences.pageColors ?? {})[0] ??
     (preferences.theme === "lavender" ? "#80769a" : defaultTone)
   );
+}
+
+export function withSpaceTone(
+  preferences: ExplorationSpace["preferences"],
+  color: string,
+) {
+  if (!isTone(color)) return preferences;
+  const next = { ...preferences, tone: color.toLowerCase() };
+  delete next.pageColors;
+  return next;
+}
+
+export function resetSpaceTone(preferences: ExplorationSpace["preferences"]) {
+  const next = { ...preferences, theme: "sage" as const };
+  delete next.tone;
+  delete next.pageColors;
+  return next;
+}
+
+export const maxColorSchemes = 12;
+
+export function saveColorScheme(
+  preferences: ExplorationSpace["preferences"],
+  name: string,
+  id: string,
+) {
+  const trimmed = name.trim();
+  if (!trimmed || trimmed.length > 24 || !id || id.length > 64) return null;
+  const schemes = preferences.colorSchemes ?? [];
+  const existing = schemes.find((scheme) => scheme.name.toLowerCase() === trimmed.toLowerCase());
+  if (!existing && schemes.length >= maxColorSchemes) return null;
+  const saved = { id: existing?.id ?? id, name: trimmed, tone: spaceTone(preferences) };
+  return {
+    ...preferences,
+    colorSchemes: existing ? schemes.map((scheme) => scheme.id === existing.id ? saved : scheme) : [...schemes, saved],
+  };
 }
 
 export function parseAppearance(
@@ -60,6 +89,13 @@ export function parseAppearance(
     )
   )
     return null;
+  const schemes = preferences.colorSchemes;
+  if (schemes !== undefined && (!Array.isArray(schemes) || schemes.length > maxColorSchemes ||
+    schemes.some((scheme) => !scheme || typeof scheme !== "object" || Array.isArray(scheme) ||
+      typeof scheme.id !== "string" || !scheme.id.trim() || scheme.id.length > 64 ||
+      typeof scheme.name !== "string" || !scheme.name.trim() || scheme.name.trim().length > 24 || !isTone(scheme.tone)) ||
+    new Set(schemes.map((scheme) => scheme.id)).size !== schemes.length ||
+    new Set(schemes.map((scheme) => scheme.name.trim().toLowerCase())).size !== schemes.length)) return null;
   return {
     ...(typeof preferences.tone === "string"
       ? { tone: preferences.tone.toLowerCase() }
@@ -74,6 +110,9 @@ export function parseAppearance(
           ),
         }
       : {}),
+    ...(schemes !== undefined ? { colorSchemes: schemes.map((scheme) => ({
+      id: scheme.id, name: scheme.name.trim(), tone: scheme.tone.toLowerCase(),
+    })) } : {}),
   };
 }
 

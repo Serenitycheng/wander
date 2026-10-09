@@ -4,6 +4,14 @@ import type { ExplorationIdea } from "../types.ts";
 // Everyday activities with room to choose the work, subject or way of doing it.
 // These are local inspiration, never presented as newly retrieved web content.
 export const openIdeas: ExplorationIdea[] = [
+  idea("home-open-sing", "home", "唱一首此刻想唱的歌",
+    "熟悉的歌、新听到的歌都行。跟着原唱或伴奏唱一遍，也可以只唱喜欢的那段，不用录音或练到标准。", 15, ["gentle", "curious", "flow"],
+    "喜欢的旋律，自己唱出来也会有一点不一样。", "选一首想唱的歌，打开歌词或伴奏，找个自在的地方开始。",
+    { domain: "唱歌", approach: "open", search: "歌曲 伴奏 歌词" }),
+  idea("home-open-video", "home", "点开一个平时不会看的 B 站视频",
+    "游戏幕后、文学解读、旅行、音乐、科学或一个手工过程都可以。找个标题让你好奇的内容，看一段再决定是否继续。", 20, ["gentle", "curious", "flow"],
+    "从一个视频碰见一种平时没接触的兴趣。", "在 B 站选一个平时很少看的分区，看看简介，点开你愿意看的视频。",
+    { domain: "视频", approach: "open", search: "B站 文学 科学 音乐 游戏幕后 手工" }),
   idea("outside-open-park", "outside", "去一个没去过的公园走走",
     "挑一个方便到达的公园，走走、坐坐，或者带点吃的。不用安排打卡路线，看到了喜欢的地方就多待一会儿。", 30, ["gentle", "flow"],
     "换一个地方休息，出门也可以很随意。", "在地图上找附近没去过的公园，确认开放信息，选一个出门。",

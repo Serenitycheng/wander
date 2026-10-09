@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   defaultTone,
-  pageTone,
+  spaceTone,
   readableTone,
   colorPresets,
 } from "./appearance.ts";
@@ -10,22 +10,24 @@ import { createEmptySpace } from "./storage.ts";
 
 test("existing sage and lavender spaces retain their chosen color", () => {
   const preferences = createEmptySpace("serenity").preferences;
-  assert.equal(pageTone(preferences, "home"), defaultTone);
+  assert.equal(spaceTone(preferences), defaultTone);
   assert.equal(
-    pageTone({ ...preferences, theme: "lavender" }, "home"),
+    spaceTone({ ...preferences, theme: "lavender" }),
     "#80769a",
   );
 });
 
-test("a page override stays separate from the space color and other pages", () => {
+test("legacy page colors provide one stable fallback and never override a shared tone", () => {
   const preferences = {
     ...createEmptySpace("serenity").preferences,
     tone: "#80674d",
-    pageColors: { home: "#657f91" },
+    pageColors: { home: "#657f91", records: "#8a6f7d" },
   };
-  assert.equal(pageTone(preferences, "home"), "#657f91");
-  assert.equal(pageTone(preferences, "explore"), "#80674d");
-  assert.equal(pageTone({ ...preferences, pageColors: {} }, "home"), "#80674d");
+  assert.equal(spaceTone(preferences), "#80674d");
+  const legacy = { ...createEmptySpace("serenity").preferences, pageColors: preferences.pageColors };
+  assert.equal(spaceTone(legacy), "#657f91");
+  assert.deepEqual(legacy.pageColors, { home: "#657f91", records: "#8a6f7d" });
+  assert.equal(spaceTone({ ...legacy, pageColors: {} }), defaultTone);
 });
 
 test("white button labels remain readable for light and saturated custom colors", () => {

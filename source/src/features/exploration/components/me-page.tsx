@@ -9,6 +9,7 @@ import { explorationStorageKey, mergeSpaces, parseSpace } from "../storage";
 import type { SpaceOwner } from "../types";
 import { useExploration } from "./exploration-app";
 import { AppearanceSettings } from "./page-color-picker";
+import { DiscoveryPreferences } from "./discovery-preferences";
 
 export function MePage() {
   const {
@@ -112,6 +113,7 @@ export function MePage() {
         </label>
       </section>
       <AppearanceSettings />
+      <DiscoveryPreferences />
       <section className="exploration-setting exploration-setting-wrap">
         <div>
           <h2>把这些小片刻带走</h2>

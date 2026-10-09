@@ -291,6 +291,42 @@
   max-width: 1000px;
   margin-inline: auto;
 }
+.exploration-discovery-setting {
+  flex-direction: column;
+  gap: 20px;
+}
+.exploration-profile-form {
+  width: 100%;
+  display: grid;
+  gap: 15px;
+}
+.exploration-profile-form > label > span {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 7px;
+}
+.exploration-profile-form textarea {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+  padding: 12px 14px;
+  border: 1px solid var(--e-line);
+  border-radius: 10px;
+  color: var(--e-ink);
+  background: var(--e-bg);
+  line-height: 1.8;
+  font-size: 12px;
+}
+.exploration-profile-form .exploration-profile-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.exploration-profile-form .exploration-profile-check > span {
+  margin-bottom: 0;
+}
+.exploration-profile-check input { accent-color: var(--e-primary); }
+.exploration-profile-form button { justify-self: start; }
 .exploration-setting {
   display: flex;
   align-items: flex-start;

@@ -4,6 +4,7 @@ import { isMode, isMood, isTimeWindow } from "@/features/exploration/types";
 import { getSession } from "@/lib/server/session";
 import { discoverOnlineIdeas } from "@/lib/server/exploration-discovery";
 import type { DiscoveryRequest } from "@/lib/server/exploration-discovery";
+import { parsePersonalization } from "@/features/exploration/profile";
 
 export const maxDuration = 45;
 const requests = new Map<string, { startedAt: number; count: number }>();
@@ -18,10 +19,13 @@ export async function POST(request: Request) {
   if (raw.length > 48000) return NextResponse.json({ error: "本次探索信息过多。" }, { status: 413 });
   let body: unknown;
   try { body = JSON.parse(raw); } catch { body = null; }
+  const personalization = isObject(body) && body.personalization !== undefined ? parsePersonalization(body.personalization) : undefined;
   if (!isObject(body) || !isObject(body.filters) || !isMode(body.filters.mode) || !isTimeWindow(body.filters.time) || !isMood(body.filters.mood) ||
+    personalization === null || (body.allowFeeds !== undefined && typeof body.allowFeeds !== "boolean") ||
     !Number.isSafeInteger(body.seed) || Number(body.seed) < 0 || Number(body.seed) > 2147483647 ||
     !Array.isArray(body.excludeIds) || body.excludeIds.length > 600 || !body.excludeIds.every((id) => typeof id === "string" && id.length <= 100) ||
-    !Array.isArray(body.excludeTitles) || body.excludeTitles.length > 60 || !body.excludeTitles.every((title) => typeof title === "string" && title.length <= 160))
+    !Array.isArray(body.excludeTitles) || body.excludeTitles.length > 60 || !body.excludeTitles.every((title) => typeof title === "string" && title.length <= 160) ||
+    (body.avoidFormats !== undefined && (!Array.isArray(body.avoidFormats) || body.avoidFormats.length > 1 || !body.avoidFormats.every((format) => format === "feed"))))
     return NextResponse.json({ error: "探索条件不完整。" }, { status: 400 });
   const now = Date.now();
   for (const [key, value] of requests) if (now - value.startedAt > 60000) requests.delete(key);
@@ -34,7 +38,14 @@ export async function POST(request: Request) {
   const input: DiscoveryRequest = {
     filters: { mode: body.filters.mode, time: body.filters.time, mood: body.filters.mood },
     seed: Number(body.seed), excludeIds: body.excludeIds, excludeTitles: body.excludeTitles,
+    avoidFormats: body.avoidFormats as Array<"feed"> | undefined,
+    allowFeeds: body.allowFeeds === true,
+    ...(personalization ? { personalization } : {}),
   };
-  const ideas = await discoverOnlineIdeas(input, request.signal).catch(() => []);
-  return NextResponse.json({ ideas, status: ideas.length ? "online" : "unavailable" }, { headers: { "Cache-Control": "no-store" } });
+  const result = await discoverOnlineIdeas(input, request.signal).catch(() => {
+    if (request.signal.aborted) return { ideas: [], provider: "none", issue: "timeout" };
+    console.warn(JSON.stringify({ event: "manyou_discovery", provider: "none", issue: "provider_unavailable" }));
+    return { ideas: [], provider: "none", issue: "provider_unavailable" };
+  });
+  return NextResponse.json({ ...result, status: result.ideas.length ? "online" : "unavailable" }, { headers: { "Cache-Control": "no-store" } });
 }

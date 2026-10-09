@@ -15,7 +15,7 @@ export function ExplorePage({
   initialMode?: ExplorationMode;
   autoStart?: boolean;
 }) {
-  const { space, owner, suggestions, generate, generating, discoveryNote } = useExploration();
+  const { space, owner, suggestions, generate, generating, discoveryNote, discoveryNeedsLogin, reauthenticate } = useExploration();
   const [filters, setFilters] = useState<ExplorationFilters>(() => ({
     ...space.preferences,
     mode: initialMode ?? space.preferences.mode,
@@ -113,10 +113,9 @@ export function ExplorePage({
               type="button"
               className="exploration-primary"
               onClick={explore}
-              disabled={generating}
             >
               {generating ? (
-                <><LoaderCircle size={17} className="exploration-loading-icon" />正在找新的内容</>
+                <><LoaderCircle size={17} className="exploration-loading-icon" aria-hidden="true" />再换一组</>
               ) : suggestions.length && !changed ? (
                 <>
                   <RefreshCw size={17} />
@@ -135,9 +134,12 @@ export function ExplorePage({
           className="exploration-results"
           aria-label="探索建议"
           aria-live="polite"
-          aria-busy={generating}
+          aria-busy={generating && !suggestions.length}
         >
-          {discoveryNote ? <p className="exploration-discovery-note" role="status">{discoveryNote}</p> : null}
+          {discoveryNote ? <div className="exploration-discovery-note" role="status">
+            <span>{discoveryNote}</span>
+            {discoveryNeedsLogin ? <button type="button" className="exploration-secondary" onClick={reauthenticate}>重新登录</button> : null}
+          </div> : null}
           {suggestions.length ? (
             <>
               <div className="exploration-section-heading">

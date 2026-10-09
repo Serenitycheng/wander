@@ -12,11 +12,12 @@ import {
   useState,
 } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { appearancePage, isTone, pageTone, readableTone } from "../appearance";
+import { defaultTone, isTone, readableTone, resetSpaceTone, spaceTone, withSpaceTone } from "../appearance";
 import { PageColorPicker } from "./page-color-picker";
 import { LoginView } from "@/components/auth/space-login";
 import { findIdea } from "../ideas";
 import { requestDiscovery, selectDiscoveredSuggestions } from "../discovery-client";
+import { discoveryNoteFor } from "../discovery-status";
 import { rememberShown } from "../discovery";
 import {
   createEmptySpace,
@@ -51,6 +52,8 @@ type ExplorationContextValue = {
   suggestions: ExplorationSuggestion[];
   generating: boolean;
   discoveryNote: string;
+  discoveryNeedsLogin: boolean;
+  reauthenticate: () => void;
   resolveIdea: (id: string | null | undefined) => ExplorationIdea | undefined;
   generate: (filters: ExplorationFilters) => Promise<void>;
   signOut: () => Promise<void>;
@@ -75,6 +78,7 @@ function SpaceShell({
   authenticated,
   switchOwner,
   signOut,
+  reauthenticate,
   children,
 }: {
   owner: SpaceOwner;
@@ -82,6 +86,7 @@ function SpaceShell({
   authenticated: boolean;
   switchOwner: (owner: SpaceOwner) => void;
   signOut: () => Promise<void>;
+  reauthenticate: () => void;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -95,6 +100,7 @@ function SpaceShell({
   const previousIdeas = useRef<string[]>([]);
   const [generating, setGenerating] = useState(false);
   const [discoveryNote, setDiscoveryNote] = useState("");
+  const [discoveryNeedsLogin, setDiscoveryNeedsLogin] = useState(false);
   const pendingDiscovery = useRef<AbortController | null>(null);
   const generation = useRef(0);
   useEffect(() => () => { generation.current++; pendingDiscovery.current?.abort(); }, []);
@@ -209,16 +215,26 @@ function SpaceShell({
       pendingDiscovery.current = controller;
       const sequence = ++generation.current;
       setGenerating(true);
-      setDiscoveryNote("正在发现新的作品和活动…");
+      setDiscoveryNeedsLogin(false);
+      const immediate = selectDiscoveredSuggestions(filters, current.current, [], previousIdeas.current);
+      const immediateIds = immediate.map((item) => item.idea.id);
+      setSuggestions(immediate);
+      previousIdeas.current = immediateIds;
+      setDiscoveryNote("先看看这三个，新的作品和活动正在查找中…");
       update((value) => ({
         ...value,
         preferences: { ...value.preferences, ...filters },
+        shownIdeaIds: rememberShown(value.shownIdeaIds, immediateIds),
       }));
       try {
-        const online = await requestDiscovery(filters, current.current,
-          AbortSignal.any([controller.signal, AbortSignal.timeout(28000)]));
+        const result = await requestDiscovery(filters, current.current,
+          AbortSignal.any([controller.signal, AbortSignal.timeout(22000)]));
         if (controller.signal.aborted || sequence !== generation.current) return;
-        const next = selectDiscoveredSuggestions(filters, current.current, online, previousIdeas.current);
+        const online = result.ideas;
+        const discovered = selectDiscoveredSuggestions(filters, current.current, online, previousIdeas.current);
+        // Keep the immediately usable round when no new source was found.
+        const liveIds = new Set(online.map((idea) => idea.id));
+        const next = discovered.some(({ idea }) => liveIds.has(idea.id)) ? discovered : immediate;
         const ids = next.map((item) => item.idea.id);
         update((value) => ({
           ...value,
@@ -227,19 +243,12 @@ function SpaceShell({
         }));
         previousIdeas.current = ids;
         setSuggestions(next);
-        const onlineCount = next.filter((item) => item.idea.discoveredAt).length;
-        setDiscoveryNote(onlineCount === next.length && next.length
-          ? online.length ? "从在线内容里，发现了几个新入口。" : "本轮来自此前发现、还没看过的在线内容。"
-          : onlineCount ? online.length ? "新发现的在线内容，加一点自由发挥的灵感。" : "此前发现、还没看过的在线内容，加一点本地灵感。"
-          : "这次先给你 3 个本地灵感，下次继续寻找新内容。");
-      } catch {
+        setDiscoveryNeedsLogin(result.issue === "login_required");
+        setDiscoveryNote(discoveryNoteFor(result, next));
+      } catch (error) {
         if (controller.signal.aborted || sequence !== generation.current) return;
-        const next = selectDiscoveredSuggestions(filters, current.current, [], previousIdeas.current);
-        const ids = next.map((item) => item.idea.id);
-        update((value) => ({ ...value, shownIdeaIds: rememberShown(value.shownIdeaIds, ids) }));
-        previousIdeas.current = ids;
-        setSuggestions(next);
-        setDiscoveryNote("联网暂时没有响应，先看看已保存的内容和本地灵感。");
+        setDiscoveryNote(discoveryNoteFor({ ideas: [], provider: "none",
+          issue: error instanceof Error && ["TimeoutError", "AbortError"].includes(error.name) ? "timeout" : "network_error" }, immediate));
       } finally {
         if (sequence === generation.current) {
           setGenerating(false);
@@ -278,27 +287,16 @@ function SpaceShell({
       setMessage("这条记录已移开。");
     }
   };
-  const page = appearancePage(pathname);
-  const tone = pageTone(space.preferences, page);
+  const tone = spaceTone(space.preferences);
   const chooseTone = (color: string) => {
     if (!isTone(color)) return;
     update((value) => ({
       ...value,
-      preferences: {
-        ...value.preferences,
-        pageColors: {
-          ...value.preferences.pageColors,
-          [page]: color.toLowerCase(),
-        },
-      },
+      preferences: withSpaceTone(value.preferences, color),
     }));
   };
   const resetTone = () =>
-    update((value) => {
-      const pageColors = { ...value.preferences.pageColors };
-      delete pageColors[page];
-      return { ...value, preferences: { ...value.preferences, pageColors } };
-    });
+    update((value) => ({ ...value, preferences: resetSpaceTone(value.preferences) }));
   return (
     <ExplorationContext.Provider
       value={{
@@ -317,6 +315,8 @@ function SpaceShell({
         suggestions,
         generating,
         discoveryNote,
+        discoveryNeedsLogin,
+        reauthenticate,
         resolveIdea: (id) => findIdea(id) ?? space.discoveredIdeas.find((idea) => idea.id === id) ?? suggestions.find((item) => item.idea.id === id)?.idea,
         generate,
         signOut,
@@ -367,12 +367,11 @@ function SpaceShell({
           </nav>
           <div className="exploration-header-tools">
             <PageColorPicker
-              key={`${owner}:${page}`}
-              page={page}
+              key={`${owner}:${pathname}`}
               color={tone}
               choose={chooseTone}
               reset={resetTone}
-              custom={Boolean(space.preferences.pageColors?.[page])}
+              custom={tone !== defaultTone}
             />
             <Link
               href="/me"
@@ -537,6 +536,7 @@ export function ExplorationApp({ children }: { children: ReactNode }) {
       authenticated={requireAuth}
       switchOwner={switchOwner}
       signOut={signOut}
+      reauthenticate={() => setViewer(null)}
     >
       {children}
     </SpaceShell>
