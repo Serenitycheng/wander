@@ -1,11 +1,12 @@
-import { contentKey, isChildrensPodcast, isFeedIdea, isLowQualityVideo, isObject, onlineIdeaId, parseDiscoveredIdea, sourceUrl } from "./discovery.ts";
+import { contentKey, inspirationIdeaId, isChildrensPodcast, isFeedIdea, isLowQualityVideo, isObject, onlineIdeaId, parseDiscoveredIdea, sourceUrl } from "./discovery.ts";
 import { timeLimits } from "./generator.ts";
 import type { ExplorationFilters, ExplorationIdea } from "./types.ts";
 import { discoveryDirections } from "./discovery-topics.ts";
 import type { DiscoveryDirection } from "./discovery-topics.ts";
-import { hasUsableEntry, isMutedContent } from "./activity-diversity.ts";
+import { activityDomain, hasUsableEntry, isMutedContent } from "./activity-diversity.ts";
 import { readingReferences } from "./profile.ts";
 import type { DiscoveryPersonalization } from "./profile.ts";
+import { interestBookSubjects } from "./interest-discovery.ts";
 
 export type DiscoveryRequest = {
   filters: ExplorationFilters;
@@ -43,10 +44,12 @@ const eligible = (idea: ExplorationIdea, request: DiscoveryRequest) =>
   !isMutedContent(idea, request.personalization?.mutedTopics) && hasUsableEntry(idea) &&
   !((!request.allowFeeds || request.avoidFormats?.includes("feed")) && isFeedIdea(idea));
 
-function materialize(value: unknown, date: string): ExplorationIdea | null {
-  if (!isObject(value) || !isObject(value.source)) return null;
-  const url = sourceUrl(value.source.url);
-  return url ? parseDiscoveredIdea({ ...value, id: onlineIdeaId(url), discoveredAt: date }) : null;
+function materialize(value: unknown, date: string, origin: "deepseek" | "public" = "public"): ExplorationIdea | null {
+  if (!isObject(value)) return null;
+  const url = isObject(value.source) ? sourceUrl(value.source.url) : null;
+  const id = url ? onlineIdeaId(url) : origin === "deepseek" && typeof value.title === "string" && typeof value.category === "string"
+    ? inspirationIdeaId(value.category, value.title) : null;
+  return id ? parseDiscoveredIdea({ ...value, origin, id, discoveredAt: date }) : null;
 }
 
 // A claimed source URL must occur in an actual server-side web-search result.
@@ -71,11 +74,9 @@ export function inspectSearchDiscovery(payload: unknown, request: DiscoveryReque
       if (url) verified.add(url);
     }
   }
-  if (!verified.size) return { ideas: [], searchResultCount: 0, issue: "no_search_results" };
   const searchResultCount = verified.size;
   // Public catalog entries were also obtained and validated by this request.
-  // A model still must perform a real web search before using that context.
-  for (const idea of catalogIdeas) if (idea.source) verified.add(idea.source.url);
+  for (const idea of catalogIdeas) if (idea.source) verified.add(sourceUrl(idea.source.url)!);
   const messages = payload.content.filter((block) => isObject(block) && block.type === "text" && typeof block.text === "string");
   for (const message of messages.reverse()) {
     const raw = String(message.text);
@@ -84,12 +85,12 @@ export function inspectSearchDiscovery(payload: unknown, request: DiscoveryReque
       if (!isObject(decoded) || !Array.isArray(decoded.ideas)) continue;
       const ideas = new Map<string, ExplorationIdea>();
       for (const value of decoded.ideas.slice(0, 12)) {
-        const idea = materialize(value, new Date().toISOString());
-        if (idea?.source && verified.has(idea.source.url) && !isLowQualityVideo(idea) && eligible(idea, request) &&
+        const idea = materialize(value, new Date().toISOString(), "deepseek");
+        if (idea && (!idea.source || verified.has(idea.source.url)) && !isLowQualityVideo(idea) && eligible(idea, request) &&
           !request.excludeTitles.some((title) => contentKey(title) === contentKey(idea.title))) ideas.set(idea.id, idea);
       }
       return { ideas: [...ideas.values()], searchResultCount,
-        ...(ideas.size ? {} : { issue: "no_new_results" as const }) };
+        ...(ideas.size ? {} : { issue: verified.size ? "no_new_results" as const : "no_search_results" as const }) };
     } catch { /* A preamble or malformed JSON is not a usable discovery. */ }
   }
   return { ideas: [], searchResultCount, issue: "invalid_response" };
@@ -109,6 +110,13 @@ function videoIdeas(payload: unknown, request: DiscoveryRequest, direction: Disc
     const seconds = parts.reduce((total, part) => total * 60 + part, 0);
     const minutes = seconds ? Math.max(5, Math.min(25, Math.ceil(seconds / 60))) : 20;
     const description = typeof value.description === "string" ? plain(value.description).split(/\d{1,2}:\d{2}:\d{2}/)[0].slice(0, 120) : "";
+    // A search hit is not proof of relevance. Check real metadata before
+    // attaching the requested subject; do not label unrelated merchandise as it.
+    const domain = activityDomain({ title, description });
+    const queryDomain = activityDomain({ title: direction.query, domain: direction.domain });
+    const overlapsQuery = direction.query.split(/\s+/).filter((word) => word.length >= 2 && !/^(入门|教程|教学|初学|新手|必看)$/.test(word)).some((word) => `${title} ${description}`.includes(word));
+    if (domain !== queryDomain && !overlapsQuery && !direction.practice?.match.test(`${title} ${description}`)) return [];
+    if (title.length > 85 || seconds > 7200) return [];
     const metadata = `${title} ${description}`;
     const supportsPractice = /教程|入门|教学|示范|跟练|演示|制作|基础|实操|练习|伴奏|跟唱|规则|可编辑|示例/.test(metadata);
     const practice = supportsPractice && direction.practice && direction.practice.match.test(metadata) ? direction.practice : null;
@@ -231,7 +239,8 @@ export async function discoverPublicIdeas(request: DiscoveryRequest, signal: Abo
       const params = new URLSearchParams({ term, media: "podcast", entity: "podcast", country: "cn", limit: "30" });
       searches.push(fetchJson(`https://itunes.apple.com/search?${params}`, signal, fetcher).then((value) => podcastIdeas(value, request, term)));
     }
-    const subjects = ["poetry", "fiction", "history", "science", "art", "philosophy", "music", "nature", "design", "short stories"];
+    const preferredSubjects = interestBookSubjects(request.personalization);
+    const subjects = preferredSubjects.length ? preferredSubjects : ["poetry", "fiction", "history", "science", "art", "philosophy", "music", "nature", "design", "short stories"];
     const topic = subjects[seed % subjects.length];
     const references = readingReferences(request.personalization);
     const reference = references.length && seed % 3 !== 2 ? references[Math.floor(seed / 3) % references.length] : null;

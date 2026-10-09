@@ -1,4 +1,4 @@
-import { activityKind, contentKey } from "./discovery.ts";
+import { activityKind, contentKey, isUncuratedPublicIdea } from "./discovery.ts";
 import { explorationIdeas } from "./ideas.ts";
 import { profileFor } from "./profile.ts";
 import type { DiscoveryPersonalization } from "./profile.ts";
@@ -53,6 +53,7 @@ export function recommendationScore(idea: ExplorationIdea, space: ExplorationSpa
 }
 
 export function isRejectedIdea(idea: ExplorationIdea, space: ExplorationSpace): boolean {
+  if (isUncuratedPublicIdea(idea)) return true;
   if (isMutedContent(idea, profileFor(space).mutedTopics)) return true;
   const rejected = (space.feedback ?? []).filter((item) => item.vote === "less");
   if (rejected.some((item) => item.ideaId === idea.id)) return true;

@@ -46,7 +46,7 @@ export function discoveryNoteFor(result: DiscoveryResult, suggestions: Explorati
   const cached = suggestions.filter(({ idea }) => idea.discoveredAt && !liveIds.has(idea.id)).length;
   const local = suggestions.length - live - cached;
   const parts: string[] = [];
-  if (live) parts.push(`${result.provider === "deepseek" ? "DeepSeek 联网发现" : result.provider === "public" ? "公开来源发现" : "联网发现"} ${live} 个`);
+  if (live) parts.push(`${result.provider === "deepseek" ? "DeepSeek 推荐" : result.provider === "public" ? "公开来源发现" : "联网发现"} ${live} 个`);
   if (cached) parts.push(`此前发现 ${cached} 个`);
   if (local) parts.push(`本地灵感 ${local} 个`);
   const counts = parts.join(" · ");

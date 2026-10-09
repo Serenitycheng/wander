@@ -1,7 +1,7 @@
 import { activityForms, isCategory, isMood } from "./types.ts";
 import type { ExplorationIdea } from "./types.ts";
 
-export const isOnlineIdeaId = (id: string) => /^online-[a-f0-9]{16}$/.test(id);
+export const isOnlineIdeaId = (id: string) => /^(online|inspiration)-[a-f0-9]{16}$/.test(id);
 export const isObject = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const boundedText = (value: unknown, limit: number): value is string =>
@@ -51,8 +51,14 @@ export function isLowQualityVideo(idea: Pick<ExplorationIdea, "title" | "source"
   if (!/bilibili\.com/.test(idea.source?.url ?? "")) return false;
   // Filter promotional and sensational packaging, not whole subjects such as
   // history or crime. Existing snapshots remain readable in saved collections.
-  return /震惊|不看后悔|速来领取|福利领取|抽奖|带货|全网都在|成年人看的|过不了审|成人故事|意外怀孕\d|性侵.{0,5}\d|囚禁\d+天|史上最爽|男人必看|女人必看/.test(idea.title);
+  return /震惊|不看后悔|速来领取|福利领取|福利购|粉丝福利|免费得|一键三连|评论.*领|抽奖|带货|全网都在|成年人看的|过不了审|成人故事|意外怀孕\d|性侵.{0,5}\d|囚禁\d+天|史上最爽|男人必看|女人必看|文本朗读语音大全|素材合集|语音素材|期末冲刺|全系列|全\d+集|[（(]1[-～]\d+集|全球.*知识大揭秘/.test(idea.title);
 }
+
+// Old public video templates bypassed curation. Keep snapshots readable, but
+// do not recycle them as recommendations after the pipeline has been fixed.
+export const isUncuratedPublicIdea = (idea: ExplorationIdea) => !idea.origin &&
+  /发布的视频。/.test(idea.description) && /看看《/.test(idea.title) &&
+  /从.+的这段内容里，看看一个具体的故事、想法或做法/.test(idea.why);
 
 export function sourceUrl(value: unknown): string | null {
   if (!boundedText(value, 1800)) return null;
@@ -82,33 +88,44 @@ export function onlineIdeaId(url: string): string {
 }
 
 export function parseDiscoveredIdea(value: unknown): ExplorationIdea | null {
-  if (!isObject(value) || !isObject(value.source)) return null;
-  const url = sourceUrl(value.source.url);
-  if (!url || value.id !== onlineIdeaId(url) || !isCategory(value.category) ||
+  if (!isObject(value)) return null;
+  const hasSource = value.source !== undefined && value.source !== null;
+  const source = isObject(value.source) ? value.source : null;
+  const url = source ? sourceUrl(source.url) : null;
+  const openActivity = !hasSource && value.origin === "deepseek" && value.approach === "open" &&
+    activityForms.includes(value.form as typeof activityForms[number]) &&
+    value.category !== "outside" && typeof value.title === "string" && !/《|https?:\/\//.test(`${value.title} ${value.description} ${value.firstStep}`);
+  const expectedId = url ? onlineIdeaId(url) : openActivity ? inspirationIdeaId(String(value.category), String(value.title)) : null;
+  if (!expectedId || value.id !== expectedId || !isCategory(value.category) ||
     !boundedText(value.title, 160) || !boundedText(value.description, 700) ||
     !Number.isInteger(value.minutes) || Number(value.minutes) < 5 || Number(value.minutes) > 480 ||
     !Array.isArray(value.moods) || value.moods.length < 1 || value.moods.length > 4 || !value.moods.every(isMood) ||
     !boundedText(value.why, 280) || !boundedText(value.firstStep, 900) ||
-    !boundedText(value.source.name, 120) ||
-    (value.source.action !== undefined && !boundedText(value.source.action, 80)) ||
+    (hasSource && (!source || !url || !boundedText(source.name, 120))) ||
+    (source?.action !== undefined && !boundedText(source.action, 80)) ||
     (value.place !== undefined && !boundedText(value.place, 160)) ||
     (value.domain !== undefined && !boundedText(value.domain, 60)) ||
     (value.approach !== undefined && value.approach !== "open" && value.approach !== "specific") ||
     (value.angle !== undefined && !["familiar", "surprise", "play"].includes(String(value.angle))) ||
     (value.form !== undefined && !activityForms.includes(value.form as typeof activityForms[number])) ||
+    (value.origin !== undefined && value.origin !== "deepseek" && value.origin !== "public") ||
     typeof value.discoveredAt !== "string" || value.discoveredAt.length > 40 || !Number.isFinite(Date.parse(value.discoveredAt))) return null;
   return {
     id: value.id as string, category: value.category, title: value.title.trim(),
     description: value.description.trim(), minutes: Number(value.minutes),
     moods: [...new Set(value.moods)], why: value.why.trim(), firstStep: value.firstStep.trim(),
-    source: { name: value.source.name.trim(), url, ...(value.source.action ? { action: value.source.action } : {}) },
+    ...(source && url ? { source: { name: String(source.name).trim(), url, ...(source.action ? { action: String(source.action) } : {}) } } : {}),
     ...(value.place ? { place: value.place } : {}), ...(value.domain ? { domain: value.domain } : {}),
     ...(value.approach ? { approach: value.approach } : {}),
     ...(value.angle ? { angle: value.angle as ExplorationIdea["angle"] } : {}),
     ...(value.form ? { form: value.form as ExplorationIdea["form"] } : {}),
+    ...(value.origin ? { origin: value.origin as ExplorationIdea["origin"] } : {}),
     discoveredAt: value.discoveredAt,
   };
 }
+
+export const inspirationIdeaId = (category: string, title: string) =>
+  onlineIdeaId(`activity:${category}:${contentKey(title)}`).replace(/^online-/, "inspiration-");
 
 export function parseDiscoveryResponse(value: unknown): ExplorationIdea[] {
   if (!isObject(value) || !Array.isArray(value.ideas)) return [];

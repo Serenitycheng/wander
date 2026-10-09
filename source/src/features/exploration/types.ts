@@ -48,6 +48,7 @@ export type ExplorationIdea = {
   discoveredAt?: string;
   angle?: RecommendationAngle;
   form?: ActivityForm;
+  origin?: "deepseek" | "public";
 };
 
 export type ExplorationSuggestion = {

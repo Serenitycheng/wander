@@ -80,8 +80,10 @@ export async function requestDiscovery(
 }
 
 export function mergeDiscoveryResults(previous: DiscoveryResult, next: DiscoveryResult): DiscoveryResult {
-  const ideas = [...new Map([...previous.ideas, ...next.ideas].map((idea) => [idea.id, idea])).values()].slice(-48);
-  const provider = !previous.ideas.length ? next.provider : !next.ideas.length ? previous.provider
+  const curated = next.provider === "deepseek" && next.ideas.length > 0;
+  const retained = curated ? previous.ideas.filter((idea) => idea.origin === "deepseek") : previous.ideas;
+  const ideas = [...new Map([...retained, ...next.ideas].map((idea) => [idea.id, idea])).values()].slice(-48);
+  const provider = curated ? "deepseek" : !previous.ideas.length ? next.provider : !next.ideas.length ? previous.provider
     : previous.provider === next.provider ? next.provider : "unknown";
   return { ideas, provider, ...(next.issue ? { issue: next.issue } : {}) };
 }
@@ -126,19 +128,18 @@ export function selectDiscoveredSuggestions(
             (varied && (kind(chosen) === kind(idea) || (activityDomain(idea) !== "综合" && activityDomain(chosen) === activityDomain(idea))))))
             .filter((idea) => shown.has(idea.id) === seen);
           const next = generateSuggestions(filters, { ideas, shownIds: space.shownIdeaIds, previousIds, recentIds, random: options.random,
-            score: (idea) => recommendationScore(idea, space) + (currentOnlineIds.has(idea.id) ? 2 : idea.discoveredAt ? 0.5 : 0) })[0];
+            score: (idea) => recommendationScore(idea, space) + (currentOnlineIds.has(idea.id) ? idea.origin === "deepseek" ? 6 : 2 : idea.discoveredAt ? 0.5 : 0) })[0];
           if (next) { selected.push(next); return true; }
         }
       }
     }
     return false;
   };
-  const specific = (ideas: ExplorationIdea[]) => ideas.filter((idea) => idea.approach !== "open");
   // Rank all sources together. Being online must not force the same book,
   // recipe and documentary formats to win over a different useful activity.
   const fresh = [...freshOnline, ...freshLocal];
   const all = [...onlinePool, ...localPool];
-  pick([specific(fresh), fresh, specific(all), all]);
+  pick([fresh, all]);
   const complement = selected[0]?.idea.approach === "open" ? "specific" : "open";
   const matching = (ideas: ExplorationIdea[]) => ideas.filter((idea) => (idea.approach ?? "specific") === complement);
   pick([matching(fresh), matching(all)]);

@@ -2,6 +2,7 @@ import type { ActivityForm, ExplorationMode } from "./types.ts";
 import { readingReferences } from "./profile.ts";
 import type { DiscoveryPersonalization } from "./profile.ts";
 import { isMutedContent } from "./activity-diversity.ts";
+import { interestDirections } from "./interest-discovery.ts";
 
 // These are search directions, not a fixed list of activities or titles.
 export type DiscoveryDirection = {
@@ -66,16 +67,18 @@ const topics: Record<Exclude<ExplorationMode, "random">, DiscoveryDirection[]> =
 
 export function discoveryDirections(mode: ExplorationMode, seed: number, profile?: DiscoveryPersonalization,
   recent: Array<{ form: string; domain: string }> = []): DiscoveryDirection[] {
-  const pool = (mode === "random" ? Object.values(topics).flat() : topics[mode])
+  const personal = interestDirections(mode, profile);
+  const pool = [...personal, ...(mode === "random" ? Object.values(topics).flat() : topics[mode])]
     .filter((item) => !isMutedContent({ title: item.query, domain: item.domain, description: "" }, profile?.mutedTopics));
   let state = seed >>> 0;
   const ranked = pool.map((item) => {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    return { item, recent: recent.filter((past) => past.domain === item.domain).length, weight: state };
-  }).sort((a, b) => a.recent - b.recent || b.weight - a.weight);
+    return { item, personal: personal.includes(item), recent: recent.filter((past) => past.domain === item.domain).length, weight: state };
+  }).sort((a, b) => a.recent - b.recent || Number(b.personal) - Number(a.personal) || b.weight - a.weight);
   const selected: DiscoveryDirection[] = [];
   for (const varied of [true, false]) for (const { item } of ranked) {
     if (selected.length === 3) break;
+    if (personal.includes(item) && selected.filter((chosen) => personal.includes(chosen)).length >= 2) continue;
     if (selected.includes(item) || (varied && selected.some((chosen) => chosen.domain === item.domain))) continue;
     selected.push(item);
   }

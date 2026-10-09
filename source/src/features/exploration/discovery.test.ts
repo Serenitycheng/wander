@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { activityKind, isFeedIdea, isLowQualityVideo, onlineIdeaId, parseDiscoveredIdea, rememberShown, sourceUrl } from "./discovery.ts";
+import { activityKind, isFeedIdea, isLowQualityVideo, inspirationIdeaId, onlineIdeaId, parseDiscoveredIdea, rememberShown, sourceUrl } from "./discovery.ts";
 import { discoverPublicIdeas, inspectSearchDiscovery, parseSearchDiscovery } from "./online-discovery.ts";
 import { discoverWithProviders } from "./discovery-service.ts";
 import { discoveryNoteFor, parseDiscoveryResult } from "./discovery-status.ts";
@@ -11,6 +11,7 @@ import { createEmptySpace, mergeDiscoveredIdeas, mergeSpaces, parseSpace, readSt
 import { defaultFilters } from "./types.ts";
 import type { ExplorationIdea } from "./types.ts";
 import { defaultProfile, parsePersonalization, profileFor } from "./profile.ts";
+import { interestBookSubjects } from "./interest-discovery.ts";
 import { discoveryDirections, discoveryTopics } from "./discovery-topics.ts";
 import { DiscoveryBuffer, discoveryScope } from "./discovery-buffer.ts";
 import type { DiscoveryResult } from "./discovery-status.ts";
@@ -200,7 +201,7 @@ test("Bilibili results provide verified titles and playable sources while bad en
       { bvid: "BV1yM4JeWERC", title: "这才是成年人看的片，过不了审！", author: "营销号" },
     ] } });
   };
-  const ideas = await discoverPublicIdeas(request, new AbortController().signal, fetcher);
+  const ideas = await discoverPublicIdeas({ ...request, personalization: { ...defaultProfile("serenity"), favoriteTitles: [] } }, new AbortController().signal, fetcher);
   assert.equal(ideas.length, 1);
   assert.equal(ideas[0].title, "看看《文学 & 地域》");
   assert.equal(ideas[0].source?.url, "https://www.bilibili.com/video/BV1y5zdBZE7r");
@@ -440,7 +441,7 @@ test("DeepSeek HTTP failures are observable and public-source fallback does not 
     const fetcher: typeof fetch = async (input) => String(input).includes("/anthropic/v1/messages")
       ? Response.json({ error: "secret response must not escape" }, { status })
       : String(input).includes("api.bilibili.com") ? Response.json({ code: 0, data: { result: [{
-        bvid: "BV1y5zdBZE7r", title: "一个真实视频", author: "创作者", duration: "12:00",
+        bvid: "BV1y5zdBZE7r", title: "音乐 游戏 绘画 文学 设计 历史 自然 科学 手工 舞蹈 语言 心理 摄影 电影", author: "创作者", duration: "12:00",
       }] } }) : Response.json({});
     const result = await discoverWithProviders(request, new AbortController().signal, { key: "private-test-key", fetcher, log: (entry) => logs.push(entry) });
     assert.equal(result.provider, "public");
@@ -451,7 +452,7 @@ test("DeepSeek HTTP failures are observable and public-source fallback does not 
     assert.equal(JSON.stringify(logs).includes("secret response"), false);
     const next = selectDiscoveredSuggestions(request.filters, createEmptySpace("serenity"), result.ideas);
     assert.match(discoveryNoteFor(result, next), /公开来源发现/);
-    assert.equal(discoveryNoteFor(result, next).includes("DeepSeek 联网发现"), false);
+    assert.equal(discoveryNoteFor(result, next).includes("DeepSeek 推荐"), false);
   }
 });
 
@@ -568,30 +569,36 @@ test("NDJSON discovery exposes public choices before completion and handles spli
   output.enqueue(encoder.encode(JSON.stringify({ ideas: [second], provider: "deepseek" }) + "\n"));
   output.close();
   const result = await resultPromise;
-  assert.equal(result.ideas.length, 2);
-  assert.equal(result.provider, "unknown");
+  assert.equal(result.ideas.length, 1);
+  assert.equal(result.ideas[0].id, second.id);
+  assert.equal(result.provider, "deepseek");
 });
 
-test("a slow model does not hold back public discovery, and the model receives actual candidate metadata", async () => {
-  let releaseModel!: (value: Response) => void, publicReady!: () => void;
-  const early = new Promise<void>((resolve) => { publicReady = resolve; });
+test("configured model screens public candidates before publishing, and receives actual metadata", async () => {
+  let releaseModel!: (value: Response) => void, modelReady!: () => void;
+  const early = new Promise<void>((resolve) => { modelReady = resolve; });
   const heldModel = new Promise<Response>((resolve) => { releaseModel = resolve; });
   const updates: DiscoveryResult[] = [];
   let sent: Record<string, unknown> = {};
   const fetcher: typeof fetch = async (input, init) => {
-    if (String(input).includes("/anthropic/v1/messages")) { sent = JSON.parse(String(init?.body)); return heldModel; }
+    if (String(input).includes("/anthropic/v1/messages")) { sent = JSON.parse(String(init?.body)); modelReady(); return heldModel; }
     return String(input).includes("api.bilibili.com") ? Response.json({ code: 0, data: { result: [{ bvid: "BV1y5zdBZE7r", title: "真实文学视频", author: "创作者", duration: "12:00" }] } }) : Response.json({});
   };
   let completed = false;
-  const pending = discoverWithProviders(request, new AbortController().signal, { key: "test", fetcher,
-    onResult: (result) => { updates.push(result); if (result.provider === "public") publicReady(); } }).then((result) => { completed = true; return result; });
+  const pending = discoverWithProviders({ ...request, personalization: { ...defaultProfile("serenity"), favoriteTitles: [] } }, new AbortController().signal, { key: "test", fetcher,
+    onResult: (result) => { updates.push(result);  } }).then((result) => { completed = true; return result; });
   await early;
   await new Promise<void>((resolve) => setImmediate(resolve));
   assert.equal(completed, false);
-  assert.ok(updates[0].ideas[0].source?.url.includes("bilibili.com/video/"));
+  assert.equal(updates.length, 0);
   const message = JSON.parse((sent.messages as Array<{ content: string }>)[0].content);
   assert.equal(message.catalogCandidates[0].title, "看看《真实文学视频》");
   assert.match(message.request, /9 个/);
+  assert.match(message.preferences.interests, /故事与人物/);
+  assert.match(message.preferences.readingList, /边城/);
+  assert.match(message.preferences.preferenceNotes, /故事和人物/);
+  assert.match(message.fitRule, /具体、可信的连接/);
+  assert.match(message.personalizationRule, /至少一半/);
   const idea = ideaFor();
   releaseModel(Response.json({ content: [
     { type: "web_search_tool_result", content: [{ type: "web_search_result", url: idea.source!.url }] },
@@ -601,12 +608,12 @@ test("a slow model does not hold back public discovery, and the model receives a
   assert.equal(updates.at(-1)?.provider, "deepseek");
 });
 
-test("model recommendations may use catalog-verified resources but still need a genuine search", () => {
+test("model recommendations may use catalog-verified resources without repeating the search", () => {
   const catalog = ideaFor("https://example.org/catalog");
   const text = { type: "text", text: JSON.stringify({ ideas: [{ ...catalog, angle: "play" }] }) };
   const search = { type: "web_search_tool_result", content: [{ type: "web_search_result", url: "https://example.org/other" }] };
   assert.equal(inspectSearchDiscovery({ content: [search, text] }, request, [catalog]).ideas[0].angle, "play");
-  assert.equal(inspectSearchDiscovery({ content: [text] }, request, [catalog]).ideas.length, 0);
+  assert.equal(inspectSearchDiscovery({ content: [text] }, request, [catalog]).ideas.length, 1);
   assert.equal(inspectSearchDiscovery({ content: [search, text] }, request).ideas.length, 0);
   assert.equal(parseDiscoveredIdea({ ...catalog, angle: "invented" }), null);
 });
@@ -669,4 +676,38 @@ test("changing account, filters, saved tastes or feedback invalidates preparatio
   assert.notEqual(discoveryScope(request.filters, serenity), discoveryScope(request.filters, { ...serenity, preferences: { ...serenity.preferences, profile: { ...defaultProfile("serenity"), interests: "改过的偏好" } } }));
   assert.notEqual(discoveryScope(request.filters, serenity), discoveryScope(request.filters, { ...serenity, feedback: [{ ideaId: "home-open-sing", vote: "more", updatedAt: date }] }));
   jobs[1].resolve({ ideas: [], provider: "none" }); buffer.clear();
+});
+
+
+test("commercial and irrelevant screenshot videos are excluded without deleting favorites", () => {
+  for (const title of ["18.8米，蚂蚁纹桃核散籽福利购，粉丝福利一键三连评论免费得", "B站必剪文本朗读语音大全（很无聊的一个视频）", "【英语达人必看】TED-ED动画全系列：全球人文历史知识大揭秘（1-142集）"]) {
+    const idea = { ...ideaFor("https://www.bilibili.com/video/BV1y5zdBZE7r"), title };
+    assert.equal(isLowQualityVideo(idea), true);
+    const space = { ...createEmptySpace("serenity"), discoveredIdeas: [idea], favorites: [{ ideaId: idea.id, addedAt: date, soon: false }] };
+    assert.ok(selectDiscoveredSuggestions(request.filters, space, [idea]).every((item) => item.idea.id !== idea.id));
+    assert.equal(parseSpace(space, "serenity")?.favorites.length, 1);
+  }
+});
+
+test("ordinary creative actions need no invented source but named books still require verified evidence", () => {
+  const action = { ...ideaFor(), source: undefined, title: "把脑海里的一幕画成图片", description: "写下场景、光线和人物的动作，再让 AI 帮你画出来。", firstStep: "先用三句话描述那幅画面。", form: "绘画", approach: "open", origin: "deepseek" };
+  const result = inspectSearchDiscovery({ content: [{ type: "text", text: JSON.stringify({ ideas: [action] }) }] }, request);
+  assert.equal(result.ideas.length, 1);
+  assert.equal(result.ideas[0].id, inspirationIdeaId("home", action.title));
+  assert.equal(parseDiscoveredIdea(result.ideas[0])?.source, undefined);
+  assert.equal(inspectSearchDiscovery({ content: [{ type: "text", text: JSON.stringify({ ideas: [{ ...action, title: "读《虚构书名》" }] }) }] }, request).ideas.length, 0);
+});
+
+
+test("personal searches follow actual interests and preserve an unfamiliar direction", () => {
+  const personal = { ...defaultProfile("serenity"), favoriteTitles: [] };
+  for (let seed = 0; seed < 12; seed++) {
+    const directions = discoveryDirections("home", seed, personal);
+    assert.ok(directions.some((item) => /人物 访谈|角色 对白|文学 散文|角色 叙事|电影 美术|绘画 想象|歌词 故事|情感 表达/.test(item.query)));
+    assert.equal(directions.length, 3);
+  }
+  assert.ok(interestBookSubjects(personal).includes("fiction"));
+  assert.equal(interestBookSubjects(personal).includes("science"), false);
+  assert.deepEqual(interestBookSubjects({ interests: "音乐", readingList: "", favoriteTitles: [] }), ["music"]);
+  assert.deepEqual(interestBookSubjects({ interests: "", readingList: "", favoriteTitles: [] }), []);
 });
