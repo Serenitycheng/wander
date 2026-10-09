@@ -41,6 +41,12 @@ export function DiscoveryPreferences() {
             placeholder="书名、作者、电影或其他作品都可以写。"
             onChange={(event) => setEdit({ ...edit, draft: { ...edit.draft, readingList: event.target.value } })} />
         </label>
+        <label>
+          <span>暂时不想看的领域</span>
+          <input type="text" maxLength={240} value={edit.draft.mutedTopics ?? ""}
+            placeholder="用逗号分隔；清空后恢复推荐"
+            onChange={(event) => setEdit({ ...edit, draft: { ...edit.draft, mutedTopics: event.target.value } })} />
+        </label>
         <label className="exploration-profile-check">
           <input type="checkbox" checked={edit.draft.personalized}
             onChange={(event) => setEdit({ ...edit, draft: { ...edit.draft, personalized: event.target.checked } })} />

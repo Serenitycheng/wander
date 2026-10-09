@@ -1,11 +1,12 @@
-import { activityKind, contentKey, isChildrensPodcast, isFeedIdea, isLowQualityVideo, rememberShown } from "./discovery.ts";
+import { activityKind, contentKey, isChildrensPodcast, isFeedIdea, isLowQualityVideo, rememberShown, sourceUrl } from "./discovery.ts";
 import { generateSuggestions, timeLimits } from "./generator.ts";
 import { explorationIdeas } from "./ideas.ts";
 import { parseDiscoveryResult } from "./discovery-status.ts";
 import type { DiscoveryResult } from "./discovery-status.ts";
 import type { ExplorationFilters, ExplorationIdea, ExplorationSpace, ExplorationSuggestion } from "./types.ts";
 import { profileFor } from "./profile.ts";
-import { feedbackForDiscovery, interestScore, isPlayable, isRejectedIdea, recommendationScore } from "./recommendation-ranking.ts";
+import { feedbackForDiscovery, isPlayable, isRejectedIdea, recentActivitiesForDiscovery, recommendationScore } from "./recommendation-ranking.ts";
+import { activityDomain, hasUsableEntry, isHandsOn } from "./activity-diversity.ts";
 
 export async function requestDiscovery(
   filters: ExplorationFilters,
@@ -30,9 +31,11 @@ export async function requestDiscovery(
         excludeTitles: [...space.shownIdeaIds.slice(-60).flatMap((id) => known.get(id)?.title ? [known.get(id)!.title] : []), ...feedback.lessTitles].slice(-60),
         avoidFormats: avoidFeed ? ["feed"] : [],
         allowFeeds: profile.allowFeeds,
+        recentActivities: recentActivitiesForDiscovery(space),
         ...(profile.personalized ? { personalization: {
           interests: profile.interests, readingList: profile.readingList,
           preferenceNotes: profile.preferenceNotes ?? "",
+          mutedTopics: profile.mutedTopics ?? "",
           feedback,
           favoriteTitles: space.favorites.slice(0, 12).flatMap((item) => known.get(item.ideaId)?.title ? [known.get(item.ideaId)!.title] : []),
         } } : {}),
@@ -88,6 +91,7 @@ export function selectDiscoveredSuggestions(
   space: ExplorationSpace,
   online: ExplorationIdea[],
   previousIds: string[] = [],
+  options: { random?: () => number } = {},
 ): ExplorationSuggestion[] {
   const shown = new Set([...space.shownIdeaIds, ...previousIds]);
   const known = new Map([...explorationIdeas, ...space.discoveredIdeas, ...online].map((idea) => [idea.id, idea]));
@@ -96,17 +100,20 @@ export function selectDiscoveredSuggestions(
     return idea && isFeedIdea(idea);
   });
   const seenContent = new Set([...explorationIdeas, ...space.discoveredIdeas].filter((idea) => shown.has(idea.id)).map((idea) => contentKey(idea.title)));
+  const seenResources = new Set([...known.values()].filter((idea) => shown.has(idea.id) && idea.source).map((idea) => sourceUrl(idea.source!.url)));
   const eligible = (idea: ExplorationIdea) =>
     (filters.mode === "random" || idea.category === filters.mode) && idea.minutes <= timeLimits[filters.time] &&
-    !isChildrensPodcast(idea) && !isLowQualityVideo(idea) && !(avoidFeed && isFeedIdea(idea)) && !isRejectedIdea(idea, space);
+    !isChildrensPodcast(idea) && !isLowQualityVideo(idea) && hasUsableEntry(idea) && !(avoidFeed && isFeedIdea(idea)) && !isRejectedIdea(idea, space);
   const onlinePool = [...new Map([...space.discoveredIdeas, ...online].map((idea) => [idea.id, idea])).values()]
-    .filter((idea) => eligible(idea) && (shown.has(idea.id) || !seenContent.has(contentKey(idea.title))));
-  const localPool = explorationIdeas.filter(eligible);
+    .filter((idea) => eligible(idea) && (shown.has(idea.id) || (!seenContent.has(contentKey(idea.title)) && !seenResources.has(sourceUrl(idea.source?.url)))));
+  const localPool = explorationIdeas.filter((idea) => eligible(idea) &&
+    (shown.has(idea.id) || !idea.source || !seenResources.has(sourceUrl(idea.source.url))));
   const freshOnline = onlinePool.filter((idea) => !shown.has(idea.id));
   const freshLocal = localPool.filter((idea) => !shown.has(idea.id));
   const recentIds = space.records.slice(0, 8).flatMap((item) => item.ideaId ? [item.ideaId] : []);
   const selected: ExplorationSuggestion[] = [];
-  const kind = (idea: ExplorationIdea) => idea.category === "outside" ? idea.domain ?? activityKind(idea) : activityKind(idea);
+  const kind = (idea: ExplorationIdea) => idea.category === "outside" ? activityDomain(idea) : activityKind(idea);
+  const currentOnlineIds = new Set(online.map((idea) => idea.id));
   const pick = (pools: ExplorationIdea[][]) => {
     // Novelty outranks format diversity: an old item in a different format
     // must not beat an unseen item just because another book was selected.
@@ -115,9 +122,11 @@ export function selectDiscoveredSuggestions(
         for (const pool of pools) {
           const ideas = pool.filter((idea) => !(isFeedIdea(idea) && selected.some(({ idea: chosen }) => isFeedIdea(chosen))) && !selected.some(({ idea: chosen }) =>
             chosen.id === idea.id || contentKey(chosen.title) === contentKey(idea.title) ||
-            (varied && (kind(chosen) === kind(idea) || (filters.mode === "random" && chosen.category === idea.category)))))
+            (Boolean(chosen.source && idea.source) && sourceUrl(chosen.source?.url) === sourceUrl(idea.source?.url)) ||
+            (varied && (kind(chosen) === kind(idea) || (activityDomain(idea) !== "综合" && activityDomain(chosen) === activityDomain(idea))))))
             .filter((idea) => shown.has(idea.id) === seen);
-          const next = generateSuggestions(filters, { ideas, shownIds: space.shownIdeaIds, previousIds, recentIds, score: (idea) => recommendationScore(idea, space) })[0];
+          const next = generateSuggestions(filters, { ideas, shownIds: space.shownIdeaIds, previousIds, recentIds, random: options.random,
+            score: (idea) => recommendationScore(idea, space) + (currentOnlineIds.has(idea.id) ? 2 : idea.discoveredAt ? 0.5 : 0) })[0];
           if (next) { selected.push(next); return true; }
         }
       }
@@ -125,14 +134,19 @@ export function selectDiscoveredSuggestions(
     return false;
   };
   const specific = (ideas: ExplorationIdea[]) => ideas.filter((idea) => idea.approach !== "open");
-  // Start with a fresh online discovery, then leave room for the user's own choice.
-  const familiar = (ideas: ExplorationIdea[]) => ideas.filter((idea) => idea.angle === "familiar" || (!idea.angle && interestScore(idea, space) > 0));
-  pick([familiar(specific(freshOnline)), specific(freshOnline), freshOnline, familiar(specific(freshLocal)), specific(freshLocal), specific(onlinePool), specific(localPool)]);
+  // Rank all sources together. Being online must not force the same book,
+  // recipe and documentary formats to win over a different useful activity.
+  const fresh = [...freshOnline, ...freshLocal];
+  const all = [...onlinePool, ...localPool];
+  pick([specific(fresh), fresh, specific(all), all]);
   const complement = selected[0]?.idea.approach === "open" ? "specific" : "open";
   const matching = (ideas: ExplorationIdea[]) => ideas.filter((idea) => (idea.approach ?? "specific") === complement);
-  const surprise = (ideas: ExplorationIdea[]) => ideas.filter((idea) => idea.angle === "surprise" || (!idea.angle && interestScore(idea, space) === 0));
-  pick([surprise(matching(freshOnline)), matching(freshOnline), surprise(matching(freshLocal)), matching(freshLocal), matching(onlinePool), matching(localPool)]);
-  if (selected.length < 3) pick([freshOnline.filter(isPlayable), freshLocal.filter(isPlayable), freshOnline, freshLocal, onlinePool, localPool]);
-  while (selected.length < 3 && pick([freshOnline, freshLocal, onlinePool, localPool])) { /* Fill from real, eligible activities. */ }
+  pick([matching(fresh), matching(all)]);
+  if (selected.length < 3) {
+    const needsParticipation = !selected.some(({ idea }) => isHandsOn(idea));
+    const foundParticipation = needsParticipation && pick([fresh.filter(isHandsOn), all.filter(isHandsOn)]);
+    if (!foundParticipation) pick([fresh.filter(isPlayable), fresh, all]);
+  }
+  while (selected.length < 3 && pick([fresh, all])) { /* Fill from real, eligible activities. */ }
   return selected;
 }

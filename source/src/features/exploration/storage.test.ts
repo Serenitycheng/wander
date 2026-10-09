@@ -167,7 +167,7 @@ test("editable recommendation preferences survive backup and reject malformed da
   const loaded = readStoredSpace(storage, "serenity").space;
   assert.deepEqual(profileFor(loaded), profile);
   assert.deepEqual(parseSpace(JSON.parse(JSON.stringify(loaded)), "serenity"), loaded);
-  for (const invalid of [{ ...profile, readingList: "x".repeat(2401) }, { ...profile, allowFeeds: "yes" }, { ...profile, personalized: null }]) {
+  for (const invalid of [{ ...profile, readingList: "x".repeat(2401) }, { ...profile, allowFeeds: "yes" }, { ...profile, personalized: null }, { ...profile, mutedTopics: "x".repeat(241) }, { ...profile, mutedTopics: 123 }]) {
     assert.equal(saveStoredSpace(storage, loaded, { ...loaded, preferences: { ...loaded.preferences, profile: invalid as typeof profile } }).status, "invalid");
     assert.deepEqual(readStoredSpace(storage, "serenity").space.records, [reflection]);
     assert.deepEqual(profileFor(readStoredSpace(storage, "serenity").space), profile);

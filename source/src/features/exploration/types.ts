@@ -18,7 +18,10 @@ export type ExplorationProfile = {
   readingList: string;
   allowFeeds: boolean;
   preferenceNotes?: string;
+  mutedTopics?: string;
 };
+export const activityForms = ["阅读", "观看", "聆听", "歌唱", "音乐创作", "游戏", "舞蹈", "运动", "手工", "绘画", "书写", "社交", "出门", "交互探索", "知识", "烹饪"] as const;
+export type ActivityForm = typeof activityForms[number];
 export type RecommendationAngle = "familiar" | "surprise" | "play";
 export type ExplorationFeedback = { ideaId: string; vote: "more" | "less"; updatedAt: string };
 
@@ -44,6 +47,7 @@ export type ExplorationIdea = {
   approach?: "open" | "specific";
   discoveredAt?: string;
   angle?: RecommendationAngle;
+  form?: ActivityForm;
 };
 
 export type ExplorationSuggestion = {

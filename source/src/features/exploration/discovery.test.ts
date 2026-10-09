@@ -11,10 +11,11 @@ import { createEmptySpace, mergeDiscoveredIdeas, mergeSpaces, parseSpace, readSt
 import { defaultFilters } from "./types.ts";
 import type { ExplorationIdea } from "./types.ts";
 import { defaultProfile, parsePersonalization, profileFor } from "./profile.ts";
-import { discoveryTopics } from "./discovery-topics.ts";
+import { discoveryDirections, discoveryTopics } from "./discovery-topics.ts";
 import { DiscoveryBuffer, discoveryScope } from "./discovery-buffer.ts";
 import type { DiscoveryResult } from "./discovery-status.ts";
-import { feedbackForDiscovery, recommendationScore } from "./recommendation-ranking.ts";
+import { feedbackForDiscovery, isRejectedIdea, recentActivitiesForDiscovery, recommendationScore } from "./recommendation-ranking.ts";
+import { activityDomain, hasUsableEntry, isHandsOn, isMutedContent } from "./activity-diversity.ts";
 
 const date = "2026-10-08T10:00:00.000Z";
 const ideaFor = (url = "https://example.org/tutorial/one", category: ExplorationIdea["category"] = "home"): ExplorationIdea => ({
@@ -34,6 +35,117 @@ test("resource identity survives tracking URLs and changing titles", () => {
   assert.equal(parseDiscoveredIdea({ ...idea, title: "同一本书的另一种标题" })?.id, idea.id);
   assert.equal(sourceUrl("javascript:alert(1)"), null);
   assert.equal(parseDiscoveredIdea({ ...idea, source: { name: "不安全", url: "https://127.0.0.1/test" } }), null);
+});
+
+test("fields rotate in search and a reading list does not turn every discovery into a book review", () => {
+  const profile = { ...defaultProfile("serenity"), favoriteTitles: [] };
+  const seenQueries: string[] = [];
+  for (let seed = 0; seed < 32; seed++) {
+    const directions = discoveryDirections("home", seed, profile);
+    assert.equal(directions.length, 3);
+    assert.equal(directions.some((item) => /天文|宇宙|月球/.test(item.query)), false);
+    seenQueries.push(...directions.map((item) => item.query));
+  }
+  assert.ok(seenQueries.filter((query) => query.includes("《")).length <= 8);
+  assert.ok(new Set(Array.from({ length: 32 }, (_, seed) => discoveryDirections("home", seed, profile)).flat().map((item) => item.domain)).size >= 9);
+  const recent = ["文学", "饮食", "历史"].map((domain) => ({ domain, form: "观看" }));
+  for (let seed = 0; seed < 8; seed++) assert.ok(discoveryDirections("home", seed, profile, recent).every((item) => !recent.some((past) => past.domain === item.domain)));
+});
+
+test("named films and live performances remain watching tasks even without generic video words", () => {
+  const documentary = explorationIdeas.find((idea) => idea.id === "home-hexi-corridor")!;
+  assert.equal(activityKind(documentary), "观看");
+  assert.equal(activityDomain(documentary), "历史");
+  assert.equal(activityKind({ ...ideaFor(), title: "看一场爵士现场演出" }), "观看");
+  assert.equal(activityKind({ ...ideaFor(), title: "读一篇音乐家的传记" }), "阅读");
+  assert.equal(isHandsOn(explorationIdeas.find((idea) => idea.id === "learn-map-story")!), false);
+  assert.equal(activityKind(explorationIdeas.find((idea) => idea.id === "learn-caesar-cipher")!), "书写");
+});
+
+test("a stream of fresh books, recipes and documentaries cannot trap repeated rounds in those three forms", () => {
+  let space = createEmptySpace("serenity");
+  const forms = new Set<string>(), domains = new Set<string>();
+  for (let round = 0; round < 12; round++) {
+    const online = Array.from({ length: 9 }, (_, i) => ({
+      ...ideaFor(`https://example.org/round/${round}/${i}`),
+      title: i % 3 === 0 ? `读一篇新小说${round}-${i}` : i % 3 === 1 ? `看一部历史纪录片${round}-${i}` : `试做一道新菜${round}-${i}`,
+      domain: i % 3 === 0 ? "文学" : i % 3 === 1 ? "历史" : "烹饪",
+      form: i % 3 === 0 ? "阅读" as const : i % 3 === 1 ? "观看" as const : "烹饪" as const,
+    }));
+    const next = selectDiscoveredSuggestions(request.filters, space, online, [], { random: () => 0.5 });
+    assert.equal(next.length, 3);
+    assert.ok(next.some(({ idea }) => idea.approach === "open"));
+    assert.ok(next.some(({ idea }) => idea.approach !== "open"));
+    assert.ok(next.some(({ idea }) => isHandsOn(idea)));
+    assert.ok(next.every(({ idea }) => !space.shownIdeaIds.slice(-3).includes(idea.id)));
+    next.forEach(({ idea }) => { forms.add(activityKind(idea)); domains.add(activityDomain(idea)); });
+    space = { ...space, discoveredIdeas: mergeDiscoveredIdeas(space, online), shownIdeaIds: rememberShown(space.shownIdeaIds, next.map(({ idea }) => idea.id)) };
+  }
+  assert.ok(forms.size >= 6, `only ${[...forms]} were offered`);
+  assert.ok(domains.size >= 6, `only ${[...domains]} were offered`);
+});
+
+test("muted fields apply to old cache and model results, preserve saved data and can be cleared", () => {
+  const astronomy = { ...ideaFor("https://example.org/science/black-holes"), title: "看看黑洞怎样形成", domain: "天文", form: "观看" as const };
+  const space = { ...createEmptySpace("serenity"), discoveredIdeas: [astronomy], favorites: [{ ideaId: astronomy.id, addedAt: date, soon: false }] };
+  assert.equal(isRejectedIdea(astronomy, space), true);
+  assert.equal(selectDiscoveredSuggestions(request.filters, space, [astronomy]).some(({ idea }) => idea.id === astronomy.id), false);
+  assert.equal(parseSpace(space, "serenity")?.favorites[0].ideaId, astronomy.id);
+  assert.equal(isMutedContent({ title: "看看宇宙有多大", description: "", domain: "视频" }, "天文"), true);
+  assert.equal(isMutedContent({ title: "画一张宇宙主题的封面", description: "画自己想画的", domain: "设计" }, "天文"), false);
+  const allowed = { ...space, preferences: { ...space.preferences, profile: { ...defaultProfile("serenity"), mutedTopics: "" } } };
+  assert.equal(isRejectedIdea(astronomy, allowed), false);
+  assert.equal(profileFor(parseSpace(allowed, "serenity")!).mutedTopics, "");
+  assert.equal(profileFor(createEmptySpace("zzz")).mutedTopics, "");
+  const payload = { content: [{ type: "web_search_tool_result", content: [{ type: "web_search_result", url: astronomy.source!.url }] }, { type: "text", text: JSON.stringify({ ideas: [astronomy] }) }] };
+  assert.deepEqual(parseSearchDiscovery(payload, { ...request, personalization: { ...defaultProfile("serenity"), favoriteTitles: [] } }), []);
+});
+
+test("open directions need a usable entry, and a tutorial is not automatically just watching", async () => {
+  const vague = { ...ideaFor(), title: "接触一下配音", approach: "open" as const, firstStep: "搜索相关资料。" };
+  assert.equal(hasUsableEntry(vague), false);
+  assert.equal(selectDiscoveredSuggestions(request.filters, createEmptySpace("serenity"), [vague]).some(({ idea }) => idea.id === vague.id), false);
+  const seed = Array.from({ length: 32 }, (_, i) => i).find((value) => discoveryDirections("home", value).some((direction) => direction.practice))!;
+  let count = 0;
+  const fetcher: typeof fetch = async (input) => {
+    if (!String(input).includes("api.bilibili.com")) return Response.json({});
+    const keyword = new URL(String(input)).searchParams.get("keyword")!;
+    return Response.json({ code: 0, data: { result: [{ bvid: `BV${String(++count).padStart(10, "0")}`, title: keyword, description: keyword, author: "测试创作者", duration: "10:00" }] } });
+  };
+  const ideas = await discoverPublicIdeas({ ...request, seed }, new AbortController().signal, fetcher);
+  assert.ok(ideas.some((idea) => idea.form !== "观看"));
+  assert.ok(ideas.filter((idea) => idea.form !== "观看").every((idea) => idea.firstStep.startsWith("打开参考视频，") && idea.source?.url.includes("bilibili.com/video/")));
+  const unrelated = await discoverPublicIdeas({ ...request, seed }, new AbortController().signal, async (input) => String(input).includes("api.bilibili.com")
+    ? Response.json({ code: 0, data: { result: [{ bvid: "BV0000000001", title: "一段普通访谈", author: "测试创作者", duration: "10:00" }] } }) : Response.json({}));
+  assert.ok(unrelated.every((idea) => idea.form === "观看"));
+  const musicSeed = Array.from({ length: 64 }, (_, i) => i).find((value) => discoveryDirections("home", value).some((direction) => direction.form === "音乐创作"))!;
+  const interview = await discoverPublicIdeas({ ...request, seed: musicSeed }, new AbortController().signal, async (input) => String(input).includes("api.bilibili.com")
+    ? Response.json({ code: 0, data: { result: [{ bvid: "BV0000000001", title: "音乐与日常生活的关系：一段访谈", author: "测试创作者", duration: "10:00" }] } }) : Response.json({}));
+  assert.ok(interview.length > 0);
+  assert.ok(interview.every((idea) => idea.form === "观看"));
+});
+
+test("book and recipe catalogs are occasional sources instead of a mandatory pair on every request", async () => {
+  let books = 0, recipes = 0;
+  for (let seed = 0; seed < 24; seed++) {
+    await discoverPublicIdeas({ ...request, seed }, new AbortController().signal, async (input) => {
+      if (String(input).includes("openlibrary.org")) books++;
+      if (String(input).includes("themealdb.com")) recipes++;
+      return Response.json({});
+    });
+  }
+  assert.ok(books > 0 && books < 24);
+  assert.ok(recipes > 0 && recipes < 24);
+});
+
+test("the same resource cannot reappear under a new title or an online alias of a local tool", () => {
+  const local = explorationIdeas.find((idea) => idea.id === "learn-song-maker")!;
+  const online = { ...ideaFor(local.source!.url), category: "learn" as const, title: "用另一个标题试音乐工具", form: "音乐创作" as const };
+  const space = { ...createEmptySpace("serenity"), shownIdeaIds: [local.id] };
+  assert.equal(selectDiscoveredSuggestions({ ...request.filters, mode: "learn" }, space, [online]).some(({ idea }) => idea.id === online.id), false);
+  assert.equal(parseDiscoveredIdea({ ...online, form: "anything" }), null);
+  assert.equal(parseDiscoveredIdea(online)?.form, "音乐创作");
+  assert.deepEqual(recentActivitiesForDiscovery(space), [{ form: "音乐创作", domain: "音乐" }]);
 });
 
 test("model output without a real search result never becomes online content", () => {
@@ -73,7 +185,7 @@ test("older cached early-childhood audio is skipped without deleting saved conte
 
 test("recipe discovery distinguishes preparation time from cooking time", async () => {
   const fetcher: typeof fetch = async () => Response.json({ meals: [{ idMeal: "52772", strMeal: "Teriyaki Chicken", strArea: "Japanese", strIngredient1: "Chicken" }] });
-  const ideas = await discoverPublicIdeas({ ...request, filters: { mode: "create", time: "short", mood: "flow" } }, new AbortController().signal, fetcher);
+  const ideas = await discoverPublicIdeas({ ...request, seed: 0, filters: { mode: "create", time: "short", mood: "flow" } }, new AbortController().signal, fetcher);
   assert.equal(ideas.length, 1);
   assert.ok(ideas[0].description.includes("不含烹饪"));
   assert.ok(ideas[0].firstStep.includes("Chicken"));
@@ -169,7 +281,7 @@ test("online discoveries and open activities make a complete round of three", ()
   const online = [ideaFor(), { ...ideaFor("https://example.org/course/two"), title: "听一首具体的爵士作品", domain: "音乐" }, { ...ideaFor("https://example.org/recipe/three"), title: "试做一道烤蔬菜", domain: "烹饪" }];
   const suggestions = selectDiscoveredSuggestions(request.filters, space, online);
   assert.equal(suggestions.length, 3);
-  assert.equal(suggestions.filter(({ idea }) => online.some((item) => item.id === idea.id)).length, 2);
+  assert.ok(suggestions.some(({ idea }) => online.some((item) => item.id === idea.id)));
   assert.ok(suggestions.some(({ idea }) => idea.approach === "open"));
   const short = selectDiscoveredSuggestions(request.filters, space, [online[0]]);
   assert.equal(short.length, 3);
@@ -236,7 +348,7 @@ test("failed online requests fall back; cancellation cannot become a new draw", 
   await assert.rejects(requestDiscovery(request.filters, space, controller.signal, async () => { throw new Error("aborted"); }));
 });
 
-test("a large first podcast response cannot push books and recipes out of the discovery limit", async () => {
+test("a large first podcast response cannot hide other selected sources in the discovery limit", async () => {
   const fetcher: typeof fetch = async (input) => {
     if (String(input).includes("itunes.apple.com")) return Response.json({ results: Array.from({ length: 30 }, (_, i) => ({
       kind: "podcast", collectionName: `节目${i}`, artistName: `创作者${i}`, collectionViewUrl: `https://podcasts.apple.com/cn/podcast/id${i}`,
@@ -247,7 +359,7 @@ test("a large first podcast response cannot push books and recipes out of the di
     return Response.json({ meals: Array.from({ length: 8 }, (_, i) => ({ idMeal: `${100 + i}`, strMeal: `菜式${i}` })) });
   };
   let space = feedSpace();
-  for (let seed = 3; seed < 9; seed++) {
+  for (const seed of [0, 12, 24]) {
     const ideas = await discoverPublicIdeas({ ...request, allowFeeds: true, seed, excludeIds: space.shownIdeaIds }, new AbortController().signal, fetcher);
     assert.ok(ideas.length <= 24);
     assert.ok(ideas.some((idea) => idea.domain === "阅读"));
@@ -255,7 +367,6 @@ test("a large first podcast response cannot push books and recipes out of the di
     const next = selectDiscoveredSuggestions(request.filters, space, ideas);
     assert.equal(next.length, 3);
     assert.ok(next.every(({ idea }) => !space.shownIdeaIds.includes(idea.id)));
-    assert.ok(next.filter(({ idea }) => idea.discoveredAt).length >= 2);
     assert.equal(new Set(next.map(({ idea }) => activityKind(idea))).size, 3);
     assert.ok(next.some(({ idea }) => idea.approach === "open"));
     assert.ok(next.some(({ idea }) => idea.approach !== "open"));
@@ -500,7 +611,7 @@ test("model recommendations may use catalog-verified resources but still need a 
   assert.equal(parseDiscoveredIdea({ ...catalog, angle: "invented" }), null);
 });
 
-test("prepared choices mix an interest, an unexpected experience and something playable instead of a fixed book-video-recipe trio", () => {
+test("prepared choices mix actionable forms and open directions without requiring fixed angle slots", () => {
   const ideas: ExplorationIdea[] = [
     { ...ideaFor("https://example.org/story"), title: "读一篇从渡船讲起的故事", angle: "familiar" },
     { ...ideaFor("https://example.org/music"), title: "听听一场陌生风格的现场音乐", description: "可以自己选一场感兴趣的现场。", domain: "音乐", angle: "surprise", approach: "open" },
@@ -508,7 +619,8 @@ test("prepared choices mix an interest, an unexpected experience and something p
   ];
   const next = selectDiscoveredSuggestions(request.filters, createEmptySpace("serenity"), ideas);
   assert.equal(next.length, 3);
-  assert.deepEqual(new Set(next.map(({ idea }) => idea.angle)), new Set(["familiar", "surprise", "play"]));
+  assert.ok(next.some(({ idea }) => isHandsOn(idea)));
+  assert.ok(next.every(({ idea }) => hasUsableEntry(idea)));
   assert.equal(new Set(next.map(({ idea }) => activityKind(idea))).size, 3);
   assert.ok(next.some(({ idea }) => idea.approach === "open"));
   assert.ok(next.some(({ idea }) => idea.approach !== "open"));

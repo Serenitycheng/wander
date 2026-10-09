@@ -1,4 +1,4 @@
-import { isCategory, isMood } from "./types.ts";
+import { activityForms, isCategory, isMood } from "./types.ts";
 import type { ExplorationIdea } from "./types.ts";
 
 export const isOnlineIdeaId = (id: string) => /^online-[a-f0-9]{16}$/.test(id);
@@ -13,16 +13,27 @@ export function contentKey(title: string): string {
 }
 
 export function activityKind(idea: ExplorationIdea): string {
+  if (idea.form) return idea.form;
   const title = idea.title;
   const url = idea.source?.url ?? "";
+  // A tutorial is an entry to an activity, not automatically a watching task.
+  if (/^(试|跟着|给|用|学着|为|做|画|写|玩|练|接触|和|找).*(配音|声音表演)/.test(title)) return "歌唱";
+  if (/^(试|跟着|用|做|编|接触).*(编曲|节奏|旋律|采样|作曲)/.test(title)) return "音乐创作";
+  if (/^(试|跟着|用|玩|接触).*(互动|模拟器|可视化工具)/.test(title)) return "交互探索";
+  if (/^(试|跟着|学|练|放).*(舞|跳)/.test(title)) return "舞蹈";
+  if (/^(试|跟着|学|练|打|找|接触).*(运动|瑜伽|拉伸|拳|球|体能)/.test(title)) return "运动";
+  if (/^(和|约|找|给).*(朋友|家人|聊天|电话|对话)/.test(title) && !/棋|UNO|游戏|桌游/.test(title)) return "社交";
+  if (/^(试|跟着|用|做|折|串|学|接触).*(手工|折纸|纸牌魔术|编织|刺绣|串珠|模型|黏土|拼贴)/.test(title)) return "手工";
+  if (/^(画|试|跟着|用|学|为|做).*(画|速写|封面|设计|像素)/.test(title)) return "绘画";
+  if (/^(写|抄|练字|练书法|试着写|试着抄|用.*写|给.*写).*(故事|诗|字|信|书法|歌词|纸条)/.test(title)) return "书写";
   if (/唱首|唱一首|跟唱|声乐/.test(title)) return "歌唱";
-  if (/podcasts\.apple\.com/.test(url) || /^听|专辑|爵士|音乐/.test(title)) return "聆听";
+  if (/openlibrary\.org/.test(url) || /^读|翻开|阅读/.test(title)) return "阅读";
+  if (/podcasts\.apple\.com/.test(url) || /^听/.test(title)) return "聆听";
   if (/themealdb\.com/.test(url) || /烹饪|烘焙|面包|咖啡|料理|食谱|做.*(面|饭|汤|饼|菜|蛋|三明治|酸奶)/.test(title)) return "烹饪";
   if (idea.place || idea.category === "outside") return "出门";
   if (/抄写|书法|写.*诗|日记/.test(title)) return "书写";
-  if (/openlibrary\.org/.test(url) || /^读|翻开|阅读/.test(title)) return "阅读";
-  if (/bilibili\.com/.test(url) || /纪录片|电影|看一集|短片|视频/.test(title)) return "观看";
-  if (/棋|桌游|UNO|游戏|拼图/.test(title)) return "游戏";
+  if (/^(玩|试|和|来|下|学|接触).*(棋|桌游|UNO|游戏|拼图|解谜)/.test(title)) return "游戏";
+  if (/bilibili\.com/.test(url) || /^看|点开|观看/.test(title) || /纪录片|电影|看一集|短片|视频/.test(title)) return "观看";
   return idea.domain ?? idea.category;
 }
 
@@ -84,6 +95,7 @@ export function parseDiscoveredIdea(value: unknown): ExplorationIdea | null {
     (value.domain !== undefined && !boundedText(value.domain, 60)) ||
     (value.approach !== undefined && value.approach !== "open" && value.approach !== "specific") ||
     (value.angle !== undefined && !["familiar", "surprise", "play"].includes(String(value.angle))) ||
+    (value.form !== undefined && !activityForms.includes(value.form as typeof activityForms[number])) ||
     typeof value.discoveredAt !== "string" || value.discoveredAt.length > 40 || !Number.isFinite(Date.parse(value.discoveredAt))) return null;
   return {
     id: value.id as string, category: value.category, title: value.title.trim(),
@@ -93,6 +105,7 @@ export function parseDiscoveredIdea(value: unknown): ExplorationIdea | null {
     ...(value.place ? { place: value.place } : {}), ...(value.domain ? { domain: value.domain } : {}),
     ...(value.approach ? { approach: value.approach } : {}),
     ...(value.angle ? { angle: value.angle as ExplorationIdea["angle"] } : {}),
+    ...(value.form ? { form: value.form as ExplorationIdea["form"] } : {}),
     discoveredAt: value.discoveredAt,
   };
 }

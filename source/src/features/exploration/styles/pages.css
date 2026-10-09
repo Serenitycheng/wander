@@ -305,7 +305,8 @@
   font-size: 12px;
   margin-bottom: 7px;
 }
-.exploration-profile-form textarea {
+.exploration-profile-form textarea,
+.exploration-profile-form input[type="text"] {
   width: 100%;
   min-width: 0;
   resize: vertical;

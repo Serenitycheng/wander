@@ -1,7 +1,9 @@
 import { contentKey, isChildrensPodcast, isFeedIdea, isLowQualityVideo, isObject, onlineIdeaId, parseDiscoveredIdea, sourceUrl } from "./discovery.ts";
 import { timeLimits } from "./generator.ts";
 import type { ExplorationFilters, ExplorationIdea } from "./types.ts";
-import { discoveryTopics } from "./discovery-topics.ts";
+import { discoveryDirections } from "./discovery-topics.ts";
+import type { DiscoveryDirection } from "./discovery-topics.ts";
+import { hasUsableEntry, isMutedContent } from "./activity-diversity.ts";
 import { readingReferences } from "./profile.ts";
 import type { DiscoveryPersonalization } from "./profile.ts";
 
@@ -13,6 +15,7 @@ export type DiscoveryRequest = {
   avoidFormats?: Array<"feed">;
   allowFeeds?: boolean;
   personalization?: DiscoveryPersonalization;
+  recentActivities?: Array<{ form: string; domain: string }>;
 };
 type Fetcher = typeof fetch;
 
@@ -37,6 +40,7 @@ export async function fetchJson(url: string, signal: AbortSignal, fetcher: Fetch
 const eligible = (idea: ExplorationIdea, request: DiscoveryRequest) =>
   (request.filters.mode === "random" || request.filters.mode === idea.category) &&
   idea.minutes <= timeLimits[request.filters.time] && !request.excludeIds.includes(idea.id) &&
+  !isMutedContent(idea, request.personalization?.mutedTopics) && hasUsableEntry(idea) &&
   !((!request.allowFeeds || request.avoidFormats?.includes("feed")) && isFeedIdea(idea));
 
 function materialize(value: unknown, date: string): ExplorationIdea | null {
@@ -91,7 +95,7 @@ export function inspectSearchDiscovery(payload: unknown, request: DiscoveryReque
   return { ideas: [], searchResultCount, issue: "invalid_response" };
 }
 
-function videoIdeas(payload: unknown, request: DiscoveryRequest): ExplorationIdea[] {
+function videoIdeas(payload: unknown, request: DiscoveryRequest, direction: DiscoveryDirection): ExplorationIdea[] {
   if (!isObject(payload) || payload.code !== 0 || !isObject(payload.data) || !Array.isArray(payload.data.result)) return [];
   const plain = (value: string) => value.replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
   return payload.data.result.flatMap((value) => {
@@ -105,13 +109,17 @@ function videoIdeas(payload: unknown, request: DiscoveryRequest): ExplorationIde
     const seconds = parts.reduce((total, part) => total * 60 + part, 0);
     const minutes = seconds ? Math.max(5, Math.min(25, Math.ceil(seconds / 60))) : 20;
     const description = typeof value.description === "string" ? plain(value.description).split(/\d{1,2}:\d{2}:\d{2}/)[0].slice(0, 120) : "";
+    const metadata = `${title} ${description}`;
+    const supportsPractice = /教程|入门|教学|示范|跟练|演示|制作|基础|实操|练习|伴奏|跟唱|规则|可编辑|示例/.test(metadata);
+    const practice = supportsPractice && direction.practice && direction.practice.match.test(metadata) ? direction.practice : null;
     const idea = materialize({
-      category, title: `${category === "create" ? "跟着视频试试" : "看看"}《${title}》`, minutes,
-      approach: "specific", domain: category === "create" ? "视频教程" : "视频",
-      description: `${author}发布的视频。${description ? `${description} ` : ""}${duration ? `视频标注时长 ${duration}。` : ""}可以先看让你感兴趣的一段，卡片上的时间只是开始观看或尝试的参考。`,
+      category, title: `${practice ? "试试" : "看看"}《${title}》${practice ? "里的做法" : ""}`, minutes: practice ? 25 : minutes,
+      approach: "specific", domain: practice ? direction.domain : "视频", form: practice ? direction.form : "观看",
+      description: practice ? `${author}的参考视频。${description ? `${description} ` : ""}${practice.start}`
+        : `${author}发布的视频。${description ? `${description} ` : ""}${duration ? `视频标注时长 ${duration}。` : ""}可以先看让你感兴趣的一段，卡片上的时间只是开始观看或尝试的参考。`,
       moods: ["gentle", "curious", "focused", "flow"],
-      why: `从${author}的这段内容里，看看一个具体的故事、想法或做法。`,
-      firstStep: category === "create" ? "打开视频先看看做法，确认手边的材料，再选你想试的部分。" : "打开视频，看简介或章节，选你想看的部分开始。也可以顺着创作者找其他内容。",
+      why: practice ? `先借这个教程试试${direction.domain}的做法，再决定是否想继续。` : `从${author}的这段内容里，看看一个具体的故事、想法或做法。`,
+      firstStep: practice ? `打开参考视频，${practice.start}` : "打开视频，看简介或章节，选你想看的部分开始。也可以顺着创作者找其他内容。",
       source: { name: "哔哩哔哩", url: `https://www.bilibili.com/video/${value.bvid}`, action: "打开 B 站视频" },
     }, new Date().toISOString());
     return idea && !isLowQualityVideo(idea) && eligible(idea, request) ? [idea] : [];
@@ -207,13 +215,13 @@ export async function discoverPublicIdeas(request: DiscoveryRequest, signal: Abo
   const searches: Array<Promise<ExplorationIdea[]>> = [];
   const mode = request.filters.mode;
   const seed = Math.abs(request.seed);
+  const directions = discoveryDirections(mode, seed, request.personalization, request.recentActivities);
   if (["home", "learn", "create", "random"].includes(mode)) {
-    const directions = discoveryTopics(mode, seed, request.personalization);
-    for (let index = 0; index < 2; index++) {
-      const params = new URLSearchParams({ search_type: "video", keyword: directions[index], page: String(1 + Math.floor(seed / 17) % 4), order: "totalrank" });
+    for (const direction of directions) {
+      const params = new URLSearchParams({ search_type: "video", keyword: direction.query, page: String(1 + Math.floor(seed / 17) % 4), order: "totalrank" });
       searches.push(fetchJson(`https://api.bilibili.com/x/web-interface/search/type?${params}`, signal, fetcher, {
         headers: { Referer: "https://www.bilibili.com/", "User-Agent": "Mozilla/5.0" },
-      }).then((value) => videoIdeas(value, request)));
+      }).then((value) => videoIdeas(value, request, direction).slice(0, 4)));
     }
   }
   if (["home", "learn", "random"].includes(mode)) {
@@ -227,12 +235,14 @@ export async function discoverPublicIdeas(request: DiscoveryRequest, signal: Abo
     const topic = subjects[seed % subjects.length];
     const references = readingReferences(request.personalization);
     const reference = references.length && seed % 3 !== 2 ? references[Math.floor(seed / 3) % references.length] : null;
-    const params = new URLSearchParams({ q: reference ? `title:${reference}` : `subject:${topic} language:chi`, sort: "random", limit: "8", fields: "key,title,author_name" });
-    searches.push(fetchJson(`https://openlibrary.org/search.json?${params}`, signal, fetcher).then((value) => bookIdeas(value, request, topic)));
+    if (directions.some((direction) => direction.domain === "文学") || seed % 4 === 0) {
+      const params = new URLSearchParams({ q: reference ? `title:${reference}` : `subject:${topic} language:chi`, sort: "random", limit: "8", fields: "key,title,author_name" });
+      searches.push(fetchJson(`https://openlibrary.org/search.json?${params}`, signal, fetcher).then((value) => bookIdeas(value, request, topic).slice(0, 3)));
+    }
   }
-  if (["home", "create", "random"].includes(mode)) {
+  if (["home", "create", "random"].includes(mode) && (directions.some((direction) => direction.domain === "饮食") || seed % 6 === 0)) {
     const letter = "abcdefghijklmnopqrstvw"[seed % 22];
-    searches.push(fetchJson(`https://www.themealdb.com/api/json/v1/1/search.php?f=${letter}`, signal, fetcher).then((value) => recipeIdeas(value, request)));
+    searches.push(fetchJson(`https://www.themealdb.com/api/json/v1/1/search.php?f=${letter}`, signal, fetcher).then((value) => recipeIdeas(value, request).slice(0, 2)));
   }
   if (["outside", "random"].includes(mode)) {
     const kind = ["公园", "图书馆", "博物馆", "美术馆", "植物园"][seed % 5];

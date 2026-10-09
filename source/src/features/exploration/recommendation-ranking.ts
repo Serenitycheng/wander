@@ -3,6 +3,15 @@ import { explorationIdeas } from "./ideas.ts";
 import { profileFor } from "./profile.ts";
 import type { DiscoveryPersonalization } from "./profile.ts";
 import type { ExplorationIdea, ExplorationSpace } from "./types.ts";
+import { activityDomain, isHandsOn, isMutedContent } from "./activity-diversity.ts";
+
+export function recentActivitiesForDiscovery(space: ExplorationSpace) {
+  const known = new Map([...explorationIdeas, ...space.discoveredIdeas].map((idea) => [idea.id, idea]));
+  return space.shownIdeaIds.slice(-12).flatMap((id) => {
+    const idea = known.get(id);
+    return idea ? [{ form: activityKind(idea), domain: activityDomain(idea) }] : [];
+  });
+}
 
 const interests = ["文学", "人物", "故事", "哲学", "地域", "民族", "音乐", "唱歌", "电影", "艺术", "历史", "自然", "科学", "游戏", "摄影", "手工", "运动", "建筑", "设计", "心理", "旅行", "烹饪"];
 
@@ -31,15 +40,20 @@ export function recommendationScore(idea: ExplorationIdea, space: ExplorationSpa
     const previous = recent.get(id);
     return previous && activityKind(previous) === activityKind(idea);
   }).length;
+  const sameDomain = space.shownIdeaIds.slice(-12).filter((id) => {
+    const previous = recent.get(id);
+    return previous && activityDomain(idea) !== "综合" && activityDomain(previous) === activityDomain(idea);
+  }).length;
   const lessKinds = feedbackForDiscovery(space).lessKinds;
   // Feedback lowers related content rather than closing an entire field forever.
   const less = lessKinds.some((kind) => kind === activityKind(idea) || kind === idea.domain) ? 3 : 0;
   const clickbait = /震惊|不看后悔|速来领取|福利领取|抽奖|带货|全网都在|逆天|爆笑反应/.test(idea.title) ? 3 : 0;
   const recipe = /themealdb\.com/.test(idea.source?.url ?? "") ? 1 : 0;
-  return interestScore(idea, space) + (idea.angle ? 2 : 0) - less - Math.min(2, sameKind) - clickbait - recipe;
+  return interestScore(idea, space) + (idea.angle ? 1 : 0) - less - Math.min(6, sameKind * 3) - Math.min(8, sameDomain * 3) - clickbait - recipe;
 }
 
 export function isRejectedIdea(idea: ExplorationIdea, space: ExplorationSpace): boolean {
+  if (isMutedContent(idea, profileFor(space).mutedTopics)) return true;
   const rejected = (space.feedback ?? []).filter((item) => item.vote === "less");
   if (rejected.some((item) => item.ideaId === idea.id)) return true;
   const known = new Map([...explorationIdeas, ...space.discoveredIdeas].map((item) => [item.id, item]));
@@ -49,6 +63,6 @@ export function isRejectedIdea(idea: ExplorationIdea, space: ExplorationSpace): 
   });
 }
 
-export const isPlayable = (idea: ExplorationIdea) => idea.angle === "play" ||
-  ["歌唱", "游戏", "书写", "烹饪"].includes(activityKind(idea)) || idea.category === "create" ||
+export const isPlayable = (idea: ExplorationIdea) => isHandsOn(idea) ||
+  activityKind(idea) === "烹饪" ||
   /攀岩|骑行|滑冰|球|运动|手工|散步/.test(idea.title);

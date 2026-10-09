@@ -1,6 +1,7 @@
 import { originalIdeas } from "./content/original-ideas.ts";
 import { additionalIdeas } from "./content/additional-ideas.ts";
 import { openIdeas } from "./content/open-ideas.ts";
+import { hobbyIdeas } from "./content/hobby-ideas.ts";
 
 // Retired ideas remain readable from existing favorites, records and shared URLs.
 // Keep their IDs and text intact rather than assigning saved IDs to new activities.
@@ -30,11 +31,12 @@ const retiredIds = new Set([
   "create-project",
 ]);
 
-export const allExplorationIdeas = [...originalIdeas, ...additionalIdeas, ...openIdeas];
+export const allExplorationIdeas = [...originalIdeas, ...additionalIdeas, ...openIdeas, ...hobbyIdeas];
 export const explorationIdeas = [
   ...originalIdeas.filter((item) => !retiredIds.has(item.id)),
   ...additionalIdeas,
   ...openIdeas,
+  ...hobbyIdeas,
 ];
 
 const ideasById = new Map(allExplorationIdeas.map((item) => [item.id, item]));
