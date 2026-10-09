@@ -7,6 +7,7 @@ import {
 } from "./types.ts";
 import type {
   ExplorationFavorite,
+  ExplorationFeedback,
   ExplorationIdea,
   ExplorationRecord,
   ExplorationSpace,
@@ -38,6 +39,7 @@ export const createEmptySpace = (owner: SpaceOwner): ExplorationSpace => ({
   records: [],
   shownIdeaIds: [],
   discoveredIdeas: [],
+  feedback: [],
 });
 
 const object = (value: unknown): value is Record<string, unknown> =>
@@ -76,6 +78,9 @@ const record = (value: unknown): value is ExplorationRecord =>
   calendarDate(value.date) &&
   text(value.place, 160) &&
   timestamp(value.createdAt);
+const feedbackItem = (value: unknown): value is ExplorationFeedback =>
+  object(value) && text(value.ideaId, 100) && Boolean(value.ideaId.trim()) &&
+  (value.vote === "more" || value.vote === "less") && timestamp(value.updatedAt);
 
 export function parseSpace(
   value: unknown,
@@ -83,6 +88,9 @@ export function parseSpace(
 ): ExplorationSpace | null {
   const shownIdeaIds = object(value) ? value.shownIdeaIds ?? [] : [];
   const rawIdeas = object(value) ? value.discoveredIdeas ?? [] : [];
+  const feedback = object(value) ? value.feedback ?? [] : [];
+  if (!Array.isArray(feedback) || feedback.length > 120 || !feedback.every(feedbackItem) ||
+    new Set(feedback.map((item) => item.ideaId)).size !== feedback.length) return null;
   if (!Array.isArray(shownIdeaIds) || shownIdeaIds.length > 600 ||
     !shownIdeaIds.every((id) => text(id, 100) && Boolean(id.trim())) ||
     new Set(shownIdeaIds).size !== shownIdeaIds.length || !Array.isArray(rawIdeas)) return null;
@@ -130,6 +138,7 @@ export function parseSpace(
     updatedAt: value.updatedAt,
     shownIdeaIds: [...shownIdeaIds],
     discoveredIdeas: discoveredIdeas as ExplorationIdea[],
+    feedback: feedback.map((item) => ({ ideaId: item.ideaId, vote: item.vote, updatedAt: item.updatedAt })),
     preferences: {
       mode: value.preferences.mode,
       time: value.preferences.time,
@@ -230,6 +239,8 @@ export function mergeSpaces(
   const records = new Map(imported.records.map((item) => [item.id, item]));
   // An imported backup adds missing entries; existing reflections are retained.
   for (const item of current.records) records.set(item.id, item);
+  const feedback = new Map((imported.feedback ?? []).map((item) => [item.ideaId, item]));
+  for (const item of current.feedback ?? []) feedback.set(item.ideaId, item);
   const merged = {
     ...current,
     preferences: {
@@ -241,6 +252,7 @@ export function mergeSpaces(
       } : {}),
     },
     shownIdeaIds: rememberShown(imported.shownIdeaIds, current.shownIdeaIds),
+    feedback: [...feedback.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 120),
     favorites: [...favorites.values()].sort((a, b) =>
       b.addedAt.localeCompare(a.addedAt),
     ),
@@ -252,7 +264,7 @@ export function mergeSpaces(
 }
 
 export function mergeDiscoveredIdeas(space: ExplorationSpace, incoming: ExplorationIdea[]): ExplorationIdea[] {
-  const pinned = new Set([...space.favorites.map((item) => item.ideaId), ...space.records.flatMap((item) => item.ideaId ? [item.ideaId] : [])]);
+  const pinned = new Set([...space.favorites.map((item) => item.ideaId), ...space.records.flatMap((item) => item.ideaId ? [item.ideaId] : []), ...(space.feedback ?? []).map((item) => item.ideaId)]);
   const ideas = new Map(space.discoveredIdeas.map((idea) => [idea.id, idea]));
   for (const idea of incoming) {
     if (!pinned.has(idea.id) || !ideas.has(idea.id)) ideas.set(idea.id, idea);

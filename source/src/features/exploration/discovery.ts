@@ -36,6 +36,13 @@ export function isFeedIdea(idea: ExplorationIdea): boolean {
     /播客|博客|podcast|\bblog\b|newsletter/i.test(`${idea.title} ${idea.domain ?? ""} ${idea.source?.name ?? ""}`);
 }
 
+export function isLowQualityVideo(idea: Pick<ExplorationIdea, "title" | "source">): boolean {
+  if (!/bilibili\.com/.test(idea.source?.url ?? "")) return false;
+  // Filter promotional and sensational packaging, not whole subjects such as
+  // history or crime. Existing snapshots remain readable in saved collections.
+  return /震惊|不看后悔|速来领取|福利领取|抽奖|带货|全网都在|成年人看的|过不了审|成人故事|意外怀孕\d|性侵.{0,5}\d|囚禁\d+天|史上最爽|男人必看|女人必看/.test(idea.title);
+}
+
 export function sourceUrl(value: unknown): string | null {
   if (!boundedText(value, 1800)) return null;
   try {
@@ -76,6 +83,7 @@ export function parseDiscoveredIdea(value: unknown): ExplorationIdea | null {
     (value.place !== undefined && !boundedText(value.place, 160)) ||
     (value.domain !== undefined && !boundedText(value.domain, 60)) ||
     (value.approach !== undefined && value.approach !== "open" && value.approach !== "specific") ||
+    (value.angle !== undefined && !["familiar", "surprise", "play"].includes(String(value.angle))) ||
     typeof value.discoveredAt !== "string" || value.discoveredAt.length > 40 || !Number.isFinite(Date.parse(value.discoveredAt))) return null;
   return {
     id: value.id as string, category: value.category, title: value.title.trim(),
@@ -84,6 +92,7 @@ export function parseDiscoveredIdea(value: unknown): ExplorationIdea | null {
     source: { name: value.source.name.trim(), url, ...(value.source.action ? { action: value.source.action } : {}) },
     ...(value.place ? { place: value.place } : {}), ...(value.domain ? { domain: value.domain } : {}),
     ...(value.approach ? { approach: value.approach } : {}),
+    ...(value.angle ? { angle: value.angle as ExplorationIdea["angle"] } : {}),
     discoveredAt: value.discoveredAt,
   };
 }

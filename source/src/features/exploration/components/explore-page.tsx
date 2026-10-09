@@ -15,7 +15,7 @@ export function ExplorePage({
   initialMode?: ExplorationMode;
   autoStart?: boolean;
 }) {
-  const { space, owner, suggestions, generate, generating, discoveryNote, discoveryNeedsLogin, reauthenticate } = useExploration();
+  const { space, owner, suggestions, generate, generating, discoveryNote, discoveryProgress, discoveryNeedsLogin, reauthenticate } = useExploration();
   const [filters, setFilters] = useState<ExplorationFilters>(() => ({
     ...space.preferences,
     mode: initialMode ?? space.preferences.mode,
@@ -114,9 +114,7 @@ export function ExplorePage({
               className="exploration-primary"
               onClick={explore}
             >
-              {generating ? (
-                <><LoaderCircle size={17} className="exploration-loading-icon" aria-hidden="true" />再换一组</>
-              ) : suggestions.length && !changed ? (
+              {suggestions.length && !changed ? (
                 <>
                   <RefreshCw size={17} />
                   换一组新的可能
@@ -138,6 +136,10 @@ export function ExplorePage({
         >
           {discoveryNote ? <div className="exploration-discovery-note" role="status">
             <span>{discoveryNote}</span>
+          </div> : null}
+          {discoveryProgress ? <div className="exploration-discovery-note exploration-discovery-progress" role="status">
+            {generating ? <LoaderCircle size={14} className="exploration-loading-icon" aria-hidden="true" /> : null}
+            <span>{discoveryProgress}</span>
             {discoveryNeedsLogin ? <button type="button" className="exploration-secondary" onClick={reauthenticate}>重新登录</button> : null}
           </div> : null}
           {suggestions.length ? (
@@ -157,7 +159,7 @@ export function ExplorePage({
               </div>
               <div className="exploration-card-grid" data-count={suggestions.length}>
                 {suggestions.map((suggestion) => (
-                  <IdeaCard key={suggestion.idea.id} suggestion={suggestion} />
+                  <IdeaCard key={suggestion.idea.id} suggestion={suggestion} feedback />
                 ))}
               </div>
             </>

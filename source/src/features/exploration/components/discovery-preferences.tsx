@@ -6,7 +6,7 @@ import { profileFor } from "../profile";
 import { useExploration } from "./exploration-app";
 
 export function DiscoveryPreferences() {
-  const { space, update, notify } = useExploration();
+  const { space, update, notify, resolveIdea, voteIdea } = useExploration();
   const profile = profileFor(space);
   const savedKey = JSON.stringify(profile);
   const [edit, setEdit] = useState({ savedKey, draft: profile });
@@ -24,6 +24,12 @@ export function DiscoveryPreferences() {
       </div>
       <form className="exploration-profile-form" onSubmit={submit}>
         <label>
+          <span>给推荐的偏好清单</span>
+          <textarea rows={7} maxLength={2000} value={edit.draft.preferenceNotes ?? ""}
+            placeholder="想体验什么、喜欢什么表达、哪些活动没意思，都可以写在这里。"
+            onChange={(event) => setEdit({ ...edit, draft: { ...edit.draft, preferenceNotes: event.target.value } })} />
+        </label>
+        <label>
           <span>兴趣与偏好</span>
           <textarea rows={3} maxLength={1000} value={edit.draft.interests}
             placeholder="例如：喜欢故事和人物，也愿意唱歌、看视频或试点别的。"
@@ -38,7 +44,7 @@ export function DiscoveryPreferences() {
         <label className="exploration-profile-check">
           <input type="checkbox" checked={edit.draft.personalized}
             onChange={(event) => setEdit({ ...edit, draft: { ...edit.draft, personalized: event.target.checked } })} />
-          <span>结合我的偏好和收藏推荐</span>
+          <span>结合我的偏好、收藏和反馈推荐</span>
         </label>
         <label className="exploration-profile-check">
           <input type="checkbox" checked={edit.draft.allowFeeds}
@@ -48,6 +54,14 @@ export function DiscoveryPreferences() {
         <p>联网推荐会使用这些偏好和收藏标题，记录里的感受留在本机。</p>
         <button type="submit" className="exploration-secondary">保存推荐偏好</button>
       </form>
+      {space.feedback?.length ? <details className="exploration-feedback-history">
+        <summary>已记住的反馈 · {space.feedback.length}</summary>
+        <ul>{space.feedback.slice(0, 12).map((item) => <li key={item.ideaId}>
+          <span>{resolveIdea(item.ideaId)?.title ?? "一个探索建议"}<small>{item.vote === "more" ? "想多看看" : "暂时没兴趣"}</small></span>
+          <button type="button" aria-label={`撤销反馈：${resolveIdea(item.ideaId)?.title ?? "一个探索建议"}`}
+            onClick={() => voteIdea(item.ideaId, item.vote)}>撤销</button>
+        </li>)}</ul>
+      </details> : null}
     </section>
   );
 }

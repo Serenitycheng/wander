@@ -1,4 +1,4 @@
-import { contentKey, isChildrensPodcast, isFeedIdea, isObject, onlineIdeaId, parseDiscoveredIdea, sourceUrl } from "./discovery.ts";
+import { contentKey, isChildrensPodcast, isFeedIdea, isLowQualityVideo, isObject, onlineIdeaId, parseDiscoveredIdea, sourceUrl } from "./discovery.ts";
 import { timeLimits } from "./generator.ts";
 import type { ExplorationFilters, ExplorationIdea } from "./types.ts";
 import { discoveryTopics } from "./discovery-topics.ts";
@@ -51,7 +51,7 @@ export function parseSearchDiscovery(payload: unknown, request: DiscoveryRequest
   return inspectSearchDiscovery(payload, request).ideas;
 }
 
-export function inspectSearchDiscovery(payload: unknown, request: DiscoveryRequest): {
+export function inspectSearchDiscovery(payload: unknown, request: DiscoveryRequest, catalogIdeas: ExplorationIdea[] = []): {
   ideas: ExplorationIdea[];
   searchResultCount: number;
   issue?: "no_search_results" | "invalid_response" | "no_new_results";
@@ -68,6 +68,10 @@ export function inspectSearchDiscovery(payload: unknown, request: DiscoveryReque
     }
   }
   if (!verified.size) return { ideas: [], searchResultCount: 0, issue: "no_search_results" };
+  const searchResultCount = verified.size;
+  // Public catalog entries were also obtained and validated by this request.
+  // A model still must perform a real web search before using that context.
+  for (const idea of catalogIdeas) if (idea.source) verified.add(idea.source.url);
   const messages = payload.content.filter((block) => isObject(block) && block.type === "text" && typeof block.text === "string");
   for (const message of messages.reverse()) {
     const raw = String(message.text);
@@ -77,14 +81,14 @@ export function inspectSearchDiscovery(payload: unknown, request: DiscoveryReque
       const ideas = new Map<string, ExplorationIdea>();
       for (const value of decoded.ideas.slice(0, 12)) {
         const idea = materialize(value, new Date().toISOString());
-        if (idea?.source && verified.has(idea.source.url) && eligible(idea, request) &&
+        if (idea?.source && verified.has(idea.source.url) && !isLowQualityVideo(idea) && eligible(idea, request) &&
           !request.excludeTitles.some((title) => contentKey(title) === contentKey(idea.title))) ideas.set(idea.id, idea);
       }
-      return { ideas: [...ideas.values()], searchResultCount: verified.size,
+      return { ideas: [...ideas.values()], searchResultCount,
         ...(ideas.size ? {} : { issue: "no_new_results" as const }) };
     } catch { /* A preamble or malformed JSON is not a usable discovery. */ }
   }
-  return { ideas: [], searchResultCount: verified.size, issue: "invalid_response" };
+  return { ideas: [], searchResultCount, issue: "invalid_response" };
 }
 
 function videoIdeas(payload: unknown, request: DiscoveryRequest): ExplorationIdea[] {
@@ -100,7 +104,7 @@ function videoIdeas(payload: unknown, request: DiscoveryRequest): ExplorationIde
     const parts = /^\d{1,3}:\d{2}(?::\d{2})?$/.test(duration) ? duration.split(":").map(Number) : [];
     const seconds = parts.reduce((total, part) => total * 60 + part, 0);
     const minutes = seconds ? Math.max(5, Math.min(25, Math.ceil(seconds / 60))) : 20;
-    const description = typeof value.description === "string" ? plain(value.description).slice(0, 230) : "";
+    const description = typeof value.description === "string" ? plain(value.description).split(/\d{1,2}:\d{2}:\d{2}/)[0].slice(0, 120) : "";
     const idea = materialize({
       category, title: `${category === "create" ? "跟着视频试试" : "看看"}《${title}》`, minutes,
       approach: "specific", domain: category === "create" ? "视频教程" : "视频",
@@ -110,7 +114,7 @@ function videoIdeas(payload: unknown, request: DiscoveryRequest): ExplorationIde
       firstStep: category === "create" ? "打开视频先看看做法，确认手边的材料，再选你想试的部分。" : "打开视频，看简介或章节，选你想看的部分开始。也可以顺着创作者找其他内容。",
       source: { name: "哔哩哔哩", url: `https://www.bilibili.com/video/${value.bvid}`, action: "打开 B 站视频" },
     }, new Date().toISOString());
-    return idea && eligible(idea, request) ? [idea] : [];
+    return idea && !isLowQualityVideo(idea) && eligible(idea, request) ? [idea] : [];
   });
 }
 
@@ -198,7 +202,8 @@ function placeIdeas(payload: unknown, request: DiscoveryRequest): ExplorationIde
 
 // Public catalog APIs keep online discovery available without a model key.
 // All displayed titles come from the current response, never from a preset list.
-export async function discoverPublicIdeas(request: DiscoveryRequest, signal: AbortSignal, fetcher: Fetcher = fetch): Promise<ExplorationIdea[]> {
+export async function discoverPublicIdeas(request: DiscoveryRequest, signal: AbortSignal, fetcher: Fetcher = fetch,
+  onIdeas?: (ideas: ExplorationIdea[]) => void): Promise<ExplorationIdea[]> {
   const searches: Array<Promise<ExplorationIdea[]>> = [];
   const mode = request.filters.mode;
   const seed = Math.abs(request.seed);
@@ -234,7 +239,15 @@ export async function discoverPublicIdeas(request: DiscoveryRequest, signal: Abo
     const params = new URLSearchParams({ action: "query", generator: "search", gsrsearch: `北京 ${kind}`, gsrlimit: "10", gsroffset: String((Math.floor(seed / 5) % 4) * 10), prop: "extracts|info", exintro: "1", explaintext: "1", exchars: "320", inprop: "url", format: "json", formatversion: "2", variant: "zh-cn" });
     searches.push(fetchJson(`https://zh.wikipedia.org/w/api.php?${params}`, signal, fetcher).then((value) => placeIdeas(value, request)));
   }
-  const results = await Promise.allSettled(searches);
+  const completed = new Map<string, ExplorationIdea>();
+  const results = await Promise.allSettled(searches.map(async (search) => {
+    const ideas = await search;
+    if (!signal.aborted && ideas.length) {
+      for (const idea of ideas) completed.set(idea.id, idea);
+      onIdeas?.([...completed.values()].slice(0, 24));
+    }
+    return ideas;
+  }));
   const pools = results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
   const ideas = new Map<string, ExplorationIdea>();
   // Interleave sources before limiting the payload. A large first podcast

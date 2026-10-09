@@ -507,3 +507,10 @@
     font-size: 38px;
   }
 }
+.exploration-feedback-history { width: 100%; font-size: 12px; color: var(--e-muted); }
+.exploration-feedback-history summary { cursor: pointer; padding: 12px 0; }
+.exploration-feedback-history ul { list-style: none; margin: 0; padding: 0; }
+.exploration-feedback-history li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--e-line); }
+.exploration-feedback-history li span { min-width: 0; overflow-wrap: anywhere; }
+.exploration-feedback-history small { display: block; opacity: 0.8; margin-top: 3px; }
+.exploration-feedback-history button { flex-shrink: 0; border: 0; background: transparent; color: var(--e-primary); padding: 6px; }

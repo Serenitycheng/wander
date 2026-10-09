@@ -398,3 +398,8 @@
 .exploration-primary:disabled { cursor: wait; opacity: 0.72; }
 @keyframes exploration-loading { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .exploration-loading-icon { animation: none; } }
+.exploration-card-feedback { display: flex; flex-wrap: wrap; gap: 8px 15px; padding-top: 15px; margin-top: 16px; border-top: 1px solid var(--e-line); }
+.exploration-card-feedback button { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 0; padding: 5px 0; color: var(--e-muted); font-size: 11px; }
+.exploration-card-feedback button:hover, .exploration-card-feedback button[aria-pressed="true"] { color: var(--e-primary); }
+.exploration-discovery-progress { margin-top: -0.7rem !important; font-size: 0.78rem !important; }
+.exploration-card-angle { color: var(--e-primary); font-size: 11px; margin: -7px 0 12px; }

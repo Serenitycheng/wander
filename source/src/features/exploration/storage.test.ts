@@ -298,3 +298,26 @@ test("restoring a backup merges additions and keeps current reflections", () => 
     /SPACE_OWNER_MISMATCH/,
   );
 });
+
+test("feedback and the preference brief survive reload and backup merge without replacing records or crossing accounts", () => {
+  const storage = makeStorage(), current = createEmptySpace("serenity");
+  const saved = saveStoredSpace(storage, current, { ...current, records: [reflection],
+    feedback: [{ ideaId: "home-open-sing", vote: "more", updatedAt: date }],
+    preferences: { ...current.preferences, profile: defaultProfile("serenity") } });
+  assert.equal(saved.status, "saved");
+  const restored = readStoredSpace(storage, "serenity").space;
+  assert.equal(restored.feedback?.[0].vote, "more");
+  assert.match(profileFor(restored).preferenceNotes!, /故事和人物/);
+  const imported = { ...current, feedback: [
+    { ideaId: "home-open-sing", vote: "less" as const, updatedAt: date },
+    { ideaId: "home-open-video", vote: "less" as const, updatedAt: date },
+  ] };
+  const merged = mergeSpaces(restored, imported);
+  assert.equal(merged.feedback?.find((item) => item.ideaId === "home-open-sing")?.vote, "more");
+  assert.equal(merged.feedback?.length, 2);
+  assert.equal(merged.records[0].reflection, reflection.reflection);
+  assert.deepEqual(readStoredSpace(storage, "zzz").space.feedback, []);
+  assert.equal(parseSpace({ ...restored, feedback: [{ ideaId: "home-open-sing", vote: "bad", updatedAt: date }] }, "serenity"), null);
+  assert.equal(parseSpace({ ...restored, feedback: [...restored.feedback!, ...restored.feedback!] }, "serenity"), null);
+  assert.equal(readStoredSpace(storage, "serenity").space.records[0].reflection, reflection.reflection);
+});

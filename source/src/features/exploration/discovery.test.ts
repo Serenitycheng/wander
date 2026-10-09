@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { activityKind, isFeedIdea, onlineIdeaId, parseDiscoveredIdea, rememberShown, sourceUrl } from "./discovery.ts";
+import { activityKind, isFeedIdea, isLowQualityVideo, onlineIdeaId, parseDiscoveredIdea, rememberShown, sourceUrl } from "./discovery.ts";
 import { discoverPublicIdeas, inspectSearchDiscovery, parseSearchDiscovery } from "./online-discovery.ts";
 import { discoverWithProviders } from "./discovery-service.ts";
 import { discoveryNoteFor, parseDiscoveryResult } from "./discovery-status.ts";
@@ -12,6 +12,9 @@ import { defaultFilters } from "./types.ts";
 import type { ExplorationIdea } from "./types.ts";
 import { defaultProfile, parsePersonalization, profileFor } from "./profile.ts";
 import { discoveryTopics } from "./discovery-topics.ts";
+import { DiscoveryBuffer, discoveryScope } from "./discovery-buffer.ts";
+import type { DiscoveryResult } from "./discovery-status.ts";
+import { feedbackForDiscovery, recommendationScore } from "./recommendation-ranking.ts";
 
 const date = "2026-10-08T10:00:00.000Z";
 const ideaFor = (url = "https://example.org/tutorial/one", category: ExplorationIdea["category"] = "home"): ExplorationIdea => ({
@@ -82,6 +85,7 @@ test("Bilibili results provide verified titles and playable sources while bad en
     return Response.json({ code: 0, data: { result: [
       { bvid: "BV1y5zdBZE7r", title: '<em class="keyword">文学</em> &amp; 地域', author: "创作者", duration: "95:38", description: "一段关于文学的解读" },
       { bvid: "bad", title: "虚构条目", author: "某人" },
+      { bvid: "BV1yM4JeWERC", title: "这才是成年人看的片，过不了审！", author: "营销号" },
     ] } });
   };
   const ideas = await discoverPublicIdeas(request, new AbortController().signal, fetcher);
@@ -94,6 +98,15 @@ test("Bilibili results provide verified titles and playable sources while bad en
   assert.equal(activityKind(ideas[0]), "观看");
   const blocked = await discoverPublicIdeas(request, new AbortController().signal, async () => Response.json({ code: -412, message: "unavailable" }));
   assert.deepEqual(blocked, []);
+});
+
+test("sensational video packaging is skipped in cache recommendations without removing saved snapshots", () => {
+  const old = { ...ideaFor("https://www.bilibili.com/video/BV1yM4JeWERC"), title: "这才是成年人看的片，过不了审！" };
+  const space = { ...createEmptySpace("serenity"), discoveredIdeas: [old], favorites: [{ ideaId: old.id, addedAt: date, soon: false }] };
+  assert.equal(isLowQualityVideo(old), true);
+  assert.equal(isLowQualityVideo({ title: "关于一场历史事件的纪录片", source: old.source }), false);
+  assert.equal(selectDiscoveredSuggestions(request.filters, space, []).some(({ idea }) => idea.id === old.id), false);
+  assert.equal(parseSpace(space, "serenity")?.discoveredIdeas[0].id, old.id);
 });
 
 test("feeds are off by default even when present in model output or an old saved cache", async () => {
@@ -382,4 +395,166 @@ test("history is bounded and malformed discoveries preserve the stored space", (
   assert.deepEqual(rememberShown(["a", "b", "c"], ["a", "d"]), ["b", "c", "a", "d"]);
   const space = createEmptySpace("serenity");
   assert.equal(parseSpace({ ...space, discoveredIdeas: [{ ...ideaFor(), source: { name: "fake", url: "javascript:alert(1)" } }] }, "serenity"), null);
+});
+
+test("the editable preference brief upgrades old profiles without overwriting custom tastes or leaking to another account", () => {
+  const space = createEmptySpace("serenity");
+  const saved = { ...defaultProfile("serenity"), interests: "我自己的偏好" };
+  delete saved.preferenceNotes;
+  const upgraded = profileFor({ ...space, preferences: { ...space.preferences, profile: saved } });
+  assert.equal(upgraded.interests, "我自己的偏好");
+  assert.match(upgraded.preferenceNotes!, /故事和人物/);
+  assert.match(upgraded.preferenceNotes!, /纯|审美/);
+  assert.match(upgraded.preferenceNotes!, /唱一首歌/);
+  assert.match(upgraded.preferenceNotes!, /陌生领域/);
+  assert.equal(profileFor(createEmptySpace("zzz")).preferenceNotes, "");
+  assert.equal(profileFor({ ...space, preferences: { ...space.preferences, profile: { ...saved, preferenceNotes: "" } } }).preferenceNotes, "");
+  assert.equal(parsePersonalization({ interests: "", readingList: "", favoriteTitles: [], preferenceNotes: "x".repeat(2001) }), null);
+});
+
+test("feedback excludes rejected resources and their renamed copies, while positive feedback affects the next draw and request", async () => {
+  const rejected = ideaFor("https://example.org/fiction/rejected");
+  const liked = { ...ideaFor("https://example.org/music/live"), title: "唱一首现场听到的歌", domain: "唱歌", description: "跟着旋律唱起来。" };
+  const alternative = { ...ideaFor("https://example.org/music/other"), title: "唱一首新的歌", domain: "唱歌", description: "试试另一段旋律。" };
+  const space = { ...createEmptySpace("serenity"), discoveredIdeas: [rejected, liked], feedback: [
+    { ideaId: rejected.id, vote: "less" as const, updatedAt: date },
+    { ideaId: liked.id, vote: "more" as const, updatedAt: date },
+  ] };
+  const copy = { ...rejected, id: onlineIdeaId("https://example.org/fiction/copy"), source: { name: "另一个来源", url: "https://example.org/fiction/copy" } };
+  const next = selectDiscoveredSuggestions(request.filters, space, [rejected, copy, alternative]);
+  assert.equal(next.length, 3);
+  assert.equal(next.some(({ idea }) => [rejected.id, copy.id].includes(idea.id)), false);
+  assert.ok(recommendationScore(alternative, space) > recommendationScore(alternative, createEmptySpace("serenity")));
+  const feedback = feedbackForDiscovery(space);
+  assert.deepEqual(feedback.lessTitles, [rejected.title]);
+  assert.ok(feedback.moreKinds.includes("歌唱"));
+  let sent: Record<string, unknown> = {};
+  await requestDiscovery(request.filters, space, new AbortController().signal, async (_input, init) => {
+    sent = JSON.parse(String(init?.body)); return Response.json({ ideas: [], provider: "none" });
+  });
+  assert.ok((sent.excludeIds as string[]).includes(rejected.id));
+  assert.deepEqual(parsePersonalization(sent.personalization)?.feedback, feedback);
+  assert.match(parsePersonalization(sent.personalization)!.preferenceNotes!, /不喜欢/);
+});
+
+test("NDJSON discovery exposes public choices before completion and handles split UTF-8 without losing model candidates", async () => {
+  const first = ideaFor(), second = { ...ideaFor("https://example.org/second"), title: "看看另一部作品" };
+  const encoder = new TextEncoder();
+  let output!: ReadableStreamDefaultController<Uint8Array>;
+  let arrived!: () => void;
+  const received = new Promise<void>((resolve) => { arrived = resolve; });
+  const stream = new ReadableStream<Uint8Array>({ start(controller) { output = controller; } });
+  const updates: DiscoveryResult[] = [];
+  let completed = false;
+  const resultPromise = requestDiscovery(request.filters, createEmptySpace("serenity"), new AbortController().signal,
+    async () => new Response(stream, { headers: { "Content-Type": "application/x-ndjson" } }), (result) => { updates.push(result); arrived(); })
+    .then((result) => { completed = true; return result; });
+  const bytes = encoder.encode(JSON.stringify({ ideas: [first], provider: "public" }) + "\n");
+  output.enqueue(bytes.slice(0, 83)); output.enqueue(bytes.slice(83));
+  await received;
+  assert.equal(completed, false);
+  assert.equal(updates[0].ideas[0].title, first.title);
+  output.enqueue(encoder.encode(JSON.stringify({ ideas: [second], provider: "deepseek" }) + "\n"));
+  output.close();
+  const result = await resultPromise;
+  assert.equal(result.ideas.length, 2);
+  assert.equal(result.provider, "unknown");
+});
+
+test("a slow model does not hold back public discovery, and the model receives actual candidate metadata", async () => {
+  let releaseModel!: (value: Response) => void, publicReady!: () => void;
+  const early = new Promise<void>((resolve) => { publicReady = resolve; });
+  const heldModel = new Promise<Response>((resolve) => { releaseModel = resolve; });
+  const updates: DiscoveryResult[] = [];
+  let sent: Record<string, unknown> = {};
+  const fetcher: typeof fetch = async (input, init) => {
+    if (String(input).includes("/anthropic/v1/messages")) { sent = JSON.parse(String(init?.body)); return heldModel; }
+    return String(input).includes("api.bilibili.com") ? Response.json({ code: 0, data: { result: [{ bvid: "BV1y5zdBZE7r", title: "真实文学视频", author: "创作者", duration: "12:00" }] } }) : Response.json({});
+  };
+  let completed = false;
+  const pending = discoverWithProviders(request, new AbortController().signal, { key: "test", fetcher,
+    onResult: (result) => { updates.push(result); if (result.provider === "public") publicReady(); } }).then((result) => { completed = true; return result; });
+  await early;
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.equal(completed, false);
+  assert.ok(updates[0].ideas[0].source?.url.includes("bilibili.com/video/"));
+  const message = JSON.parse((sent.messages as Array<{ content: string }>)[0].content);
+  assert.equal(message.catalogCandidates[0].title, "看看《真实文学视频》");
+  assert.match(message.request, /9 个/);
+  const idea = ideaFor();
+  releaseModel(Response.json({ content: [
+    { type: "web_search_tool_result", content: [{ type: "web_search_result", url: idea.source!.url }] },
+    { type: "text", text: JSON.stringify({ ideas: [idea] }) },
+  ] }));
+  assert.equal((await pending).provider, "deepseek");
+  assert.equal(updates.at(-1)?.provider, "deepseek");
+});
+
+test("model recommendations may use catalog-verified resources but still need a genuine search", () => {
+  const catalog = ideaFor("https://example.org/catalog");
+  const text = { type: "text", text: JSON.stringify({ ideas: [{ ...catalog, angle: "play" }] }) };
+  const search = { type: "web_search_tool_result", content: [{ type: "web_search_result", url: "https://example.org/other" }] };
+  assert.equal(inspectSearchDiscovery({ content: [search, text] }, request, [catalog]).ideas[0].angle, "play");
+  assert.equal(inspectSearchDiscovery({ content: [text] }, request, [catalog]).ideas.length, 0);
+  assert.equal(inspectSearchDiscovery({ content: [search, text] }, request).ideas.length, 0);
+  assert.equal(parseDiscoveredIdea({ ...catalog, angle: "invented" }), null);
+});
+
+test("prepared choices mix an interest, an unexpected experience and something playable instead of a fixed book-video-recipe trio", () => {
+  const ideas: ExplorationIdea[] = [
+    { ...ideaFor("https://example.org/story"), title: "读一篇从渡船讲起的故事", angle: "familiar" },
+    { ...ideaFor("https://example.org/music"), title: "听听一场陌生风格的现场音乐", description: "可以自己选一场感兴趣的现场。", domain: "音乐", angle: "surprise", approach: "open" },
+    { ...ideaFor("https://example.org/game"), title: "玩一局需要猜词的游戏", domain: "游戏", angle: "play", approach: "open" },
+  ];
+  const next = selectDiscoveredSuggestions(request.filters, createEmptySpace("serenity"), ideas);
+  assert.equal(next.length, 3);
+  assert.deepEqual(new Set(next.map(({ idea }) => idea.angle)), new Set(["familiar", "surprise", "play"]));
+  assert.equal(new Set(next.map(({ idea }) => activityKind(idea))).size, 3);
+  assert.ok(next.some(({ idea }) => idea.approach === "open"));
+  assert.ok(next.some(({ idea }) => idea.approach !== "open"));
+});
+
+test("one preparation serves repeated clicks, counts only unseen choices and refills only when needed", async () => {
+  let calls = 0, complete!: (result: DiscoveryResult) => void;
+  const ideas = Array.from({ length: 9 }, (_, index) => ({ ...ideaFor(`https://example.org/prepared/${index}`), title: `新的作品 ${index}` }));
+  const load: typeof requestDiscovery = async (_filters, _space, _signal, _fetcher, onResult) => {
+    calls++; onResult?.({ ideas, provider: "public" });
+    return new Promise<DiscoveryResult>((resolve) => { complete = resolve; });
+  };
+  let clock = 100000;
+  const buffer = new DiscoveryBuffer(load, () => clock), space = createEmptySpace("serenity");
+  assert.equal(buffer.prepare(request.filters, space, () => {}, () => {}), true);
+  const first = selectDiscoveredSuggestions(request.filters, space, buffer.peek(request.filters, space).ideas);
+  const nextSpace = { ...space, shownIdeaIds: first.map(({ idea }) => idea.id), discoveredIdeas: ideas };
+  assert.equal(buffer.prepare(request.filters, nextSpace, () => {}, () => {}), false);
+  assert.equal(calls, 1);
+  assert.ok(buffer.available(request.filters, nextSpace) >= 6);
+  complete({ ideas, provider: "public" });
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  clock += 11000;
+  assert.equal(buffer.prepare(request.filters, nextSpace, () => {}, () => {}), false);
+  const depleted = { ...space, shownIdeaIds: ideas.slice(0, 7).map((idea) => idea.id) };
+  assert.equal(buffer.available(request.filters, depleted), 2);
+  assert.equal(buffer.prepare(request.filters, depleted, () => {}, () => {}), true);
+  assert.equal(calls, 2);
+  complete({ ideas, provider: "public" });
+  buffer.clear();
+});
+
+test("changing account, filters, saved tastes or feedback invalidates preparation and late responses cannot enter another scope", async () => {
+  const jobs: Array<{ signal: AbortSignal; publish?: (result: DiscoveryResult) => void; resolve: (result: DiscoveryResult) => void }> = [];
+  const load: typeof requestDiscovery = async (_filters, _space, signal, _fetcher, publish) => new Promise<DiscoveryResult>((resolve) => { jobs.push({ signal, publish, resolve }); });
+  const buffer = new DiscoveryBuffer(load), serenity = createEmptySpace("serenity"), zzz = createEmptySpace("zzz");
+  const updates: DiscoveryResult[] = [];
+  buffer.prepare(request.filters, serenity, (result) => updates.push(result), () => {});
+  buffer.prepare(request.filters, zzz, (result) => updates.push(result), () => {});
+  assert.equal(jobs[0].signal.aborted, true);
+  jobs[0].publish?.({ ideas: [ideaFor()], provider: "deepseek" }); jobs[0].resolve({ ideas: [ideaFor()], provider: "deepseek" });
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.equal(updates.length, 0);
+  assert.equal(buffer.peek(request.filters, zzz).ideas.length, 0);
+  assert.notEqual(discoveryScope(request.filters, serenity), discoveryScope({ ...request.filters, mode: "learn" }, serenity));
+  assert.notEqual(discoveryScope(request.filters, serenity), discoveryScope(request.filters, { ...serenity, preferences: { ...serenity.preferences, profile: { ...defaultProfile("serenity"), interests: "改过的偏好" } } }));
+  assert.notEqual(discoveryScope(request.filters, serenity), discoveryScope(request.filters, { ...serenity, feedback: [{ ideaId: "home-open-sing", vote: "more", updatedAt: date }] }));
+  jobs[1].resolve({ ideas: [], provider: "none" }); buffer.clear();
 });

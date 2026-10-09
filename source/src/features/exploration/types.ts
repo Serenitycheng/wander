@@ -17,7 +17,10 @@ export type ExplorationProfile = {
   interests: string;
   readingList: string;
   allowFeeds: boolean;
+  preferenceNotes?: string;
 };
+export type RecommendationAngle = "familiar" | "surprise" | "play";
+export type ExplorationFeedback = { ideaId: string; vote: "more" | "less"; updatedAt: string };
 
 export type ExplorationFilters = {
   mode: ExplorationMode;
@@ -40,11 +43,13 @@ export type ExplorationIdea = {
   domain?: string;
   approach?: "open" | "specific";
   discoveredAt?: string;
+  angle?: RecommendationAngle;
 };
 
 export type ExplorationSuggestion = {
   idea: ExplorationIdea;
   reasons: string[];
+  angle?: RecommendationAngle;
 };
 export type ExplorationFavorite = {
   ideaId: string;
@@ -75,6 +80,7 @@ export type ExplorationSpace = {
   records: ExplorationRecord[];
   shownIdeaIds: string[];
   discoveredIdeas: ExplorationIdea[];
+  feedback?: ExplorationFeedback[];
 };
 
 export const modes: Array<{

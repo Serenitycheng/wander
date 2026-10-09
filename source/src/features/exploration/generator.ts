@@ -56,6 +56,7 @@ export function generateSuggestions(
     recentIds?: string[];
     random?: () => number;
     ideas?: ExplorationIdea[];
+    score?: (idea: ExplorationIdea) => number;
   } = {},
 ): ExplorationSuggestion[] {
   const filters = normalizeFilters(input);
@@ -79,6 +80,7 @@ export function generateSuggestions(
       weight:
         (filters.mood === "flow" || item.moods.includes(filters.mood) ? 2 : 0) +
         (recent.has(item.id) ? 0 : 1) +
+        (options.score?.(item) ?? 0) +
         Math.max(0, Math.min(0.999, random())),
     }))
     .sort((left, right) => Number(left.seen) - Number(right.seen) ||

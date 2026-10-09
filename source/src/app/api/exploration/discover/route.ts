@@ -42,6 +42,25 @@ export async function POST(request: Request) {
     allowFeeds: body.allowFeeds === true,
     ...(personalization ? { personalization } : {}),
   };
+  if (request.headers.get("accept")?.includes("application/x-ndjson")) {
+    const encoder = new TextEncoder();
+    const controller = new AbortController();
+    const signal = AbortSignal.any([request.signal, controller.signal]);
+    const stream = new ReadableStream<Uint8Array>({
+      start(output) {
+        const send = (value: unknown) => {
+          if (!signal.aborted) output.enqueue(encoder.encode(JSON.stringify(value) + "\n"));
+        };
+        void discoverOnlineIdeas(input, signal, send).catch(() => {
+          if (!signal.aborted) send({ ideas: [], provider: "none", issue: "provider_unavailable" });
+        }).finally(() => {
+          if (!signal.aborted) output.close();
+        });
+      },
+      cancel() { controller.abort(); },
+    });
+    return new Response(stream, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store", "X-Accel-Buffering": "no" } });
+  }
   const result = await discoverOnlineIdeas(input, request.signal).catch(() => {
     if (request.signal.aborted) return { ideas: [], provider: "none", issue: "timeout" };
     console.warn(JSON.stringify({ event: "manyou_discovery", provider: "none", issue: "provider_unavailable" }));

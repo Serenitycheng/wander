@@ -9,6 +9,8 @@ import {
   House,
   Palette,
   Shuffle,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import { categoryLabels, minutesLabel } from "../types";
 import type { ExplorationMode, ExplorationSuggestion } from "../types";
@@ -34,13 +36,16 @@ export function ModeIcon({
 export function IdeaCard({
   suggestion,
   compact = false,
+  feedback = false,
 }: {
   suggestion: ExplorationSuggestion;
   compact?: boolean;
+  feedback?: boolean;
 }) {
   const { idea, reasons } = suggestion;
-  const { space, toggleFavorite } = useExploration();
+  const { space, toggleFavorite, voteIdea } = useExploration();
   const saved = space.favorites.some((item) => item.ideaId === idea.id);
+  const vote = space.feedback?.find((item) => item.ideaId === idea.id)?.vote;
   return (
     <article
       className={`exploration-idea-card category-${idea.category}${compact ? " compact" : ""}`}
@@ -69,6 +74,7 @@ export function IdeaCard({
         {idea.place ? " · 北京" : ""}
         {idea.discoveredAt ? ` · ${idea.domain ?? "在线发现"}` : ""}
       </span>
+      {idea.angle ? <span className="exploration-card-angle">{idea.angle === "familiar" ? "顺着兴趣" : idea.angle === "surprise" ? "换个方向" : "随手试试"}</span> : null}
       <h3>
         <Link href={`/explore/${idea.id}`}>{idea.title}</Link>
       </h3>
@@ -84,6 +90,12 @@ export function IdeaCard({
       <Link className="exploration-card-link" href={`/explore/${idea.id}`}>
         看看怎么开始 <ArrowUpRight size={16} aria-hidden="true" />
       </Link>
+      {feedback ? <div className="exploration-card-feedback" aria-label={`推荐反馈：${idea.title}`}>
+        <button type="button" aria-label={`多来点类似的：${idea.title}`} aria-pressed={vote === "more"}
+          onClick={() => voteIdea(idea.id, "more")}><ThumbsUp size={14} aria-hidden="true" />多来点类似的</button>
+        <button type="button" aria-label={`没兴趣：${idea.title}`} aria-pressed={vote === "less"}
+          onClick={() => voteIdea(idea.id, "less")}><ThumbsDown size={14} aria-hidden="true" />没兴趣</button>
+      </div> : null}
     </article>
   );
 }

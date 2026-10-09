@@ -16,7 +16,8 @@ import { defaultTone, isTone, readableTone, resetSpaceTone, spaceTone, withSpace
 import { PageColorPicker } from "./page-color-picker";
 import { LoginView } from "@/components/auth/space-login";
 import { findIdea } from "../ideas";
-import { requestDiscovery, selectDiscoveredSuggestions } from "../discovery-client";
+import { selectDiscoveredSuggestions } from "../discovery-client";
+import { DiscoveryBuffer, discoveryScope } from "../discovery-buffer";
 import { discoveryNoteFor } from "../discovery-status";
 import { rememberShown } from "../discovery";
 import {
@@ -52,9 +53,11 @@ type ExplorationContextValue = {
   suggestions: ExplorationSuggestion[];
   generating: boolean;
   discoveryNote: string;
+  discoveryProgress: string;
   discoveryNeedsLogin: boolean;
   reauthenticate: () => void;
   resolveIdea: (id: string | null | undefined) => ExplorationIdea | undefined;
+  voteIdea: (ideaId: string, vote: "more" | "less") => void;
   generate: (filters: ExplorationFilters) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -100,10 +103,10 @@ function SpaceShell({
   const previousIdeas = useRef<string[]>([]);
   const [generating, setGenerating] = useState(false);
   const [discoveryNote, setDiscoveryNote] = useState("");
+  const [discoveryProgress, setDiscoveryProgress] = useState("");
   const [discoveryNeedsLogin, setDiscoveryNeedsLogin] = useState(false);
-  const pendingDiscovery = useRef<AbortController | null>(null);
-  const generation = useRef(0);
-  useEffect(() => () => { generation.current++; pendingDiscovery.current?.abort(); }, []);
+  const [discoveryBuffer] = useState(() => new DiscoveryBuffer());
+  useEffect(() => () => discoveryBuffer.clear(), [discoveryBuffer]);
   const apply = useCallback(
     (next: ExplorationSpace, nextStatus: SaveStatus) => {
       current.current = next;
@@ -210,54 +213,67 @@ function SpaceShell({
   };
   const generate = useCallback(
     async (filters: ExplorationFilters) => {
-      pendingDiscovery.current?.abort();
-      const controller = new AbortController();
-      pendingDiscovery.current = controller;
-      const sequence = ++generation.current;
-      setGenerating(true);
-      setDiscoveryNeedsLogin(false);
-      const immediate = selectDiscoveredSuggestions(filters, current.current, [], previousIdeas.current);
+      const prepared = discoveryBuffer.peek(filters, current.current);
+      const immediate = selectDiscoveredSuggestions(filters, current.current, prepared.ideas, previousIdeas.current);
       const immediateIds = immediate.map((item) => item.idea.id);
       setSuggestions(immediate);
       previousIdeas.current = immediateIds;
-      setDiscoveryNote("先看看这三个，新的作品和活动正在查找中…");
+      setDiscoveryNote(discoveryNoteFor({ ...prepared, issue: undefined }, immediate));
       update((value) => ({
         ...value,
         preferences: { ...value.preferences, ...filters },
         shownIdeaIds: rememberShown(value.shownIdeaIds, immediateIds),
       }));
-      try {
-        const result = await requestDiscovery(filters, current.current,
-          AbortSignal.any([controller.signal, AbortSignal.timeout(22000)]));
-        if (controller.signal.aborted || sequence !== generation.current) return;
-        const online = result.ideas;
-        const discovered = selectDiscoveredSuggestions(filters, current.current, online, previousIdeas.current);
-        // Keep the immediately usable round when no new source was found.
-        const liveIds = new Set(online.map((idea) => idea.id));
-        const next = discovered.some(({ idea }) => liveIds.has(idea.id)) ? discovered : immediate;
-        const ids = next.map((item) => item.idea.id);
-        update((value) => ({
-          ...value,
-          shownIdeaIds: rememberShown(value.shownIdeaIds, ids),
-          discoveredIdeas: mergeDiscoveredIdeas(value, [...online, ...next.flatMap((item) => item.idea.discoveredAt ? [item.idea] : [])]),
-        }));
-        previousIdeas.current = ids;
-        setSuggestions(next);
+      const scope = discoveryScope(filters, current.current);
+      const started = discoveryBuffer.prepare(filters, current.current, (result) => {
+        if (scope !== discoveryScope(filters, current.current)) return;
+        update((value) => ({ ...value, discoveredIdeas: mergeDiscoveredIdeas(value, result.ideas) }));
+        const ready = discoveryBuffer.available(filters, current.current);
         setDiscoveryNeedsLogin(result.issue === "login_required");
-        setDiscoveryNote(discoveryNoteFor(result, next));
-      } catch (error) {
-        if (controller.signal.aborted || sequence !== generation.current) return;
-        setDiscoveryNote(discoveryNoteFor({ ideas: [], provider: "none",
-          issue: error instanceof Error && ["TimeoutError", "AbortError"].includes(error.name) ? "timeout" : "network_error" }, immediate));
-      } finally {
-        if (sequence === generation.current) {
-          setGenerating(false);
-          pendingDiscovery.current = null;
+        const issue = result.issue ? discoveryNoteFor(result, []) : "";
+        setDiscoveryProgress(`${issue}${ready >= 3 ? "后面的新选择已备好，换一组就能看到。" : "正在提前准备下一组，当前三个可以直接选。"}`);
+        if (ready >= 3) setGenerating(false);
+      }, () => {
+        if (scope !== discoveryScope(filters, current.current)) return;
+        setGenerating(false);
+        if (discoveryBuffer.available(filters, current.current) < 3) {
+          const result = discoveryBuffer.peek(filters, current.current);
+          setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}暂时没有更多新内容，可以继续换组看看。`);
         }
+      });
+      if (started) {
+        setGenerating(true);
+        setDiscoveryNeedsLogin(false);
+        setDiscoveryProgress("正在提前准备下一组，当前三个可以直接选。");
+      } else if (discoveryBuffer.available(filters, current.current) >= 3) {
+        setGenerating(false);
+        const result = discoveryBuffer.peek(filters, current.current);
+        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}后面的新选择已备好，换一组就能看到。`);
+      } else if (discoveryBuffer.preparing) {
+        setGenerating(true);
+        setDiscoveryProgress("正在提前准备下一组，当前三个可以直接选。");
+      } else {
+        setGenerating(false);
+        const result = discoveryBuffer.peek(filters, current.current);
+        setDiscoveryNeedsLogin(result.issue === "login_required");
+        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}可以继续换组，新的联网内容稍后再补充。`);
       }
     },
-    [update],
+    [discoveryBuffer, update],
   );
+  const voteIdea = (ideaId: string, vote: "more" | "less") => {
+    const existing = current.current.feedback?.find((item) => item.ideaId === ideaId);
+    const undo = existing?.vote === vote;
+    if (!update((value) => withIdeaSnapshot({
+      ...value,
+      feedback: [...(!undo ? [{ ideaId, vote, updatedAt: new Date().toISOString() }] : []),
+        ...(value.feedback ?? []).filter((item) => item.ideaId !== ideaId)].slice(0, 120),
+    }, ideaId))) return;
+    discoveryBuffer.clear();
+    setGenerating(false);
+    setDiscoveryProgress("反馈已记住，下一组会参考它。");
+    setMessage(undo ? "已撤销这次反馈。" : vote === "more" ? "记住了，会多找一些类似的，也留一点意外。" : "记住了，这条不再推荐，同类内容也会少一点。再点一次可以撤销。");
+  };
   const toggleSoon = (ideaId: string) => {
     update((value) => ({
       ...value,
@@ -315,8 +331,10 @@ function SpaceShell({
         suggestions,
         generating,
         discoveryNote,
+        discoveryProgress,
         discoveryNeedsLogin,
         reauthenticate,
+        voteIdea,
         resolveIdea: (id) => findIdea(id) ?? space.discoveredIdeas.find((idea) => idea.id === id) ?? suggestions.find((item) => item.idea.id === id)?.idea,
         generate,
         signOut,
