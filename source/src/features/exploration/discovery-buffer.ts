@@ -4,9 +4,10 @@ import { isRejectedIdea } from "./recommendation-ranking.ts";
 import type { DiscoveryResult } from "./discovery-status.ts";
 import type { ExplorationFilters, ExplorationSpace } from "./types.ts";
 import { timeLimits } from "./generator.ts";
-import { contentKey, isFeedIdea, isLowQualityVideo, sourceUrl } from "./discovery.ts";
+import { contentKey, isFeedIdea, isLowQualityVideo } from "./discovery.ts";
 import { explorationIdeas } from "./ideas.ts";
 import { hasUsableEntry } from "./activity-diversity.ts";
+import { resourceKey, sameExperience } from "./activity-affinity.ts";
 
 export const discoveryScope = (filters: ExplorationFilters, space: ExplorationSpace) =>
   JSON.stringify([space.owner, filters.mode, filters.time, filters.mood, profileFor(space),
@@ -38,13 +39,18 @@ export class DiscoveryBuffer {
     const seen = new Set(space.shownIdeaIds);
     const known = new Map([...explorationIdeas, ...space.discoveredIdeas].map((idea) => [idea.id, idea]));
     const seenTitles = new Set(space.shownIdeaIds.flatMap((id) => known.get(id) ? [contentKey(known.get(id)!.title)] : []));
-    const seenResources = new Set(space.shownIdeaIds.flatMap((id) => known.get(id)?.source ? [sourceUrl(known.get(id)!.source!.url)] : []));
+    const seenResources = new Set(space.shownIdeaIds.flatMap((id) => resourceKey(known.get(id)?.source?.url) ?? []));
+    const recent = space.shownIdeaIds.slice(-12).flatMap((id) => known.get(id) ?? []);
     const avoidFeeds = !profileFor(space).allowFeeds || space.shownIdeaIds.slice(-6).some((id) => {
       const idea = known.get(id); return idea && isFeedIdea(idea);
     });
-    return new Set(this.peek(filters, space).ideas.filter((idea) => !seen.has(idea.id) && !seenTitles.has(contentKey(idea.title)) && !seenResources.has(sourceUrl(idea.source?.url)) && !isRejectedIdea(idea, space) &&
+    const unique: ExplorationSpace["discoveredIdeas"] = [];
+    for (const idea of this.peek(filters, space).ideas.filter((idea) => !seen.has(idea.id) && !seenTitles.has(contentKey(idea.title)) && !seenResources.has(resourceKey(idea.source?.url) ?? "") && !isRejectedIdea(idea, space) &&
       (filters.mode === "random" || idea.category === filters.mode) && idea.minutes <= timeLimits[filters.time] &&
-      !isLowQualityVideo(idea) && hasUsableEntry(idea) && (!avoidFeeds || !isFeedIdea(idea))).map((idea) => contentKey(idea.title))).size;
+      !isLowQualityVideo(idea) && hasUsableEntry(idea) && (!avoidFeeds || !isFeedIdea(idea)))) {
+      if (!recent.some((previous) => sameExperience(previous, idea)) && !unique.some((previous) => sameExperience(previous, idea))) unique.push(idea);
+    }
+    return unique.length;
   }
 
   prepare(filters: ExplorationFilters, space: ExplorationSpace,

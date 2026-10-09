@@ -8,6 +8,11 @@ export function interestDirections(mode: ExplorationMode, profile?: DiscoveryPer
   if (!profile || mode === "outside") return [];
   const interests = profile.interests;
   const candidates: DiscoveryDirection[] = [];
+  if (/摄影|摄影师|光影|街拍/.test(interests)) candidates.push(
+    { query: "摄影师 作品集 光影 风格", domain: "摄影", form: "观看" },
+    { query: "摄影师 街头 人像 作品", domain: "摄影", form: "观看" },
+    { query: "摄影 创作 光影 拍摄", domain: "摄影", form: "交互探索", practice: { match: /摄影|光影|拍摄/, start: "找一张喜欢的参考作品，用手边的手机或相机试它的光线或取景方式，拍什么由自己选。" } },
+  );
   if (/故事|人物|文学|小说|地域|社会|叙事/.test(interests)) candidates.push(
     { query: "人物 访谈 地方生活 故事", domain: "社会", form: "观看" },
     { query: "电影 角色 对白 短片", domain: "影像", form: "观看" },
@@ -32,6 +37,7 @@ export function interestBookSubjects(profile?: DiscoveryPersonalization): string
     [/审美|艺术|画面/, ["art"]], [/哲学/, ["philosophy"]], [/音乐|唱歌/, ["music"]],
     [/自然|植物/, ["nature"]], [/历史|地域/, ["history"]], [/设计/, ["design"]],
     [/科学|科普/, ["science"]],
+    [/摄影|摄影师/, ["photography"]],
   ];
   return [...new Set(matches.flatMap(([pattern, subjects]) => pattern.test(interests) ? subjects : []))];
 }

@@ -13,6 +13,7 @@ export type ExplorationAppearance = {
   colorSchemes?: Array<{ id: string; name: string; tone: string }>;
 };
 export type ExplorationProfile = {
+  preferenceVersion?: 1 | 2;
   personalized: boolean;
   interests: string;
   readingList: string;

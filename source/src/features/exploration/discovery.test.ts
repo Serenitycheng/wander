@@ -11,6 +11,7 @@ import { createEmptySpace, mergeDiscoveredIdeas, mergeSpaces, parseSpace, readSt
 import { defaultFilters } from "./types.ts";
 import type { ExplorationIdea } from "./types.ts";
 import { defaultProfile, parsePersonalization, profileFor } from "./profile.ts";
+import { resourceId, resourceKey, sameExperience } from "./activity-affinity.ts";
 import { interestBookSubjects } from "./interest-discovery.ts";
 import { discoveryDirections, discoveryTopics } from "./discovery-topics.ts";
 import { DiscoveryBuffer, discoveryScope } from "./discovery-buffer.ts";
@@ -75,9 +76,8 @@ test("a stream of fresh books, recipes and documentaries cannot trap repeated ro
     }));
     const next = selectDiscoveredSuggestions(request.filters, space, online, [], { random: () => 0.5 });
     assert.equal(next.length, 3);
-    assert.ok(next.some(({ idea }) => idea.approach === "open"));
-    assert.ok(next.some(({ idea }) => idea.approach !== "open"));
-    assert.ok(next.some(({ idea }) => isHandsOn(idea)));
+    // New content wins when open or hands-on choices have already been exhausted.
+    assert.ok(next.every(({ idea }) => !space.shownIdeaIds.includes(idea.id)));
     assert.ok(next.every(({ idea }) => !space.shownIdeaIds.slice(-3).includes(idea.id)));
     next.forEach(({ idea }) => { forms.add(activityKind(idea)); domains.add(activityDomain(idea)); });
     space = { ...space, discoveredIdeas: mergeDiscoveredIdeas(space, online), shownIdeaIds: rememberShown(space.shownIdeaIds, next.map(({ idea }) => idea.id)) };
@@ -146,7 +146,7 @@ test("the same resource cannot reappear under a new title or an online alias of 
   assert.equal(selectDiscoveredSuggestions({ ...request.filters, mode: "learn" }, space, [online]).some(({ idea }) => idea.id === online.id), false);
   assert.equal(parseDiscoveredIdea({ ...online, form: "anything" }), null);
   assert.equal(parseDiscoveredIdea(online)?.form, "音乐创作");
-  assert.deepEqual(recentActivitiesForDiscovery(space), [{ form: "音乐创作", domain: "音乐" }]);
+  assert.deepEqual(recentActivitiesForDiscovery(space), [{ form: "音乐创作", domain: "音乐", title: local.title, approach: local.approach ?? "specific" }]);
 });
 
 test("model output without a real search result never becomes online content", () => {
@@ -539,7 +539,7 @@ test("feedback excludes rejected resources and their renamed copies, while posit
   assert.ok(recommendationScore(alternative, space) > recommendationScore(alternative, createEmptySpace("serenity")));
   const feedback = feedbackForDiscovery(space);
   assert.deepEqual(feedback.lessTitles, [rejected.title]);
-  assert.ok(feedback.moreKinds.includes("歌唱"));
+  assert.ok(feedback.moreKinds.includes("歌唱 · 音乐"));
   let sent: Record<string, unknown> = {};
   await requestDiscovery(request.filters, space, new AbortController().signal, async (_input, init) => {
     sent = JSON.parse(String(init?.body)); return Response.json({ ideas: [], provider: "none" });
@@ -635,7 +635,7 @@ test("prepared choices mix actionable forms and open directions without requirin
 
 test("one preparation serves repeated clicks, counts only unseen choices and refills only when needed", async () => {
   let calls = 0, complete!: (result: DiscoveryResult) => void;
-  const ideas = Array.from({ length: 9 }, (_, index) => ({ ...ideaFor(`https://example.org/prepared/${index}`), title: `新的作品 ${index}` }));
+  const ideas = Array.from({ length: 9 }, (_, index) => ({ ...ideaFor(`https://example.org/prepared/${index}`), title: `读《新的作品 ${index}》` }));
   const load: typeof requestDiscovery = async (_filters, _space, _signal, _fetcher, onResult) => {
     calls++; onResult?.({ ideas, provider: "public" });
     return new Promise<DiscoveryResult>((resolve) => { complete = resolve; });
@@ -710,4 +710,108 @@ test("personal searches follow actual interests and preserve an unfamiliar direc
   assert.equal(interestBookSubjects(personal).includes("science"), false);
   assert.deepEqual(interestBookSubjects({ interests: "音乐", readingList: "", favoriteTitles: [] }), ["music"]);
   assert.deepEqual(interestBookSubjects({ interests: "", readingList: "", favoriteTitles: [] }), []);
+});
+
+
+test("unseen specific content wins over exhausted open and participation slots", () => {
+  const online = ["渡船上的人", "灯下的对白", "街头的颜色"].map((name, index) => ({
+    ...ideaFor(`https://example.org/fresh/${index}`), title: `看《${name}》`, form: "观看" as const, origin: "deepseek" as const,
+  }));
+  const space = { ...createEmptySpace("serenity"), shownIdeaIds: explorationIdeas.map((idea) => idea.id) };
+  const next = selectDiscoveredSuggestions(request.filters, space, online, [], { random: () => 0.5 });
+  assert.equal(next.length, 3);
+  assert.ok(next.every(({ idea }) => online.some((item) => item.id === idea.id)));
+});
+
+test("renamed open activities rest while distinct named works remain discoverable", () => {
+  const action = (title: string): ExplorationIdea => ({ ...ideaFor(), id: inspirationIdeaId("home", title), source: undefined,
+    title, description: "用自己可用的图像生成工具创作想象中的场景。", firstStep: "写下你想画的场景。", form: "绘画", domain: "绘画", approach: "open", origin: "deepseek" });
+  const previous = action("让 GPT 生成脑海中的画面"), renamed = action("用 AI 画出一个想象中的场景");
+  assert.equal(sameExperience(previous, renamed), true);
+  assert.equal(sameExperience({ ...ideaFor(), title: "读《边城》" }, { ...ideaFor("https://example.org/other"), title: "读《受戒》" }), false);
+  const space = { ...createEmptySpace("serenity"), shownIdeaIds: [previous.id], discoveredIdeas: [previous] };
+  assert.ok(selectDiscoveredSuggestions(request.filters, space, [renamed]).every(({ idea }) => idea.id !== renamed.id));
+  const result = inspectSearchDiscovery({ content: [{ type: "text", text: JSON.stringify({ ideas: [renamed] }) }] },
+    { ...request, recentActivities: recentActivitiesForDiscovery(space) });
+  assert.equal(result.ideas.length, 0);
+});
+
+test("Bilibili aliases and episode parameters share identity in history, dislikes and the model request", async () => {
+  const first = { ...ideaFor("https://www.bilibili.com/video/BV1y5zdBZE7r/?p=1"), title: "看《摄影作品 A》", domain: "摄影" };
+  const alias = { ...ideaFor("https://m.bilibili.com/video/BV1y5zdBZE7r?p=2&utm_source=x"), title: "欣赏另一种标题的画面", domain: "摄影" };
+  assert.equal(resourceKey(first.source!.url), resourceKey(alias.source!.url));
+  assert.notEqual(resourceKey(first.source!.url), resourceKey("https://www.bilibili.com/video/BV1Y5zdBZE7r"));
+  const space = { ...createEmptySpace("serenity"), shownIdeaIds: [first.id], discoveredIdeas: [first], feedback: [{ ideaId: first.id, vote: "less" as const, updatedAt: date }] };
+  assert.equal(isRejectedIdea(alias, space), true);
+  assert.ok(selectDiscoveredSuggestions(request.filters, space, [alias]).every(({ idea }) => idea.id !== alias.id));
+  let sent: Record<string, unknown> = {};
+  await requestDiscovery(request.filters, space, new AbortController().signal, async (_url, init) => {
+    sent = JSON.parse(String(init?.body)); return Response.json({ ideas: [], provider: "none" });
+  });
+  assert.ok((sent.excludeIds as string[]).includes(resourceId(alias)!));
+  const result = inspectSearchDiscovery({ content: [
+    { type: "web_search_tool_result", content: [{ type: "web_search_result", url: alias.source!.url }] },
+    { type: "text", text: JSON.stringify({ ideas: [alias] }) },
+  ] }, { ...request, excludeIds: sent.excludeIds as string[] });
+  assert.equal(result.ideas.length, 0);
+});
+
+test("votes target subject and experience instead of all videos and carry real examples to the model", () => {
+  const photo = { ...ideaFor("https://example.org/photo"), title: "欣赏一位摄影师的街头摄影作品", description: "街拍里的光影和人物。", domain: "摄影", form: "观看" as const };
+  const related = { ...photo, ...ideaFor("https://example.org/another-photo"), title: "看看另一位摄影师的街拍作品", domain: "摄影", form: "观看" as const };
+  const gear = { ...ideaFor("https://example.org/gears"), title: "看一段齿轮传动机械动画", description: "机械原理示范。", domain: "机械原理", form: "观看" as const };
+  const fiction = { ...ideaFor("https://example.org/story-video"), title: "看一段人物对白短片", domain: "文学", form: "观看" as const };
+  const empty = createEmptySpace("serenity");
+  const space = { ...empty, discoveredIdeas: [photo, gear], feedback: [
+    { ideaId: photo.id, vote: "more" as const, updatedAt: date }, { ideaId: gear.id, vote: "less" as const, updatedAt: date },
+  ] };
+  assert.ok(recommendationScore(related, space) > recommendationScore(related, empty));
+  assert.ok(recommendationScore(gear, space) < recommendationScore(gear, empty));
+  assert.equal(recommendationScore(fiction, space), recommendationScore(fiction, empty));
+  const feedback = feedbackForDiscovery(space);
+  assert.equal(feedback.moreExamples![0].description, photo.description);
+  assert.ok(feedback.moreExamples![0].topics.includes("街头摄影"));
+  assert.deepEqual(parsePersonalization({ ...defaultProfile("serenity"), favoriteTitles: [], feedback })?.feedback, feedback);
+  assert.equal(parsePersonalization({ ...defaultProfile("serenity"), favoriteTitles: [], feedback: { ...feedback, moreExamples: [{ title: "broken" }] } }), null);
+  const disabled = { ...space, preferences: { ...space.preferences, profile: { ...defaultProfile("serenity"), personalized: false } } };
+  assert.equal(recommendationScore(fiction, disabled), recommendationScore(fiction, { ...empty, preferences: disabled.preferences }));
+});
+
+test("photography enters the default and old stock profiles without overwriting edited or empty interests", () => {
+  const empty = createEmptySpace("serenity"), defaults = defaultProfile("serenity");
+  assert.match(defaults.interests, /摄影/);
+  assert.match(defaults.preferenceNotes!, /Instagram.*B 站/);
+  const old = { ...defaults, preferenceVersion: 1 as const, interests: "故事与人物、文学审美、哲学、地域文化、社会观察。也愿意唱首歌、看看视频，尝试其他陌生领域。",
+    preferenceNotes: defaults.preferenceNotes!.split("\n").filter((line) => !line.startsWith("摄影也是明确的兴趣")).join("\n") };
+  assert.match(profileFor({ ...empty, preferences: { ...empty.preferences, profile: old } }).interests, /摄影/);
+  const intentionallyEdited = { ...old, preferenceVersion: 2 as const };
+  assert.equal(profileFor({ ...empty, preferences: { ...empty.preferences, profile: intentionallyEdited } }).interests, old.interests);
+  const custom = { ...defaults, interests: "我的自定义", preferenceNotes: "" };
+  assert.equal(profileFor({ ...empty, preferences: { ...empty.preferences, profile: custom } }).interests, "我的自定义");
+  assert.equal(profileFor({ ...empty, preferences: { ...empty.preferences, profile: custom } }).preferenceNotes, "");
+  assert.equal(defaultProfile("zzz").interests, "");
+  assert.ok(Array.from({ length: 20 }, (_, seed) => discoveryDirections("home", seed, { ...defaults, favoriteTitles: [] })).flat().some((item) => item.domain === "摄影" && /作品/.test(item.query)));
+});
+
+test("a buffer of rewritten activities cannot masquerade as several ready new choices", async () => {
+  const titles = ["让 GPT 生成脑海中的画面", "用 AI 画出一个想象中的场景", "请 AI 把脑海中的场景画出来"];
+  const ideas: ExplorationIdea[] = titles.map((title) => ({ ...ideaFor(), id: inspirationIdeaId("home", title), title, source: undefined, form: "绘画", approach: "open", domain: "绘画", origin: "deepseek" }));
+  const load: typeof requestDiscovery = async () => ({ ideas, provider: "deepseek" });
+  const buffer = new DiscoveryBuffer(load);
+  const space = createEmptySpace("serenity");
+  buffer.prepare(request.filters, space, () => {}, () => {});
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.equal(buffer.available(request.filters, space), 1);
+  assert.equal(buffer.available(request.filters, { ...space, shownIdeaIds: [ideas[0].id], discoveredIdeas: [ideas[0]] }), 0);
+  buffer.clear();
+});
+
+test("pressuring pitches stay readable when saved but leave recommendations, and exhausted pools are honest", () => {
+  const pitch = { ...ideaFor(), title: "认真补一部纪录片，别只看别人的片段" };
+  const space = { ...createEmptySpace("serenity"), discoveredIdeas: [pitch], favorites: [{ ideaId: pitch.id, addedAt: date, soon: false }] };
+  assert.equal(isRejectedIdea(pitch, space), true);
+  assert.equal(parseSpace(space, "serenity")?.favorites.length, 1);
+  const suggestions = selectDiscoveredSuggestions(request.filters, { ...space, shownIdeaIds: explorationIdeas.map((idea) => idea.id) }, []);
+  assert.equal(suggestions.length, 3);
+  assert.match(discoveryNoteFor({ ideas: [], provider: "none" }, suggestions, explorationIdeas.map((idea) => idea.id)), /之前看过/);
 });

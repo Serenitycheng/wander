@@ -1,4 +1,4 @@
-import { activityKind, contentKey, isChildrensPodcast, isFeedIdea, isLowQualityVideo, rememberShown, sourceUrl } from "./discovery.ts";
+import { activityKind, contentKey, isChildrensPodcast, isFeedIdea, isLowQualityVideo, rememberShown } from "./discovery.ts";
 import { generateSuggestions, timeLimits } from "./generator.ts";
 import { explorationIdeas } from "./ideas.ts";
 import { parseDiscoveryResult } from "./discovery-status.ts";
@@ -7,6 +7,7 @@ import type { ExplorationFilters, ExplorationIdea, ExplorationSpace, Exploration
 import { profileFor } from "./profile.ts";
 import { feedbackForDiscovery, isPlayable, isRejectedIdea, recentActivitiesForDiscovery, recommendationScore } from "./recommendation-ranking.ts";
 import { activityDomain, hasUsableEntry, isHandsOn } from "./activity-diversity.ts";
+import { resourceId, resourceKey, sameExperience } from "./activity-affinity.ts";
 
 export async function requestDiscovery(
   filters: ExplorationFilters,
@@ -27,7 +28,11 @@ export async function requestDiscovery(
       method: "POST", headers: { "Content-Type": "application/json", Accept: "application/x-ndjson" }, signal,
       body: JSON.stringify({
         filters, seed: Math.floor(Math.random() * 2147483647),
-        excludeIds: [...new Set([...space.shownIdeaIds, ...(space.feedback ?? []).filter((item) => item.vote === "less").map((item) => item.ideaId)])].slice(-600),
+        excludeIds: [...new Set([...space.shownIdeaIds, ...space.shownIdeaIds.flatMap((id) => {
+          const idea = known.get(id); const canonical = idea && resourceId(idea); return canonical ? [canonical] : [];
+        }), ...(space.feedback ?? []).filter((item) => item.vote === "less").flatMap((item) => {
+          const idea = known.get(item.ideaId); const canonical = idea && resourceId(idea); return [item.ideaId, ...(canonical ? [canonical] : [])];
+        })])].slice(-600),
         excludeTitles: [...space.shownIdeaIds.slice(-60).flatMap((id) => known.get(id)?.title ? [known.get(id)!.title] : []), ...feedback.lessTitles].slice(-60),
         avoidFormats: avoidFeed ? ["feed"] : [],
         allowFeeds: profile.allowFeeds,
@@ -102,29 +107,30 @@ export function selectDiscoveredSuggestions(
     return idea && isFeedIdea(idea);
   });
   const seenContent = new Set([...explorationIdeas, ...space.discoveredIdeas].filter((idea) => shown.has(idea.id)).map((idea) => contentKey(idea.title)));
-  const seenResources = new Set([...known.values()].filter((idea) => shown.has(idea.id) && idea.source).map((idea) => sourceUrl(idea.source!.url)));
+  const seenResources = new Set([...known.values()].filter((idea) => shown.has(idea.id)).flatMap((idea) => resourceKey(idea.source?.url) ?? []));
   const eligible = (idea: ExplorationIdea) =>
     (filters.mode === "random" || idea.category === filters.mode) && idea.minutes <= timeLimits[filters.time] &&
     !isChildrensPodcast(idea) && !isLowQualityVideo(idea) && hasUsableEntry(idea) && !(avoidFeed && isFeedIdea(idea)) && !isRejectedIdea(idea, space);
   const onlinePool = [...new Map([...space.discoveredIdeas, ...online].map((idea) => [idea.id, idea])).values()]
-    .filter((idea) => eligible(idea) && (shown.has(idea.id) || (!seenContent.has(contentKey(idea.title)) && !seenResources.has(sourceUrl(idea.source?.url)))));
+    .filter((idea) => eligible(idea) && (shown.has(idea.id) || (!seenContent.has(contentKey(idea.title)) && !seenResources.has(resourceKey(idea.source?.url) ?? ""))));
   const localPool = explorationIdeas.filter((idea) => eligible(idea) &&
-    (shown.has(idea.id) || !idea.source || !seenResources.has(sourceUrl(idea.source.url))));
+    (shown.has(idea.id) || !resourceKey(idea.source?.url) || !seenResources.has(resourceKey(idea.source?.url) ?? "")));
   const freshOnline = onlinePool.filter((idea) => !shown.has(idea.id));
   const freshLocal = localPool.filter((idea) => !shown.has(idea.id));
   const recentIds = space.records.slice(0, 8).flatMap((item) => item.ideaId ? [item.ideaId] : []);
   const selected: ExplorationSuggestion[] = [];
+  const recentExperiences = rememberShown(space.shownIdeaIds, previousIds).slice(-12).flatMap((id) => known.get(id) ?? []);
+  const cooling = (idea: ExplorationIdea) => recentExperiences.some((previous) => sameExperience(idea, previous));
   const kind = (idea: ExplorationIdea) => idea.category === "outside" ? activityDomain(idea) : activityKind(idea);
   const currentOnlineIds = new Set(online.map((idea) => idea.id));
-  const pick = (pools: ExplorationIdea[][]) => {
+  const pick = (pools: ExplorationIdea[][], allowSeen = false) => {
     // Novelty outranks format diversity: an old item in a different format
     // must not beat an unseen item just because another book was selected.
-    for (const seen of [false, true]) {
+    for (const seen of allowSeen ? [false, true] : [false]) {
       for (const varied of [true, false]) {
         for (const pool of pools) {
           const ideas = pool.filter((idea) => !(isFeedIdea(idea) && selected.some(({ idea: chosen }) => isFeedIdea(chosen))) && !selected.some(({ idea: chosen }) =>
-            chosen.id === idea.id || contentKey(chosen.title) === contentKey(idea.title) ||
-            (Boolean(chosen.source && idea.source) && sourceUrl(chosen.source?.url) === sourceUrl(idea.source?.url)) ||
+            sameExperience(chosen, idea) ||
             (varied && (kind(chosen) === kind(idea) || (activityDomain(idea) !== "综合" && activityDomain(chosen) === activityDomain(idea))))))
             .filter((idea) => shown.has(idea.id) === seen);
           const next = generateSuggestions(filters, { ideas, shownIds: space.shownIdeaIds, previousIds, recentIds, random: options.random,
@@ -137,17 +143,22 @@ export function selectDiscoveredSuggestions(
   };
   // Rank all sources together. Being online must not force the same book,
   // recipe and documentary formats to win over a different useful activity.
-  const fresh = [...freshOnline, ...freshLocal];
+  const fresh = [...freshOnline, ...freshLocal].filter((idea) => !cooling(idea));
+  const resting = [...freshOnline, ...freshLocal].filter(cooling);
   const all = [...onlinePool, ...localPool];
-  pick([fresh, all]);
+  pick([fresh]);
   const complement = selected[0]?.idea.approach === "open" ? "specific" : "open";
   const matching = (ideas: ExplorationIdea[]) => ideas.filter((idea) => (idea.approach ?? "specific") === complement);
-  pick([matching(fresh), matching(all)]);
+  pick([matching(fresh), fresh]);
   if (selected.length < 3) {
     const needsParticipation = !selected.some(({ idea }) => isHandsOn(idea));
-    const foundParticipation = needsParticipation && pick([fresh.filter(isHandsOn), all.filter(isHandsOn)]);
-    if (!foundParticipation) pick([fresh.filter(isPlayable), fresh, all]);
+    const foundParticipation = needsParticipation && pick([fresh.filter(isHandsOn)]);
+    if (!foundParticipation) pick([fresh.filter(isPlayable), fresh]);
   }
-  while (selected.length < 3 && pick([fresh, all])) { /* Fill from real, eligible activities. */ }
+  while (selected.length < 3 && pick([fresh])) { /* Exhaust new experiences before relaxing cooldowns. */ }
+  while (selected.length < 3 && pick([resting])) { /* Keep three real choices when the filter is sparse. */ }
+  if (selected.length < 3) pick([matching(all), all], true);
+  if (selected.length < 3 && !selected.some(({ idea }) => isHandsOn(idea))) pick([all.filter(isHandsOn), all], true);
+  while (selected.length < 3 && pick([all], true)) { /* Seen content is the final fallback, never a format quota. */ }
   return selected;
 }

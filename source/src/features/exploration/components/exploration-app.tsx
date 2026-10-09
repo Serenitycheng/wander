@@ -211,6 +211,42 @@ function SpaceShell({
         exists ? "已从收藏里移开。" : "已放进收藏，什么时候想试都可以。",
       );
   };
+  const prepareNext = useCallback((filters: ExplorationFilters) => {
+    const scope = discoveryScope(filters, current.current);
+    const started = discoveryBuffer.prepare(filters, current.current, (result) => {
+      if (scope !== discoveryScope(filters, current.current)) return;
+      update((value) => ({ ...value, discoveredIdeas: mergeDiscoveredIdeas(value, result.ideas) }));
+      const ready = discoveryBuffer.available(filters, current.current);
+      setDiscoveryNeedsLogin(result.issue === "login_required");
+      const issue = result.issue ? discoveryNoteFor(result, []) : "";
+      setDiscoveryProgress(`${issue}${ready >= 3 ? "后面的新选择已备好，换一组就能看到。" : "正在提前准备下一组，当前三个可以直接选。"}`);
+      if (ready >= 3) setGenerating(false);
+    }, () => {
+      if (scope !== discoveryScope(filters, current.current)) return;
+      setGenerating(false);
+      if (discoveryBuffer.available(filters, current.current) < 3) {
+        const result = discoveryBuffer.peek(filters, current.current);
+        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}暂时没有更多新内容，可以继续换组看看。`);
+      }
+    });
+    if (started) {
+      setGenerating(true);
+      setDiscoveryNeedsLogin(false);
+      setDiscoveryProgress("正在提前准备下一组，当前三个可以直接选。");
+    } else if (discoveryBuffer.available(filters, current.current) >= 3) {
+      setGenerating(false);
+      const result = discoveryBuffer.peek(filters, current.current);
+      setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}后面的新选择已备好，换一组就能看到。`);
+    } else if (discoveryBuffer.preparing) {
+      setGenerating(true);
+      setDiscoveryProgress("正在提前准备下一组，当前三个可以直接选。");
+    } else {
+      setGenerating(false);
+      const result = discoveryBuffer.peek(filters, current.current);
+      setDiscoveryNeedsLogin(result.issue === "login_required");
+      setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}可以继续换组，新的联网内容稍后再补充。`);
+    }
+  }, [discoveryBuffer, update]);
   const generate = useCallback(
     async (filters: ExplorationFilters) => {
       const prepared = discoveryBuffer.peek(filters, current.current);
@@ -218,48 +254,15 @@ function SpaceShell({
       const immediateIds = immediate.map((item) => item.idea.id);
       setSuggestions(immediate);
       previousIdeas.current = immediateIds;
-      setDiscoveryNote(discoveryNoteFor({ ...prepared, issue: undefined }, immediate));
+      setDiscoveryNote(discoveryNoteFor({ ...prepared, issue: undefined }, immediate, current.current.shownIdeaIds));
       update((value) => ({
         ...value,
         preferences: { ...value.preferences, ...filters },
         shownIdeaIds: rememberShown(value.shownIdeaIds, immediateIds),
       }));
-      const scope = discoveryScope(filters, current.current);
-      const started = discoveryBuffer.prepare(filters, current.current, (result) => {
-        if (scope !== discoveryScope(filters, current.current)) return;
-        update((value) => ({ ...value, discoveredIdeas: mergeDiscoveredIdeas(value, result.ideas) }));
-        const ready = discoveryBuffer.available(filters, current.current);
-        setDiscoveryNeedsLogin(result.issue === "login_required");
-        const issue = result.issue ? discoveryNoteFor(result, []) : "";
-        setDiscoveryProgress(`${issue}${ready >= 3 ? "后面的新选择已备好，换一组就能看到。" : "正在提前准备下一组，当前三个可以直接选。"}`);
-        if (ready >= 3) setGenerating(false);
-      }, () => {
-        if (scope !== discoveryScope(filters, current.current)) return;
-        setGenerating(false);
-        if (discoveryBuffer.available(filters, current.current) < 3) {
-          const result = discoveryBuffer.peek(filters, current.current);
-          setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}暂时没有更多新内容，可以继续换组看看。`);
-        }
-      });
-      if (started) {
-        setGenerating(true);
-        setDiscoveryNeedsLogin(false);
-        setDiscoveryProgress("正在提前准备下一组，当前三个可以直接选。");
-      } else if (discoveryBuffer.available(filters, current.current) >= 3) {
-        setGenerating(false);
-        const result = discoveryBuffer.peek(filters, current.current);
-        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}后面的新选择已备好，换一组就能看到。`);
-      } else if (discoveryBuffer.preparing) {
-        setGenerating(true);
-        setDiscoveryProgress("正在提前准备下一组，当前三个可以直接选。");
-      } else {
-        setGenerating(false);
-        const result = discoveryBuffer.peek(filters, current.current);
-        setDiscoveryNeedsLogin(result.issue === "login_required");
-        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}可以继续换组，新的联网内容稍后再补充。`);
-      }
+      prepareNext(filters);
     },
-    [discoveryBuffer, update],
+    [discoveryBuffer, update, prepareNext],
   );
   const voteIdea = (ideaId: string, vote: "more" | "less") => {
     const existing = current.current.feedback?.find((item) => item.ideaId === ideaId);
@@ -271,8 +274,9 @@ function SpaceShell({
     }, ideaId))) return;
     discoveryBuffer.clear();
     setGenerating(false);
-    setDiscoveryProgress("反馈已记住，下一组会参考它。");
-    setMessage(undo ? "已撤销这次反馈。" : vote === "more" ? "记住了，会多找一些类似的，也留一点意外。" : "记住了，这条不再推荐，同类内容也会少一点。再点一次可以撤销。");
+    setDiscoveryProgress(undo ? "已撤销反馈，后续推荐会重新调整。" : "反馈已记住，正在准备更合适的新选择。");
+    prepareNext(current.current.preferences);
+    setMessage(undo ? "已撤销这次反馈。" : vote === "more" ? "记住了，会多找一些内容或风格相近的新建议，也留一点意外。" : "记住了，这条不再推荐，后续会减少相近题材。再点一次可以撤销。");
   };
   const toggleSoon = (ideaId: string) => {
     update((value) => ({

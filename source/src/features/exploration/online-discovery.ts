@@ -7,6 +7,7 @@ import { activityDomain, hasUsableEntry, isMutedContent } from "./activity-diver
 import { readingReferences } from "./profile.ts";
 import type { DiscoveryPersonalization } from "./profile.ts";
 import { interestBookSubjects } from "./interest-discovery.ts";
+import { isPressuringPitch, resourceId, sameContent, sameExperience } from "./activity-affinity.ts";
 
 export type DiscoveryRequest = {
   filters: ExplorationFilters;
@@ -16,7 +17,7 @@ export type DiscoveryRequest = {
   avoidFormats?: Array<"feed">;
   allowFeeds?: boolean;
   personalization?: DiscoveryPersonalization;
-  recentActivities?: Array<{ form: string; domain: string }>;
+  recentActivities?: Array<{ form: string; domain: string; title?: string; approach?: "open" | "specific" }>;
 };
 type Fetcher = typeof fetch;
 
@@ -41,6 +42,7 @@ export async function fetchJson(url: string, signal: AbortSignal, fetcher: Fetch
 const eligible = (idea: ExplorationIdea, request: DiscoveryRequest) =>
   (request.filters.mode === "random" || request.filters.mode === idea.category) &&
   idea.minutes <= timeLimits[request.filters.time] && !request.excludeIds.includes(idea.id) &&
+  !request.excludeIds.includes(resourceId(idea) ?? "") && !isPressuringPitch(idea) &&
   !isMutedContent(idea, request.personalization?.mutedTopics) && hasUsableEntry(idea) &&
   !((!request.allowFeeds || request.avoidFormats?.includes("feed")) && isFeedIdea(idea));
 
@@ -87,7 +89,13 @@ export function inspectSearchDiscovery(payload: unknown, request: DiscoveryReque
       for (const value of decoded.ideas.slice(0, 12)) {
         const idea = materialize(value, new Date().toISOString(), "deepseek");
         if (idea && (!idea.source || verified.has(idea.source.url)) && !isLowQualityVideo(idea) && eligible(idea, request) &&
-          !request.excludeTitles.some((title) => contentKey(title) === contentKey(idea.title))) ideas.set(idea.id, idea);
+          !request.excludeTitles.some((title) => contentKey(title) === contentKey(idea.title)) &&
+          ![...ideas.values()].some((previous) => sameExperience(previous, idea)) &&
+          !(request.recentActivities ?? []).some((previous) => previous.title && sameExperience({
+            ...idea, id: "recent", title: previous.title, description: "", source: undefined,
+            form: previous.form as ExplorationIdea["form"], domain: previous.domain, approach: previous.approach,
+          }, idea)) &&
+          !(request.personalization?.feedback?.lessExamples ?? []).some((previous) => sameContent({ ...idea, id: "feedback", title: previous.title, source: undefined }, idea))) ideas.set(idea.id, idea);
       }
       return { ideas: [...ideas.values()], searchResultCount,
         ...(ideas.size ? {} : { issue: verified.size ? "no_new_results" as const : "no_search_results" as const }) };

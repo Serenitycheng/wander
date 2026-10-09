@@ -23,7 +23,9 @@ export async function POST(request: Request) {
   if (!isObject(body) || !isObject(body.filters) || !isMode(body.filters.mode) || !isTimeWindow(body.filters.time) || !isMood(body.filters.mood) ||
     personalization === null || (body.allowFeeds !== undefined && typeof body.allowFeeds !== "boolean") ||
     (body.recentActivities !== undefined && (!Array.isArray(body.recentActivities) || body.recentActivities.length > 12 ||
-      !body.recentActivities.every((item) => isObject(item) && typeof item.form === "string" && item.form.length <= 60 && typeof item.domain === "string" && item.domain.length <= 60))) ||
+      !body.recentActivities.every((item) => isObject(item) && typeof item.form === "string" && item.form.length <= 60 && typeof item.domain === "string" && item.domain.length <= 60 &&
+        (item.title === undefined || (typeof item.title === "string" && item.title.length <= 160)) &&
+        (item.approach === undefined || item.approach === "open" || item.approach === "specific")))) ||
     !Number.isSafeInteger(body.seed) || Number(body.seed) < 0 || Number(body.seed) > 2147483647 ||
     !Array.isArray(body.excludeIds) || body.excludeIds.length > 600 || !body.excludeIds.every((id) => typeof id === "string" && id.length <= 100) ||
     !Array.isArray(body.excludeTitles) || body.excludeTitles.length > 60 || !body.excludeTitles.every((title) => typeof title === "string" && title.length <= 160) ||
@@ -42,7 +44,8 @@ export async function POST(request: Request) {
     seed: Number(body.seed), excludeIds: body.excludeIds, excludeTitles: body.excludeTitles,
     avoidFormats: body.avoidFormats as Array<"feed"> | undefined,
     allowFeeds: body.allowFeeds === true,
-    ...(Array.isArray(body.recentActivities) ? { recentActivities: body.recentActivities.map((item) => ({ form: item.form, domain: item.domain })) } : {}),
+    ...(Array.isArray(body.recentActivities) ? { recentActivities: body.recentActivities.map((item) => ({ form: item.form, domain: item.domain,
+      ...(item.title ? { title: item.title } : {}), ...(item.approach ? { approach: item.approach } : {}) })) } : {}),
     ...(personalization ? { personalization } : {}),
   };
   if (request.headers.get("accept")?.includes("application/x-ndjson")) {

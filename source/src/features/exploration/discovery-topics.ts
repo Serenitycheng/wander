@@ -3,6 +3,7 @@ import { readingReferences } from "./profile.ts";
 import type { DiscoveryPersonalization } from "./profile.ts";
 import { isMutedContent } from "./activity-diversity.ts";
 import { interestDirections } from "./interest-discovery.ts";
+import { activityTopics } from "./activity-affinity.ts";
 
 // These are search directions, not a fixed list of activities or titles.
 export type DiscoveryDirection = {
@@ -73,8 +74,13 @@ export function discoveryDirections(mode: ExplorationMode, seed: number, profile
   let state = seed >>> 0;
   const ranked = pool.map((item) => {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    return { item, personal: personal.includes(item), recent: recent.filter((past) => past.domain === item.domain).length, weight: state };
-  }).sort((a, b) => a.recent - b.recent || Number(b.personal) - Number(a.personal) || b.weight - a.weight);
+    const tags = activityTopics({ title: item.query, description: "" });
+    const affinity = (examples: NonNullable<DiscoveryPersonalization["feedback"]>["moreExamples"]) => Math.max(0,
+      ...(examples ?? []).map((example) => example.topics.filter((topic) => tags.includes(topic)).length * 2 +
+        (example.domain === item.domain ? 0.5 : 0)));
+    const feedback = affinity(profile?.feedback?.moreExamples) - affinity(profile?.feedback?.lessExamples);
+    return { item, personal: personal.includes(item), recent: recent.filter((past) => past.domain === item.domain).length, feedback, weight: state };
+  }).sort((a, b) => a.recent - b.recent || b.feedback - a.feedback || Number(b.personal) - Number(a.personal) || b.weight - a.weight);
   const selected: DiscoveryDirection[] = [];
   for (const varied of [true, false]) for (const { item } of ranked) {
     if (selected.length === 3) break;
