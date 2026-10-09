@@ -86,6 +86,11 @@ export async function discoverWithProviders(
       issue = providerIssue(error, searchSignal);
       if (error instanceof DiscoveryUpstreamError) upstreamStatus = error.status;
     }
+    // A configured curator owns the recommendation boundary on failure too.
+    // Search hits remain ingredients; returning them here bypassed preferences
+    // and rebuilt the same video/book/recipe batch after every rejected result.
+    publicController.abort();
+    return finish({ ideas: [], provider: "none", ...(issue ? { issue } : {}) });
   }
   const ideas = [...new Map([...catalogIdeas, ...await publicRequest].map((idea) => [idea.id, idea])).values()].slice(0, 24);
   signal.throwIfAborted();
@@ -122,6 +127,9 @@ async function searchWithDeepSeek(request: DiscoveryRequest, signal: AbortSignal
         maximumMinutes: Number.isFinite(timeLimits[request.filters.time]) ? timeLimits[request.filters.time] : 240,
         avoid: request.excludeTitles.slice(-60),
         avoidWorks: request.excludeWorks ?? [],
+        excludedExperiences: request.excludeExperiences ?? [],
+        rejectionRule: "excludedExperiences 是已经排除的活动，不是灵感范例。先识别其实际行动，不得换措辞、背景歌曲、来源或形式分类重推同一件事。比如随慢歌松肩颈、随音乐把全身松一遍、按歌曲呼吸做自由拉伸，都是同一舒展行动；这不等于禁止唱歌、乐器、跳具体舞蹈等不同体验。不复述或美化这些旧活动。",
+        evidenceRule: "明确爱好与实际反馈是证据，推断不是事实。喜欢唱歌不代表喜欢随歌拉伸，喜欢摄影不代表偏好安静或内向；不要编造人格标签为不合适的活动找理由。没有证据的陌生体验可以诚实说是新尝试，不声称用户一定喜欢。",
         workRotationRule: "avoidWorks 是已出现作品的规范名称，同一本书、歌曲、片子即使换出版社网址、平台、标题、章节或变成解读也不能算新内容。换真正不同的作品或行动，不得把这份历史再当兴趣线索。",
         variety: "开放指保留用户选择，不是空话。比如配音可自己选片段，但给一个实际参考或工具；探索游戏设计可以玩一个可用原型、看一个机制，不能只说搜索相关资料。firstStep 指向本条实际找到的内容、可打开的工具或手边可准备的材料与玩法；不能假装视频链接就是可玩游戏，不得编造资源功能。说明准备要求，但不写课程计划、固定练习量、强迫打卡或感想。why 说清来源支持的吸引点。有来源时每条引用不同的真实资源；普通开放活动可以不附网页。喜欢不代表只推同类，近期出现过的作品和活动做法即使换标题、换链接也不要再给。",
         avoidFormats: !request.allowFeeds || request.avoidFormats?.includes("feed") ? "本轮禁止播客和博客，优先视频、书籍、游戏、音乐与实际活动。" : "播客与博客合计最多 1 条。",

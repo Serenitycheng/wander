@@ -5,6 +5,7 @@ import { getSession } from "@/lib/server/session";
 import { discoverOnlineIdeas } from "@/lib/server/exploration-discovery";
 import type { DiscoveryRequest } from "@/lib/server/exploration-discovery";
 import { parsePersonalization } from "@/features/exploration/profile";
+import { parseSuppressedIdea } from "@/features/exploration/recommendation-policy";
 
 export const maxDuration = 45;
 const requests = new Map<string, { startedAt: number; count: number }>();
@@ -20,8 +21,10 @@ export async function POST(request: Request) {
   let body: unknown;
   try { body = JSON.parse(raw); } catch { body = null; }
   const personalization = isObject(body) && body.personalization !== undefined ? parsePersonalization(body.personalization) : undefined;
+  const excludeExperiences = isObject(body) && body.excludeExperiences !== undefined
+    ? Array.isArray(body.excludeExperiences) && body.excludeExperiences.length <= 24 ? body.excludeExperiences.map(parseSuppressedIdea) : null : [];
   if (!isObject(body) || !isObject(body.filters) || !isMode(body.filters.mode) || !isTimeWindow(body.filters.time) || !isMood(body.filters.mood) ||
-    personalization === null || (body.allowFeeds !== undefined && typeof body.allowFeeds !== "boolean") ||
+    personalization === null || excludeExperiences === null || excludeExperiences.some((item) => !item) || (body.allowFeeds !== undefined && typeof body.allowFeeds !== "boolean") ||
     (body.recentActivities !== undefined && (!Array.isArray(body.recentActivities) || body.recentActivities.length > 12 ||
       !body.recentActivities.every((item) => isObject(item) && typeof item.form === "string" && item.form.length <= 60 && typeof item.domain === "string" && item.domain.length <= 60 &&
         (item.title === undefined || (typeof item.title === "string" && item.title.length <= 160)) &&
@@ -43,6 +46,7 @@ export async function POST(request: Request) {
   const input: DiscoveryRequest = {
     filters: { mode: body.filters.mode, time: body.filters.time, mood: body.filters.mood },
     seed: Number(body.seed), excludeIds: body.excludeIds, excludeTitles: body.excludeTitles,
+    excludeExperiences: excludeExperiences as NonNullable<DiscoveryRequest["excludeExperiences"]>,
     ...(body.excludeWorks ? { excludeWorks: body.excludeWorks as string[] } : {}),
     avoidFormats: body.avoidFormats as Array<"feed"> | undefined,
     allowFeeds: body.allowFeeds === true,

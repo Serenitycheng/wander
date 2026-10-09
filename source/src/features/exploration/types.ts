@@ -25,6 +25,8 @@ export const activityForms = ["阅读", "观看", "聆听", "歌唱", "音乐创
 export type ActivityForm = typeof activityForms[number];
 export type RecommendationAngle = "familiar" | "surprise" | "play";
 export type ExplorationFeedback = { ideaId: string; vote: "more" | "less"; updatedAt: string };
+// Minimal exclusion evidence; not a cached recommendation or a detail page.
+export type SuppressedIdea = Pick<ExplorationIdea, "id" | "category" | "title" | "description" | "approach" | "form" | "domain" | "source"> & { reason: "cleanup" | "dislike" };
 
 export type ExplorationFilters = {
   mode: ExplorationMode;
@@ -88,6 +90,8 @@ export type ExplorationSpace = {
   shownWorkKeys?: string[];
   discoveredIdeas: ExplorationIdea[];
   feedback?: ExplorationFeedback[];
+  suppressedIdeas?: SuppressedIdea[];
+  recommendationCleanup?: { version: 1; completedAt: string; active: boolean };
 };
 
 export const modes: Array<{

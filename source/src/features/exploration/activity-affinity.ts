@@ -79,10 +79,18 @@ const creativeTask = (idea: ExplorationIdea) => {
   return features.includes("AI 写歌") ? "AI 写歌" : null;
 };
 
+const bodyRelease = (idea: ExplorationIdea) =>
+  !/^(看|观看|读|阅读|了解)/.test(idea.title) &&
+  /慢歌|音乐|歌曲|一首.*歌/.test(`${idea.title} ${idea.description}`) &&
+  /肩颈|颈肩|身体|从头到脚|转颈|转头|抬手/.test(`${idea.title} ${idea.description}`) &&
+  /松一|松出|放松|拉伸|舒展|僵|转颈|转头|抬手/.test(`${idea.title} ${idea.description}`);
+
 // Distinct named works remain distinct. A renamed open activity needs a break,
 // even if the generated ID or a tutorial URL changed.
 export function sameExperience(left: ExplorationIdea, right: ExplorationIdea): boolean {
   if (sameContent(left, right)) return true;
+  // The action is unchanged when the model calls free stretching music or dance.
+  if (bodyRelease(left) && bodyRelease(right)) return true;
   if (namedWorkKeys(left.title).length && namedWorkKeys(right.title).length) return false;
   // Model classifications are not reliable identity boundaries.
   const task = creativeTask(left);

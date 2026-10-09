@@ -16,6 +16,7 @@ import type {
 import { maxColorSchemes, parseAppearance } from "./appearance.ts";
 import { parseProfile } from "./profile.ts";
 import { parseDiscoveredIdea, rememberShown } from "./discovery.ts";
+import { isRemovedRecommendation, maxFeedback, maxSuppressedIdeas, parseSuppressedIdea, preserveSnapshotIds } from "./recommendation-policy.ts";
 
 type BrowserStorage = Pick<Storage, "getItem" | "setItem">;
 type ReadResult = {
@@ -41,6 +42,7 @@ export const createEmptySpace = (owner: SpaceOwner): ExplorationSpace => ({
   shownWorkKeys: [],
   discoveredIdeas: [],
   feedback: [],
+  suppressedIdeas: [],
 });
 
 const object = (value: unknown): value is Record<string, unknown> =>
@@ -91,7 +93,13 @@ export function parseSpace(
   const rawIdeas = object(value) ? value.discoveredIdeas ?? [] : [];
   const shownWorkKeys = object(value) ? value.shownWorkKeys ?? [] : [];
   const feedback = object(value) ? value.feedback ?? [] : [];
-  if (!Array.isArray(feedback) || feedback.length > 120 || !feedback.every(feedbackItem) ||
+  const rawSuppressed = object(value) ? value.suppressedIdeas ?? [] : [];
+  const cleanup = object(value) ? value.recommendationCleanup : undefined;
+  if (cleanup !== undefined && (!object(cleanup) || cleanup.version !== 1 || !timestamp(cleanup.completedAt) || typeof cleanup.active !== "boolean")) return null;
+  if (!Array.isArray(rawSuppressed) || rawSuppressed.length > maxSuppressedIdeas) return null;
+  const suppressedIdeas = rawSuppressed.map(parseSuppressedIdea);
+  if (suppressedIdeas.some((item) => !item) || new Set(suppressedIdeas.map((item) => item?.id)).size !== suppressedIdeas.length) return null;
+  if (!Array.isArray(feedback) || feedback.length > maxFeedback || !feedback.every(feedbackItem) ||
     new Set(feedback.map((item) => item.ideaId)).size !== feedback.length) return null;
   if (!Array.isArray(shownIdeaIds) || shownIdeaIds.length > 600 ||
     !shownIdeaIds.every((id) => text(id, 100) && Boolean(id.trim())) ||
@@ -144,6 +152,8 @@ export function parseSpace(
     shownWorkKeys: [...shownWorkKeys],
     discoveredIdeas: discoveredIdeas as ExplorationIdea[],
     feedback: feedback.map((item) => ({ ideaId: item.ideaId, vote: item.vote, updatedAt: item.updatedAt })),
+    suppressedIdeas: suppressedIdeas as NonNullable<ExplorationSpace["suppressedIdeas"]>,
+    ...(object(cleanup) ? { recommendationCleanup: { version: 1, completedAt: cleanup.completedAt as string, active: cleanup.active as boolean } } : {}),
     preferences: {
       mode: value.preferences.mode,
       time: value.preferences.time,
@@ -246,6 +256,10 @@ export function mergeSpaces(
   for (const item of current.records) records.set(item.id, item);
   const feedback = new Map((imported.feedback ?? []).map((item) => [item.ideaId, item]));
   for (const item of current.feedback ?? []) feedback.set(item.ideaId, item);
+  if (feedback.size > maxFeedback) throw new Error("FEEDBACK_LIMIT_EXCEEDED");
+  const suppressedIdeas = [...new Map([...(imported.suppressedIdeas ?? []), ...(current.suppressedIdeas ?? [])].map((item) => [item.id, item])).values()];
+  if (suppressedIdeas.length > maxSuppressedIdeas) throw new Error("EXCLUSION_LIMIT_EXCEEDED");
+  const cleanup = current.recommendationCleanup ?? imported.recommendationCleanup;
   const merged = {
     ...current,
     preferences: {
@@ -258,7 +272,9 @@ export function mergeSpaces(
     },
     shownIdeaIds: rememberShown(imported.shownIdeaIds, current.shownIdeaIds),
     shownWorkKeys: rememberShown(imported.shownWorkKeys ?? [], current.shownWorkKeys ?? []),
-    feedback: [...feedback.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 120),
+    feedback: [...feedback.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+    suppressedIdeas,
+    ...(cleanup ? { recommendationCleanup: cleanup } : {}),
     favorites: [...favorites.values()].sort((a, b) =>
       b.addedAt.localeCompare(a.addedAt),
     ),
@@ -272,7 +288,9 @@ export function mergeSpaces(
 export function mergeDiscoveredIdeas(space: ExplorationSpace, incoming: ExplorationIdea[]): ExplorationIdea[] {
   const pinned = new Set([...space.favorites.map((item) => item.ideaId), ...space.records.flatMap((item) => item.ideaId ? [item.ideaId] : []), ...(space.feedback ?? []).map((item) => item.ideaId)]);
   const ideas = new Map(space.discoveredIdeas.map((idea) => [idea.id, idea]));
+  const protectedIds = preserveSnapshotIds(space);
   for (const idea of incoming) {
+    if (!protectedIds.has(idea.id) && isRemovedRecommendation(idea, space)) continue;
     if (!pinned.has(idea.id) || !ideas.has(idea.id)) ideas.set(idea.id, idea);
   }
   const ordered = [...ideas.values()].sort((a, b) => (b.discoveredAt ?? "").localeCompare(a.discoveredAt ?? ""));

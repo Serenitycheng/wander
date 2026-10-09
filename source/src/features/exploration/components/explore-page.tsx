@@ -167,9 +167,9 @@ export function ExplorePage({
             <div className="exploration-before-start">
               <Sparkles size={25} strokeWidth={1.2} />
               <p>
-                {generating ? "看看别的领域里，有什么值得一试。" : "不用回答很多问题。"}
+                {generating ? "正在找三个新的选择。" : space.recommendationCleanup?.active ? "当前没有更多匹配的新内容。" : "不用回答很多问题。"}
                 <br />
-                {generating ? "找到后，会放在这里。" : "点一下，让新的可能自己出现。"}
+                {generating ? "找到后，会放在这里。" : space.recommendationCleanup?.active ? "可以继续发现，旧推荐不会拿来补位。" : "点一下，让新的可能自己出现。"}
               </p>
             </div>
           )}

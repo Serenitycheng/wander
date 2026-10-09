@@ -1,12 +1,13 @@
 import { contentKey, inspirationIdeaId, isChildrensPodcast, isFeedIdea, isLowQualityVideo, isObject, onlineIdeaId, parseDiscoveredIdea, sourceUrl } from "./discovery.ts";
 import { timeLimits } from "./generator.ts";
-import type { ExplorationFilters, ExplorationIdea } from "./types.ts";
+import type { ExplorationFilters, ExplorationIdea, SuppressedIdea } from "./types.ts";
 import { discoveryDirections } from "./discovery-topics.ts";
 import type { DiscoveryDirection } from "./discovery-topics.ts";
 import { activityDomain, hasUsableEntry, isMutedContent } from "./activity-diversity.ts";
 import type { DiscoveryPersonalization } from "./profile.ts";
 import { interestBookSubjects } from "./interest-discovery.ts";
 import { isPressuringPitch, namedWorkKeys, resourceId, sameContent, sameExperience } from "./activity-affinity.ts";
+import { suppressionIdea } from "./recommendation-policy.ts";
 
 export type DiscoveryRequest = {
   filters: ExplorationFilters;
@@ -14,6 +15,7 @@ export type DiscoveryRequest = {
   excludeIds: string[];
   excludeTitles: string[];
   excludeWorks?: string[];
+  excludeExperiences?: SuppressedIdea[];
   avoidFormats?: Array<"feed">;
   allowFeeds?: boolean;
   personalization?: DiscoveryPersonalization;
@@ -40,6 +42,7 @@ export async function fetchJson(url: string, signal: AbortSignal, fetcher: Fetch
 }
 
 const eligible = (idea: ExplorationIdea, request: DiscoveryRequest) =>
+  !(request.excludeExperiences ?? []).some((item) => sameExperience(suppressionIdea(item), idea)) &&
   (request.filters.mode === "random" || request.filters.mode === idea.category) &&
   idea.minutes <= timeLimits[request.filters.time] && !request.excludeIds.includes(idea.id) &&
   !request.excludeIds.includes(resourceId(idea) ?? "") && !isPressuringPitch(idea) &&

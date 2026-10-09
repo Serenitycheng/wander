@@ -16,11 +16,14 @@ import { defaultTone, isTone, readableTone, resetSpaceTone, spaceTone, withSpace
 import { PageColorPicker } from "./page-color-picker";
 import { LoginView } from "@/components/auth/space-login";
 import { findIdea } from "../ideas";
-import { selectDiscoveredSuggestions } from "../discovery-client";
+import { fillMissingSuggestions, selectDiscoveredSuggestions } from "../discovery-client";
 import { DiscoveryBuffer, discoveryScope } from "../discovery-buffer";
 import { discoveryNoteFor } from "../discovery-status";
 import { rememberShown } from "../discovery";
 import { workHistory } from "../work-history";
+import { isRejectedIdea } from "../recommendation-ranking";
+import { freshOnly, knownSpaceIdeas, maxFeedback, preserveSnapshotIds, suppressionFor } from "../recommendation-policy";
+import { cleanupStoredRecommendations, needsRecommendationCleanup, readRecommendationBackup, restoreRecommendationCache } from "../recommendation-cleanup";
 import {
   createEmptySpace,
   readStoredSpace,
@@ -58,7 +61,10 @@ type ExplorationContextValue = {
   discoveryNeedsLogin: boolean;
   reauthenticate: () => void;
   resolveIdea: (id: string | null | undefined) => ExplorationIdea | undefined;
-  voteIdea: (ideaId: string, vote: "more" | "less") => void;
+  voteIdea: (ideaId: string, vote: "more" | "less", undo?: boolean) => void;
+  cleanupRecommendations: () => void;
+  restoreRecommendations: () => void;
+  cleanupBackupAvailable: boolean;
   generate: (filters: ExplorationFilters) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -101,6 +107,9 @@ function SpaceShell({
   const [message, setMessage] = useState("");
   const [removed, setRemoved] = useState<ExplorationRecord | null>(null);
   const [suggestions, setSuggestions] = useState<ExplorationSuggestion[]>([]);
+  const displayed = useRef<ExplorationSuggestion[]>([]);
+  const requestedFilters = useRef<ExplorationFilters | null>(null);
+  const [cleanupBackupAvailable, setCleanupBackupAvailable] = useState(false);
   const previousIdeas = useRef<string[]>([]);
   const [generating, setGenerating] = useState(false);
   const [discoveryNote, setDiscoveryNote] = useState("");
@@ -110,17 +119,33 @@ function SpaceShell({
   useEffect(() => () => discoveryBuffer.clear(), [discoveryBuffer]);
   const apply = useCallback(
     (next: ExplorationSpace, nextStatus: SaveStatus) => {
+      const filters = requestedFilters.current;
+      if (filters && discoveryScope(filters, current.current) !== discoveryScope(filters, next)) {
+        discoveryBuffer.clear();
+        setGenerating(false);
+        setDiscoveryProgress("");
+      }
       current.current = next;
       statusRef.current = nextStatus;
       setSpace(next);
       setStatus(nextStatus);
+      const retained = displayed.current.filter(({ idea }) => !isRejectedIdea(idea, next));
+      if (retained.length !== displayed.current.length) {
+        displayed.current = retained;
+        setSuggestions(retained);
+      }
     },
-    [],
+    [discoveryBuffer],
   );
   const load = useCallback(() => {
     try {
       const result = readStoredSpace(window.localStorage, owner);
-      apply(result.space, result.status === "ready" ? "saved" : result.status);
+      if (result.status === "ready" && needsRecommendationCleanup(result.space)) {
+        const cleaned = cleanupStoredRecommendations(window.localStorage, result.space);
+        apply(cleaned.space, cleaned.status === "saved" ? "saved" : cleaned.status);
+        if (cleaned.status === "saved") setMessage("旧推荐已清理，感兴趣、收藏和已有记录都留着。清理前已备份。");
+      } else apply(result.space, result.status === "ready" ? "saved" : result.status);
+      setCleanupBackupAvailable(Boolean(readRecommendationBackup(window.localStorage, owner)));
     } catch {
       apply(current.current, "unavailable");
     }
@@ -188,11 +213,25 @@ function SpaceShell({
   );
   const withIdeaSnapshot = (next: ExplorationSpace, ideaId: string | null) => {
     const idea = current.current.discoveredIdeas.find((item) => item.id === ideaId)
-      ?? suggestions.find((item) => item.idea.id === ideaId)?.idea;
+      ?? displayed.current.find((item) => item.idea.id === ideaId)?.idea;
     return idea?.discoveredAt
       ? { ...next, discoveredIdeas: mergeDiscoveredIdeas(next, [idea]) }
       : next;
   };
+  const present = useCallback((next: ExplorationSuggestion[], result: ReturnType<DiscoveryBuffer["peek"]>) => {
+    const added = next.filter(({ idea }) => !displayed.current.some((old) => old.idea.id === idea.id));
+    const known = knownSpaceIdeas(current.current);
+    const recent = current.current.shownIdeaIds.slice(-60).flatMap((id) => known.get(id) ?? []);
+    displayed.current = next;
+    setSuggestions(next);
+    previousIdeas.current = next.map(({ idea }) => idea.id);
+    setDiscoveryNote(!next.length ? "正在寻找新选择，已清理或排除的内容不会拿来补位。"
+      : next.length > added.length ? added.length ? `保留其余选择，已补充 ${added.length} 个新建议。` : "保留其余选择，正在补充新的建议。"
+        : discoveryNoteFor({ ...result, issue: undefined }, next, current.current.shownIdeaIds, recent));
+    if (added.length) update((value) => ({ ...value,
+      shownIdeaIds: rememberShown(value.shownIdeaIds, added.map(({ idea }) => idea.id)),
+      shownWorkKeys: workHistory(value, added.map(({ idea }) => idea)) }));
+  }, [update]);
   const toggleFavorite = (ideaId: string) => {
     const exists = current.current.favorites.some(
       (item) => item.ideaId === ideaId,
@@ -216,71 +255,105 @@ function SpaceShell({
     const scope = discoveryScope(filters, current.current);
     const started = discoveryBuffer.prepare(filters, current.current, (result) => {
       if (scope !== discoveryScope(filters, current.current)) return;
-      update((value) => ({ ...value, discoveredIdeas: mergeDiscoveredIdeas(value, result.ideas) }));
+      const accepted = result.ideas.filter((idea) => !isRejectedIdea(idea, current.current));
+      update((value) => ({ ...value, discoveredIdeas: mergeDiscoveredIdeas(value, accepted) }));
+      if (requestedFilters.current && scope === discoveryScope(requestedFilters.current, current.current) && displayed.current.length < 3) {
+        const next = fillMissingSuggestions(filters, current.current, displayed.current, accepted);
+        if (next.length === 3 && next.length !== displayed.current.length) present(next, result);
+      }
       const ready = discoveryBuffer.available(filters, current.current);
       setDiscoveryNeedsLogin(result.issue === "login_required");
       const issue = result.issue ? discoveryNoteFor(result, []) : "";
-      setDiscoveryProgress(`${issue}${ready >= 3 ? "后面的新选择已备好，换一组就能看到。" : "正在提前准备下一组，当前三个可以直接选。"}`);
+      setDiscoveryProgress(`${issue}${ready >= 3 ? "后面的新选择已备好，换一组就能看到。" : displayed.current.length < 3 ? "正在补充三个新选择，旧内容不会补位。" : "正在提前准备下一组，当前三个可以直接选。"}`);
       if (ready >= 3) setGenerating(false);
     }, () => {
       if (scope !== discoveryScope(filters, current.current)) return;
       setGenerating(false);
       if (discoveryBuffer.available(filters, current.current) < 3) {
         const result = discoveryBuffer.peek(filters, current.current);
-        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}暂时没有更多新内容，可以继续换组看看。`);
+        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}${freshOnly(current.current) ? "当前新内容不足，继续发现后会补充；旧推荐不会重新放回来。" : "暂时没有更多新内容，可以继续换组看看。"}`);
       }
     });
     if (started) {
       setGenerating(true);
       setDiscoveryNeedsLogin(false);
-      setDiscoveryProgress("正在提前准备下一组，当前三个可以直接选。");
+      setDiscoveryProgress(displayed.current.length < 3 ? "正在寻找三个新选择，旧内容不会补位。" : "正在提前准备下一组，当前三个可以直接选。");
     } else if (discoveryBuffer.available(filters, current.current) >= 3) {
       setGenerating(false);
       const result = discoveryBuffer.peek(filters, current.current);
       setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}后面的新选择已备好，换一组就能看到。`);
     } else if (discoveryBuffer.preparing) {
       setGenerating(true);
-      setDiscoveryProgress("正在提前准备下一组，当前三个可以直接选。");
+      setDiscoveryProgress(displayed.current.length < 3 ? "正在寻找三个新选择，旧内容不会补位。" : "正在提前准备下一组，当前三个可以直接选。");
     } else {
       setGenerating(false);
       const result = discoveryBuffer.peek(filters, current.current);
       setDiscoveryNeedsLogin(result.issue === "login_required");
       setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}可以继续换组，新的联网内容稍后再补充。`);
     }
-  }, [discoveryBuffer, update]);
+  }, [discoveryBuffer, update, present]);
   const generate = useCallback(
     async (filters: ExplorationFilters) => {
+      if (needsRecommendationCleanup(current.current)) {
+        setDiscoveryNote("旧推荐清理前的备份尚未保存成功。");
+        setDiscoveryProgress("请先重新读取空间；备份成功后再寻找新内容。");
+        return;
+      }
       const prepared = discoveryBuffer.peek(filters, current.current);
       const immediate = selectDiscoveredSuggestions(filters, current.current, prepared.ideas, previousIdeas.current);
-      const immediateIds = immediate.map((item) => item.idea.id);
-      setSuggestions(immediate);
-      previousIdeas.current = immediateIds;
-      const recentIdeas = current.current.shownIdeaIds.slice(-60).flatMap((id) =>
-        findIdea(id) ?? current.current.discoveredIdeas.find((idea) => idea.id === id) ?? []);
-      setDiscoveryNote(discoveryNoteFor({ ...prepared, issue: undefined }, immediate, current.current.shownIdeaIds, recentIdeas));
+      requestedFilters.current = filters;
       update((value) => ({
         ...value,
         preferences: { ...value.preferences, ...filters },
-        shownIdeaIds: rememberShown(value.shownIdeaIds, immediateIds),
-        shownWorkKeys: workHistory(value, immediate.map(({ idea }) => idea)),
       }));
+      present(freshOnly(current.current) && immediate.length < 3 ? [] : immediate, prepared);
       prepareNext(filters);
     },
-    [discoveryBuffer, update, prepareNext],
+    [discoveryBuffer, update, prepareNext, present],
   );
-  const voteIdea = (ideaId: string, vote: "more" | "less") => {
+  const voteIdea = (ideaId: string, vote: "more" | "less", undo = false) => {
     const existing = current.current.feedback?.find((item) => item.ideaId === ideaId);
-    const undo = existing?.vote === vote;
-    if (!update((value) => withIdeaSnapshot({
-      ...value,
-      feedback: [...(!undo ? [{ ideaId, vote, updatedAt: new Date().toISOString() }] : []),
-        ...(value.feedback ?? []).filter((item) => item.ideaId !== ideaId)].slice(0, 120),
-    }, ideaId))) return;
+    if (!undo && existing?.vote === vote) return;
+    if (undo && existing?.vote !== vote) return;
+    if (!existing && (current.current.feedback?.length ?? 0) >= maxFeedback) {
+      setMessage("反馈保存空间已满，请先在“我的”撤销不需要的反馈；已有排除仍有效。"); return;
+    }
+    const original = displayed.current.find(({ idea }) => idea.id === ideaId)?.idea ?? knownSpaceIdeas(current.current).get(ideaId);
+    if (!update((value) => {
+      const next = withIdeaSnapshot({ ...value,
+        feedback: [...(!undo ? [{ ideaId, vote, updatedAt: new Date().toISOString() }] : []),
+          ...(value.feedback ?? []).filter((item) => item.ideaId !== ideaId)] }, ideaId);
+      const evidence = (next.suppressedIdeas ?? []).filter((item) => item.id !== ideaId || item.reason === "cleanup");
+      if (!undo && vote === "less" && original && !evidence.some((item) => item.id === ideaId)) evidence.push(suppressionFor(original, "dislike"));
+      const updated = { ...next, suppressedIdeas: evidence };
+      const pinned = preserveSnapshotIds(updated);
+      return { ...updated, discoveredIdeas: updated.discoveredIdeas.filter((idea) => pinned.has(idea.id) || !isRejectedIdea(idea, updated)) };
+    })) return;
     discoveryBuffer.clear();
     setGenerating(false);
     setDiscoveryProgress(undo ? "已撤销反馈，后续推荐会重新调整。" : "反馈已记住，正在准备更合适的新选择。");
+    if (!undo && vote === "less" && requestedFilters.current) {
+      const next = fillMissingSuggestions(requestedFilters.current, current.current, displayed.current, []);
+      present(next, { ideas: [], provider: "none" });
+    }
     prepareNext(current.current.preferences);
-    setMessage(undo ? "已撤销这次反馈。" : vote === "more" ? "记住了，会多找一些内容或风格相近的新建议，也留一点意外。" : "记住了，这条不再推荐，后续会减少相近题材。再点一次可以撤销。");
+    setMessage(undo ? "已撤销这次反馈。" : vote === "more" ? "记住了，会多找一些内容或风格相近的新建议，也留一点意外。" : "记住了，这条和同一活动的改写不再推荐。可以在“我的”撤销反馈。");
+  };
+  const cleanupRecommendations = () => {
+    const result = cleanupStoredRecommendations(window.localStorage, current.current);
+    if (result.status !== "saved") { setMessage("这次没有清理成功，原内容仍保留。请刷新后再试。"); return; }
+    discoveryBuffer.clear();
+    apply(result.space, "saved");
+    setCleanupBackupAvailable(true);
+    present([], { ideas: [], provider: "none" });
+    setMessage("旧推荐已清理，感兴趣、收藏和已有记录都留着。清理前已备份。");
+    if (requestedFilters.current) prepareNext(requestedFilters.current);
+  };
+  const restoreRecommendations = () => {
+    const backup = readRecommendationBackup(window.localStorage, owner);
+    if (!backup || !update((value) => restoreRecommendationCache(value, backup))) return;
+    discoveryBuffer.clear();
+    setMessage("已恢复清理前的候选；之后新增的记录、收藏、反馈和配色保留。");
   };
   const toggleSoon = (ideaId: string) => {
     update((value) => ({
@@ -343,6 +416,9 @@ function SpaceShell({
         discoveryNeedsLogin,
         reauthenticate,
         voteIdea,
+        cleanupRecommendations,
+        restoreRecommendations,
+        cleanupBackupAvailable,
         resolveIdea: (id) => findIdea(id) ?? space.discoveredIdeas.find((idea) => idea.id === id) ?? suggestions.find((item) => item.idea.id === id)?.idea,
         generate,
         signOut,

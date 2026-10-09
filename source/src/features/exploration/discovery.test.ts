@@ -435,7 +435,7 @@ test("malformed API success payloads show a parsing issue rather than a quiet lo
   assert.equal(result.issue, "invalid_response");
 });
 
-test("DeepSeek HTTP failures are observable and public-source fallback does not claim model success", async () => {
+test("DeepSeek HTTP failures stay observable without publishing uncurated public search hits", async () => {
   for (const [status, issue] of [[401, "key_rejected"], [402, "quota_exceeded"], [400, "request_rejected"], [403, "request_rejected"], [429, "rate_limited"], [503, "provider_unavailable"]] as const) {
     const logs: unknown[] = [];
     const fetcher: typeof fetch = async (input) => String(input).includes("/anthropic/v1/messages")
@@ -444,14 +444,14 @@ test("DeepSeek HTTP failures are observable and public-source fallback does not 
         bvid: "BV1y5zdBZE7r", title: "音乐 游戏 绘画 文学 设计 历史 自然 科学 手工 舞蹈 语言 心理 摄影 电影", author: "创作者", duration: "12:00",
       }] } }) : Response.json({});
     const result = await discoverWithProviders(request, new AbortController().signal, { key: "private-test-key", fetcher, log: (entry) => logs.push(entry) });
-    assert.equal(result.provider, "public");
+    assert.equal(result.provider, "none");
     assert.equal(result.issue, issue);
-    assert.ok(result.ideas.length);
+    assert.equal(result.ideas.length, 0);
     assert.ok(JSON.stringify(logs).includes(`"upstreamStatus":${status}`));
     assert.equal(JSON.stringify(logs).includes("private-test-key"), false);
     assert.equal(JSON.stringify(logs).includes("secret response"), false);
     const next = selectDiscoveredSuggestions(request.filters, createEmptySpace("serenity"), result.ideas);
-    assert.match(discoveryNoteFor(result, next), /公开来源发现/);
+    assert.equal(discoveryNoteFor(result, next).includes("公开来源发现"), false);
     assert.equal(discoveryNoteFor(result, next).includes("DeepSeek 推荐"), false);
   }
 });

@@ -9,6 +9,7 @@ import { feedbackForDiscovery, isPlayable, isRejectedIdea, recentActivitiesForDi
 import { activityDomain, hasUsableEntry, isHandsOn } from "./activity-diversity.ts";
 import { resourceId, resourceKey, sameExperience } from "./activity-affinity.ts";
 import { repeatsWork, workHistory } from "./work-history.ts";
+import { freshOnly, knownSpaceIdeas } from "./recommendation-policy.ts";
 
 export async function requestDiscovery(
   filters: ExplorationFilters,
@@ -17,7 +18,7 @@ export async function requestDiscovery(
   fetcher: typeof fetch = fetch,
   onResult?: (result: DiscoveryResult) => void,
 ): Promise<DiscoveryResult> {
-  const known = new Map([...explorationIdeas, ...space.discoveredIdeas].map((idea) => [idea.id, idea]));
+  const known = knownSpaceIdeas(space);
   const profile = profileFor(space);
   const feedback = feedbackForDiscovery(space);
   const avoidFeed = !profile.allowFeeds || space.shownIdeaIds.slice(-6).some((id) => {
@@ -36,6 +37,12 @@ export async function requestDiscovery(
         })])].slice(-600),
         excludeTitles: [...space.shownIdeaIds.slice(-60).flatMap((id) => known.get(id)?.title ? [known.get(id)!.title] : []), ...feedback.lessTitles].slice(-60),
         excludeWorks: workHistory(space).slice(-120),
+        excludeExperiences: [...(space.feedback ?? []).filter((item) => item.vote === "less")
+          .slice(0, 12).flatMap((item) => {
+            const idea = known.get(item.ideaId); return idea ? [{ ...idea, reason: "dislike" as const }] : [];
+          }), ...(freshOnly(space) ? (space.suppressedIdeas ?? []).filter((item) => item.reason === "cleanup").slice(-12) : [])]
+          .map(({ id, category, title, description, approach, form, domain, source, reason }) =>
+            ({ id, category, title, description: description.slice(0, 220), approach, form, domain, source, reason })),
         avoidFormats: avoidFeed ? ["feed"] : [],
         allowFeeds: profile.allowFeeds,
         recentActivities: recentActivitiesForDiscovery(space),
@@ -159,9 +166,23 @@ export function selectDiscoveredSuggestions(
     if (!foundParticipation) pick([fresh.filter(isPlayable), fresh]);
   }
   while (selected.length < 3 && pick([fresh])) { /* Exhaust new experiences before relaxing cooldowns. */ }
+  // After cleanup, lack of new content must not resurrect deleted or seen ideas.
+  if (freshOnly(space)) return selected;
   while (selected.length < 3 && pick([resting])) { /* Keep three real choices when the filter is sparse. */ }
   if (selected.length < 3) pick([matching(all), all], true);
   if (selected.length < 3 && !selected.some(({ idea }) => isHandsOn(idea))) pick([all.filter(isHandsOn), all], true);
   while (selected.length < 3 && pick([all], true)) { /* Seen content is the final fallback, never a format quota. */ }
   return selected;
+}
+
+export function fillMissingSuggestions(filters: ExplorationFilters, space: ExplorationSpace,
+  visible: ExplorationSuggestion[], candidates: ExplorationIdea[]): ExplorationSuggestion[] {
+  const next = visible.filter(({ idea }) => !isRejectedIdea(idea, space)).slice(0, 3);
+  if (next.length === 3) return next;
+  const pool = candidates.filter((idea) => !next.some(({ idea: current }) => sameExperience(current, idea)));
+  for (const item of selectDiscoveredSuggestions(filters, space, pool, next.map(({ idea }) => idea.id))) {
+    if (!next.some(({ idea }) => sameExperience(idea, item.idea))) next.push(item);
+    if (next.length === 3) break;
+  }
+  return next;
 }

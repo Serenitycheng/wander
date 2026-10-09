@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "node --test src/features/exploration/generator.test.ts src/features/exploration/storage.test.ts src/features/exploration/appearance.test.ts src/features/exploration/discovery.test.ts"
+    "test": "node --test src/features/exploration/generator.test.ts src/features/exploration/storage.test.ts src/features/exploration/appearance.test.ts src/features/exploration/discovery.test.ts src/features/exploration/recommendation-cleanup.test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

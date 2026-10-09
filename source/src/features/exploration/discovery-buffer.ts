@@ -12,7 +12,7 @@ import { repeatsWork, workHistory } from "./work-history.ts";
 
 export const discoveryScope = (filters: ExplorationFilters, space: ExplorationSpace) =>
   JSON.stringify([space.owner, filters.mode, filters.time, filters.mood, profileFor(space),
-    space.favorites.map((item) => item.ideaId), space.feedback ?? []]);
+    space.favorites.map((item) => item.ideaId), space.feedback ?? [], space.recommendationCleanup ?? null]);
 
 // One background batch serves several clicks. Showing a round never waits for
 // this buffer, and only the owning account/filter/profile may consume it.

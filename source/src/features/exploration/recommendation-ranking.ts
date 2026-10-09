@@ -5,9 +5,10 @@ import type { DiscoveryPersonalization } from "./profile.ts";
 import type { ExplorationIdea, ExplorationSpace } from "./types.ts";
 import { activityDomain, isHandsOn, isMutedContent } from "./activity-diversity.ts";
 import { activityTopics, contentAffinity, isPressuringPitch, sameContent, sameExperience } from "./activity-affinity.ts";
+import { isRemovedRecommendation, knownSpaceIdeas } from "./recommendation-policy.ts";
 
 export function votedIdeas(space: ExplorationSpace, vote: "more" | "less") {
-  const known = new Map([...explorationIdeas, ...space.discoveredIdeas].map((idea) => [idea.id, idea]));
+  const known = knownSpaceIdeas(space);
   return (space.feedback ?? []).filter((item) => item.vote === vote)
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).flatMap((item) => known.get(item.ideaId) ?? []);
 }
@@ -68,10 +69,10 @@ export function isRejectedIdea(idea: ExplorationIdea, space: ExplorationSpace): 
   if (isMutedContent(idea, profileFor(space).mutedTopics)) return true;
   const rejected = (space.feedback ?? []).filter((item) => item.vote === "less");
   if (rejected.some((item) => item.ideaId === idea.id)) return true;
-  const known = new Map([...explorationIdeas, ...space.discoveredIdeas].map((item) => [item.id, item]));
-  return rejected.some((item) => {
+  const known = knownSpaceIdeas(space);
+  return isRemovedRecommendation(idea, space) || rejected.some((item) => {
     const previous = known.get(item.ideaId);
-    return previous && sameContent(previous, idea);
+    return previous && (sameContent(previous, idea) || sameExperience(previous, idea));
   });
 }
 

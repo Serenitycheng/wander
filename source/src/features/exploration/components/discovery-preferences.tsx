@@ -3,13 +3,16 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { profileFor } from "../profile";
+import { knownSpaceIdeas } from "../recommendation-policy";
 import { useExploration } from "./exploration-app";
 
 export function DiscoveryPreferences() {
-  const { space, update, notify, resolveIdea, voteIdea } = useExploration();
+  const { space, update, notify, voteIdea, cleanupRecommendations, restoreRecommendations, cleanupBackupAvailable } = useExploration();
+  const known = knownSpaceIdeas(space);
   const profile = profileFor(space);
   const savedKey = JSON.stringify(profile);
   const [edit, setEdit] = useState({ savedKey, draft: profile });
+  const [feedbackLimit, setFeedbackLimit] = useState(12);
   if (edit.savedKey !== savedKey) setEdit({ savedKey, draft: profile });
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -57,17 +60,24 @@ export function DiscoveryPreferences() {
             onChange={(event) => setEdit({ ...edit, draft: { ...edit.draft, allowFeeds: event.target.checked } })} />
           <span>偶尔推荐播客或博客</span>
         </label>
-        <p>联网推荐会使用这些偏好和收藏标题，记录里的感受留在本机。</p>
+        <p>开启个性化时参考这些偏好和收藏标题；关闭后仍避开已点踩内容。记录里的感受留在本机。</p>
         <button type="submit" className="exploration-secondary">保存推荐偏好</button>
       </form>
       {space.feedback?.length ? <details className="exploration-feedback-history">
         <summary>已记住的反馈 · {space.feedback.length}</summary>
-        <ul>{space.feedback.slice(0, 12).map((item) => <li key={item.ideaId}>
-          <span>{resolveIdea(item.ideaId)?.title ?? "一个探索建议"}<small>{item.vote === "more" ? "想多看看" : "暂时没兴趣"}</small></span>
-          <button type="button" aria-label={`撤销反馈：${resolveIdea(item.ideaId)?.title ?? "一个探索建议"}`}
-            onClick={() => voteIdea(item.ideaId, item.vote)}>撤销</button>
+        <ul>{space.feedback.slice(0, feedbackLimit).map((item) => <li key={item.ideaId}>
+          <span>{known.get(item.ideaId)?.title ?? "一个探索建议"}<small>{item.vote === "more" ? "想多看看" : "暂时没兴趣"}</small></span>
+          <button type="button" aria-label={`撤销反馈：${known.get(item.ideaId)?.title ?? "一个探索建议"}`}
+            onClick={() => voteIdea(item.ideaId, item.vote, true)}>撤销</button>
         </li>)}</ul>
+        {space.feedback.length > feedbackLimit ? <button type="button" className="exploration-text-link"
+          onClick={() => setFeedbackLimit((limit) => limit + 12)}>查看更早的反馈</button> : null}
       </details> : null}
+      <div className="exploration-backup-actions">
+        <button type="button" className="exploration-secondary" onClick={cleanupRecommendations}>清理旧推荐</button>
+        {cleanupBackupAvailable ? <button type="button" className="exploration-text-link" onClick={restoreRecommendations}>恢复清理前候选</button> : null}
+      </div>
+      <p>清理只保留感兴趣或收藏的推荐，已有记录和配色保留。点过没兴趣的内容和同一活动的改写不会用于补位。</p>
     </section>
   );
 }
