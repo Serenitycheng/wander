@@ -38,6 +38,7 @@ export const createEmptySpace = (owner: SpaceOwner): ExplorationSpace => ({
   favorites: [],
   records: [],
   shownIdeaIds: [],
+  shownWorkKeys: [],
   discoveredIdeas: [],
   feedback: [],
 });
@@ -88,12 +89,15 @@ export function parseSpace(
 ): ExplorationSpace | null {
   const shownIdeaIds = object(value) ? value.shownIdeaIds ?? [] : [];
   const rawIdeas = object(value) ? value.discoveredIdeas ?? [] : [];
+  const shownWorkKeys = object(value) ? value.shownWorkKeys ?? [] : [];
   const feedback = object(value) ? value.feedback ?? [] : [];
   if (!Array.isArray(feedback) || feedback.length > 120 || !feedback.every(feedbackItem) ||
     new Set(feedback.map((item) => item.ideaId)).size !== feedback.length) return null;
   if (!Array.isArray(shownIdeaIds) || shownIdeaIds.length > 600 ||
     !shownIdeaIds.every((id) => text(id, 100) && Boolean(id.trim())) ||
     new Set(shownIdeaIds).size !== shownIdeaIds.length || !Array.isArray(rawIdeas)) return null;
+  if (!Array.isArray(shownWorkKeys) || shownWorkKeys.length > 600 ||
+    !shownWorkKeys.every((key) => text(key, 160) && Boolean(key.trim())) || new Set(shownWorkKeys).size !== shownWorkKeys.length) return null;
   const discoveredIdeas = rawIdeas.map(parseDiscoveredIdea);
   if (discoveredIdeas.some((idea) => !idea) || new Set(discoveredIdeas.map((idea) => idea?.id)).size !== discoveredIdeas.length) return null;
   const appearance =
@@ -137,6 +141,7 @@ export function parseSpace(
     revision: Number(value.revision),
     updatedAt: value.updatedAt,
     shownIdeaIds: [...shownIdeaIds],
+    shownWorkKeys: [...shownWorkKeys],
     discoveredIdeas: discoveredIdeas as ExplorationIdea[],
     feedback: feedback.map((item) => ({ ideaId: item.ideaId, vote: item.vote, updatedAt: item.updatedAt })),
     preferences: {
@@ -252,6 +257,7 @@ export function mergeSpaces(
       } : {}),
     },
     shownIdeaIds: rememberShown(imported.shownIdeaIds, current.shownIdeaIds),
+    shownWorkKeys: rememberShown(imported.shownWorkKeys ?? [], current.shownWorkKeys ?? []),
     feedback: [...feedback.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 120),
     favorites: [...favorites.values()].sort((a, b) =>
       b.addedAt.localeCompare(a.addedAt),

@@ -11,7 +11,8 @@ import { createEmptySpace, mergeDiscoveredIdeas, mergeSpaces, parseSpace, readSt
 import { defaultFilters } from "./types.ts";
 import type { ExplorationIdea } from "./types.ts";
 import { defaultProfile, parsePersonalization, profileFor } from "./profile.ts";
-import { resourceId, resourceKey, sameExperience } from "./activity-affinity.ts";
+import { namedWorkKeys, resourceId, resourceKey, sameExperience } from "./activity-affinity.ts";
+import { workHistory } from "./work-history.ts";
 import { interestBookSubjects } from "./interest-discovery.ts";
 import { discoveryDirections, discoveryTopics } from "./discovery-topics.ts";
 import { DiscoveryBuffer, discoveryScope } from "./discovery-buffer.ts";
@@ -271,10 +272,9 @@ test("personal recommendations use the current account's reading interests and f
   } });
   assert.equal(result.provider, "deepseek");
   assert.deepEqual(prompt.preferences, personalization);
-  assert.match(String(prompt.personalizationRule), /陌生领域/);
+  assert.match(String(prompt.personalizationRule), /陌生体验/);
   const topics = discoveryTopics("home", 3, personalization);
-  assert.match(topics[0], /《/);
-  assert.equal(topics.slice(1).some((topic) => topic.includes("《")), false);
+  assert.equal(topics.some((topic) => topic.includes("《")), false);
 });
 
 test("online discoveries and open activities make a complete round of three", () => {
@@ -723,6 +723,100 @@ test("unseen specific content wins over exhausted open and participation slots",
   assert.ok(next.every(({ idea }) => online.some((item) => item.id === idea.id)));
 });
 
+test("a work stays seen across unquoted titles, author labels, editions and different platforms", () => {
+  const original = { ...ideaFor(), title: "读《乡土中国》", form: "阅读" as const };
+  const keys = workHistory({ ...createEmptySpace("serenity"), shownIdeaIds: [original.id], discoveredIdeas: [original] });
+  assert.ok(keys.includes("乡土中国"));
+  const aliases = ["看看乡土中国里的地方生活", "读《费孝通：乡土中国》的一段", "看《乡土中国（图文版）》的导读"]
+    .map((title, index) => ({ ...ideaFor(`https://example.org/alternate/${index}`), title, form: "观看" as const }));
+  const space = { ...createEmptySpace("serenity"), shownIdeaIds: [original.id], discoveredIdeas: [original], shownWorkKeys: keys };
+  for (const alias of aliases) {
+    assert.ok(namedWorkKeys(alias.title, keys).includes("乡土中国"));
+    assert.ok(selectDiscoveredSuggestions(request.filters, space, [alias]).every(({ idea }) => idea.id !== alias.id));
+    const payload = { content: [{ type: "web_search_tool_result", content: [{ type: "web_search_result", url: alias.source!.url }] },
+      { type: "text", text: JSON.stringify({ ideas: [alias] }) }] };
+    assert.equal(inspectSearchDiscovery(payload, { ...request, excludeWorks: keys }).ideas.length, 0);
+  }
+  assert.deepEqual(namedWorkKeys("看《雪国列车》", ["雪国"]), ["雪国列车"]);
+  assert.equal(sameExperience({ ...original, title: "读《雪国》" }, { ...aliases[0], title: "看《雪国列车》" }), false);
+});
+
+test("work history survives snapshot eviction, reload, backup merging and account isolation", async () => {
+  const original = { ...ideaFor(), title: "读《乡土中国》" };
+  const empty = createEmptySpace("serenity");
+  const before = { ...empty, discoveredIdeas: [original], shownIdeaIds: [original.id] };
+  const keys = workHistory(before);
+  const replacements = Array.from({ length: 250 }, (_, i) => ({ ...ideaFor(`https://example.org/evict/${i}`), discoveredAt: "2026-10-09T10:00:00.000Z" }));
+  const space = { ...before, shownWorkKeys: keys, discoveredIdeas: mergeDiscoveredIdeas(before, replacements) };
+  assert.equal(space.discoveredIdeas.some((idea) => idea.id === original.id), false);
+  const restored = parseSpace(JSON.parse(JSON.stringify(space)), "serenity")!;
+  assert.deepEqual(restored.shownWorkKeys, keys);
+  const merged = mergeSpaces(restored, { ...empty, shownWorkKeys: ["边城"] });
+  assert.ok(workHistory(merged).includes("乡土中国"));
+  assert.ok(workHistory(merged).includes("边城"));
+  let sent: Record<string, unknown> = {};
+  await requestDiscovery(request.filters, merged, new AbortController().signal, async (_input, init) => {
+    sent = JSON.parse(String(init?.body)); return Response.json({ ideas: [], provider: "none" });
+  });
+  assert.ok((sent.excludeWorks as string[]).includes("乡土中国"));
+  assert.deepEqual(workHistory(createEmptySpace("zzz")), []);
+  assert.ok(parseSpace({ ...empty, shownWorkKeys: undefined }, "serenity"));
+  assert.equal(parseSpace({ ...empty, shownWorkKeys: ["x", "x"] }, "serenity"), null);
+  assert.equal(parseSpace({ ...empty, shownWorkKeys: Array.from({ length: 601 }, (_, i) => `作品${i}`) }, "serenity"), null);
+});
+
+test("sixteen home rounds cannot recycle one book by changing its title or activity classification", () => {
+  let space = { ...createEmptySpace("serenity"), shownIdeaIds: explorationIdeas.map((idea) => idea.id) };
+  const offeredWorks: string[] = [];
+  const titles = ["读《乡土中国》", "看《费孝通：乡土中国》的一段解读", "看看乡土中国里的地方生活", "翻开《乡土中国（重排版）》"];
+  for (let round = 0; round < 16; round++) {
+    const alias = { ...ideaFor(`https://example.org/book-alias/${round}`), title: titles[round % titles.length], form: round % 2 ? "观看" as const : "阅读" as const, origin: "deepseek" as const };
+    const others = Array.from({ length: 3 }, (_, i) => ({ ...ideaFor(`https://example.org/new-work/${round}/${i}`), title: `读《新作品 ${round}-${i}》`, form: "阅读" as const, origin: "deepseek" as const }));
+    const online = [alias, ...others];
+    const next = selectDiscoveredSuggestions(request.filters, space, online, [], { random: () => 0.5 });
+    assert.equal(next.length, 3);
+    const keys = next.flatMap(({ idea }) => namedWorkKeys(idea.title, ["乡土中国"]));
+    assert.ok(keys.every((key) => !offeredWorks.includes(key)), `round ${round}: ${keys}`);
+    offeredWorks.push(...keys);
+    space = { ...space, shownWorkKeys: workHistory(space, next.map(({ idea }) => idea)),
+      shownIdeaIds: rememberShown(space.shownIdeaIds, next.map(({ idea }) => idea.id)), discoveredIdeas: mergeDiscoveredIdeas(space, online) };
+  }
+  assert.ok(offeredWorks.filter((key) => key === "乡土中国").length <= 1);
+  assert.equal(offeredWorks.length, 48);
+});
+
+test("an AI image activity cannot bypass cooldown by changing form; making a song is a distinct action", () => {
+  const first = { ...ideaFor(), title: "把你脑海里的一个画面，用 AI 画出来", description: "描述场景给 AI 生图工具，生成后调整。", form: "交互探索" as const, approach: "open" as const };
+  const copy = explorationIdeas.find((idea) => idea.id === "home-open-ai-scene")!;
+  const song = explorationIdeas.find((idea) => idea.id === "create-open-ai-scene-song")!;
+  assert.ok(song);
+  assert.equal(sameExperience(first, copy), true);
+  assert.equal(sameExperience(first, song), false);
+  const space = { ...createEmptySpace("serenity"), discoveredIdeas: [first], shownIdeaIds: [first.id, ...explorationIdeas.filter((idea) => idea.category !== "home").slice(0, 14).map((idea) => idea.id)] };
+  assert.ok(selectDiscoveredSuggestions(request.filters, space, []).every(({ idea }) => idea.id !== copy.id));
+});
+
+test("book catalog queries use taste subjects rather than repeatedly looking up the recommended reading list", async () => {
+  const calls: string[] = [];
+  const personalization = { ...defaultProfile("serenity"), favoriteTitles: [] };
+  for (let seed = 0; seed < 16; seed++) await discoverPublicIdeas({ ...request, seed, personalization }, new AbortController().signal,
+    async (input) => { calls.push(String(input)); return Response.json({}); });
+  const queries = calls.filter((url) => url.includes("openlibrary.org/search.json")).map((url) => new URL(url).searchParams.get("q")!);
+  assert.ok(queries.length >= 4);
+  assert.ok(queries.every((query) => query.startsWith("subject:") && !query.includes("title:")));
+  assert.ok(calls.every((url) => !decodeURIComponent(url).includes("乡土中国")));
+  assert.match(personalization.preferenceNotes!, /口味分析/);
+  assert.match(personalization.preferenceNotes!, /书单是依据口味分析建立的推荐结果/);
+  assert.ok(parsePersonalization(personalization));
+});
+
+test("a photographer introduction article obeys the feed preference instead of pretending to be a works page", () => {
+  const article = { ...ideaFor("https://zhuanlan.zhihu.com/p/123456"), title: "翻一位摄影师的作品，看光怎么落下来", domain: "摄影" };
+  assert.equal(isFeedIdea(article), true);
+  assert.ok(selectDiscoveredSuggestions(request.filters, createEmptySpace("serenity"), [article]).every(({ idea }) => idea.id !== article.id));
+  assert.ok(selectDiscoveredSuggestions(request.filters, feedSpace(), [article]).some(({ idea }) => idea.id === article.id));
+});
+
 test("renamed open activities rest while distinct named works remain discoverable", () => {
   const action = (title: string): ExplorationIdea => ({ ...ideaFor(), id: inspirationIdeaId("home", title), source: undefined,
     title, description: "用自己可用的图像生成工具创作想象中的场景。", firstStep: "写下你想画的场景。", form: "绘画", domain: "绘画", approach: "open", origin: "deepseek" });
@@ -814,4 +908,12 @@ test("pressuring pitches stay readable when saved but leave recommendations, and
   const suggestions = selectDiscoveredSuggestions(request.filters, { ...space, shownIdeaIds: explorationIdeas.map((idea) => idea.id) }, []);
   assert.equal(suggestions.length, 3);
   assert.match(discoveryNoteFor({ ideas: [], provider: "none" }, suggestions, explorationIdeas.map((idea) => idea.id)), /之前看过/);
+});
+
+test("a renamed fallback experience is reported as reused even with a new ID and form", () => {
+  const previous = { ...ideaFor(), approach: "open" as const, title: "把脑海里的画面用 AI 画出来", form: "绘画" as const };
+  const renamed = { ...previous, id: "inspiration-renamed-image", title: "让 AI 生成一幅想象的图片", form: "交互探索" as const };
+  const note = discoveryNoteFor({ ideas: [renamed], provider: "deepseek" }, [{ idea: renamed, reasons: [] }], [previous.id], [previous]);
+  assert.match(note, /1 个之前看过的选择/);
+  assert.match(note, /新内容暂时不足/);
 });

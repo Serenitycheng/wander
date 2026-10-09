@@ -8,6 +8,7 @@ import { contentKey, isFeedIdea, isLowQualityVideo } from "./discovery.ts";
 import { explorationIdeas } from "./ideas.ts";
 import { hasUsableEntry } from "./activity-diversity.ts";
 import { resourceKey, sameExperience } from "./activity-affinity.ts";
+import { repeatsWork, workHistory } from "./work-history.ts";
 
 export const discoveryScope = (filters: ExplorationFilters, space: ExplorationSpace) =>
   JSON.stringify([space.owner, filters.mode, filters.time, filters.mood, profileFor(space),
@@ -40,12 +41,13 @@ export class DiscoveryBuffer {
     const known = new Map([...explorationIdeas, ...space.discoveredIdeas].map((idea) => [idea.id, idea]));
     const seenTitles = new Set(space.shownIdeaIds.flatMap((id) => known.get(id) ? [contentKey(known.get(id)!.title)] : []));
     const seenResources = new Set(space.shownIdeaIds.flatMap((id) => resourceKey(known.get(id)?.source?.url) ?? []));
-    const recent = space.shownIdeaIds.slice(-12).flatMap((id) => known.get(id) ?? []);
+    const recent = space.shownIdeaIds.slice(-60).flatMap((id) => known.get(id) ?? []);
+    const seenWorks = workHistory(space);
     const avoidFeeds = !profileFor(space).allowFeeds || space.shownIdeaIds.slice(-6).some((id) => {
       const idea = known.get(id); return idea && isFeedIdea(idea);
     });
     const unique: ExplorationSpace["discoveredIdeas"] = [];
-    for (const idea of this.peek(filters, space).ideas.filter((idea) => !seen.has(idea.id) && !seenTitles.has(contentKey(idea.title)) && !seenResources.has(resourceKey(idea.source?.url) ?? "") && !isRejectedIdea(idea, space) &&
+    for (const idea of this.peek(filters, space).ideas.filter((idea) => !seen.has(idea.id) && !repeatsWork(idea, seenWorks) && !seenTitles.has(contentKey(idea.title)) && !seenResources.has(resourceKey(idea.source?.url) ?? "") && !isRejectedIdea(idea, space) &&
       (filters.mode === "random" || idea.category === filters.mode) && idea.minutes <= timeLimits[filters.time] &&
       !isLowQualityVideo(idea) && hasUsableEntry(idea) && (!avoidFeeds || !isFeedIdea(idea)))) {
       if (!recent.some((previous) => sameExperience(previous, idea)) && !unique.some((previous) => sameExperience(previous, idea))) unique.push(idea);

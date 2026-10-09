@@ -1,4 +1,5 @@
 import { isObject, parseDiscoveryResponse } from "./discovery.ts";
+import { sameExperience } from "./activity-affinity.ts";
 import type { ExplorationIdea, ExplorationSuggestion } from "./types.ts";
 
 const issues = [
@@ -40,7 +41,7 @@ const issueNotes: Record<DiscoveryIssue, string> = {
   no_new_results: "本次搜索没有符合条件的新内容。",
 };
 
-export function discoveryNoteFor(result: DiscoveryResult, suggestions: ExplorationSuggestion[], shownIds: string[] = []): string {
+export function discoveryNoteFor(result: DiscoveryResult, suggestions: ExplorationSuggestion[], shownIds: string[] = [], recentIdeas: ExplorationIdea[] = []): string {
   const liveIds = new Set(result.ideas.map((idea) => idea.id));
   const live = suggestions.filter(({ idea }) => liveIds.has(idea.id)).length;
   const cached = suggestions.filter(({ idea }) => idea.discoveredAt && !liveIds.has(idea.id)).length;
@@ -50,7 +51,7 @@ export function discoveryNoteFor(result: DiscoveryResult, suggestions: Explorati
   if (cached) parts.push(`此前发现 ${cached} 个`);
   if (local) parts.push(`本地灵感 ${local} 个`);
   const counts = parts.join(" · ");
-  const repeats = suggestions.filter(({ idea }) => shownIds.includes(idea.id)).length;
+  const repeats = suggestions.filter(({ idea }) => shownIds.includes(idea.id) || recentIdeas.some((previous) => sameExperience(previous, idea))).length;
   const repeatNote = repeats ? ` 这组有 ${repeats} 个之前看过的选择，当前条件下新内容暂时不足。` : "";
   return (result.issue ? `${issueNotes[result.issue]}${counts ? ` 本轮：${counts}。` : ""}` : `${counts}。`) + repeatNote;
 }

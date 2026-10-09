@@ -13,7 +13,7 @@ export type ExplorationAppearance = {
   colorSchemes?: Array<{ id: string; name: string; tone: string }>;
 };
 export type ExplorationProfile = {
-  preferenceVersion?: 1 | 2;
+  preferenceVersion?: 1 | 2 | 3;
   personalized: boolean;
   interests: string;
   readingList: string;
@@ -85,6 +85,7 @@ export type ExplorationSpace = {
   favorites: ExplorationFavorite[];
   records: ExplorationRecord[];
   shownIdeaIds: string[];
+  shownWorkKeys?: string[];
   discoveredIdeas: ExplorationIdea[];
   feedback?: ExplorationFeedback[];
 };

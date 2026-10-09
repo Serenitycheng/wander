@@ -43,7 +43,7 @@ export function isChildrensPodcast(idea: ExplorationIdea): boolean {
 }
 
 export function isFeedIdea(idea: ExplorationIdea): boolean {
-  return /podcasts\.apple\.com|xiaoyuzhoufm\.com|ximalaya\.com|(^|\/)blog\.|\/blogs?\/|medium\.com|substack\.com/i.test(idea.source?.url ?? "") ||
+  return /podcasts\.apple\.com|xiaoyuzhoufm\.com|ximalaya\.com|zhuanlan\.zhihu\.com|(^|\/)blog\.|\/blogs?\/|medium\.com|substack\.com/i.test(idea.source?.url ?? "") ||
     /播客|博客|podcast|\bblog\b|newsletter/i.test(`${idea.title} ${idea.domain ?? ""} ${idea.source?.name ?? ""}`);
 }
 

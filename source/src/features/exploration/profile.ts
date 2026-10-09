@@ -14,7 +14,7 @@ export type DiscoveryPersonalization = {
 
 // Only preferences the user expressed in this chat and the authorized reading
 // list are included. Course enrollment, private records and identity are omitted.
-export const serenityPreferenceNotes = [
+const previousPreferenceNotes = [
   "阅读：故事和人物是主线，也欣赏文字、气氛和艺术感；可以接受故事较弱但审美出色的作品。对哲学、地域文化、社会观察、不同人的生活有兴趣。",
   "日常喜欢的入口：唱一首歌、看一个有内容的 B 站视频、看一本书或纪录片；这些是例子，不是推荐范围的边界。",
   "摄影也是明确的兴趣：从 Instagram 或 B 站发现摄影师的作品，欣赏风格、光影和构图，也可顺着作品尝试拍摄。不要把摄影默认变成相机购买、器材评测或技术课程；不推断固定摄影风格或已关注的作者。",
@@ -26,14 +26,20 @@ export const serenityPreferenceNotes = [
   "不喜欢在房间找形状、硬凑观察与感悟、换标题的重复推荐。播客和博客默认不推荐；同类内容不要连续出现。",
   "喜欢自然的名字和表达，以及清晰、有美感、不过分繁复的设计；避免刻意文艺、空泛抒情和作业式口吻。",
 ].join("\n");
+export const serenityPreferenceNotes = [
+  "口味分析（依据原阅读推荐的选书理由，可被反馈修正）：故事和人物是主线，关注人的关系、选择与命运；也保留纯审美的入口，接受故事较弱但文字、气氛和艺术感很强的作品。哲学意味、地域文化、社会观察是可探索的方向，不等于喜欢每一门理论、每个民族或每本被推荐的书。",
+  "探索动机（本次对话明确表达）：想接触新的领域和爱好，既欣赏作品，也愿意亲自玩、唱、拍、创作、试工具或和人交流。推荐应说清这一次能体验什么、怎样开始，不能把每个爱好都变成看介绍或做学习任务。摄影、音乐、AI 共创等有自己的吸引力，不必都绕回文学或书单。",
+  ...previousPreferenceNotes.split("\n").slice(1).map((line) => line.startsWith("既要具体作品")
+    ? "既要具体作品，也要能自己选题的活动。书单是依据口味分析建立的推荐结果，只是次要参考，不代表我喜欢或已读过其中每一本；不要轮流重推原书或同书解读。优先根据选书背后的故事、人物、气氛与艺术感寻找不同作者、新作品和新的体验。" : line),
+].join("\n");
 const previousInterests = "故事与人物、文学审美、哲学、地域文化、社会观察。也愿意唱首歌、看看视频，尝试其他陌生领域。";
-const previousNotes = serenityPreferenceNotes.split("\n").filter((line) => !line.startsWith("摄影也是明确的兴趣")).join("\n");
+const previousNotes = previousPreferenceNotes.split("\n").filter((line) => !line.startsWith("摄影也是明确的兴趣")).join("\n");
 
 // Summarized from the user's reading list, not a claim that these books were read.
 // Other accounts start with an empty profile and never inherit Serenity's tastes.
 export function defaultProfile(owner: SpaceOwner): ExplorationProfile {
   return {
-    preferenceVersion: 2,
+    preferenceVersion: 3,
     personalized: true,
     allowFeeds: false,
     preferenceNotes: owner === "serenity" ? serenityPreferenceNotes : "",
@@ -47,22 +53,22 @@ export const profileFor = (space: ExplorationSpace): ExplorationProfile => {
   const saved = space.preferences.profile;
   const defaults = defaultProfile(space.owner);
   return saved ? { ...saved,
-    preferenceVersion: 2,
-    interests: saved.preferenceVersion !== 2 && space.owner === "serenity" && saved.interests === previousInterests ? defaults.interests : saved.interests,
-    preferenceNotes: saved.preferenceNotes === undefined || (saved.preferenceVersion !== 2 && space.owner === "serenity" && saved.preferenceNotes === previousNotes)
+    preferenceVersion: 3,
+    interests: (saved.preferenceVersion === undefined || saved.preferenceVersion === 1) && space.owner === "serenity" && saved.interests === previousInterests ? defaults.interests : saved.interests,
+    preferenceNotes: saved.preferenceNotes === undefined || (saved.preferenceVersion !== 3 && space.owner === "serenity" && [previousNotes, previousPreferenceNotes].includes(saved.preferenceNotes))
       ? defaults.preferenceNotes : saved.preferenceNotes,
     mutedTopics: saved.mutedTopics ?? defaults.mutedTopics } : defaults;
 };
 
 export function parseProfile(value: unknown): ExplorationProfile | null {
   if (!isObject(value) || typeof value.personalized !== "boolean" || typeof value.allowFeeds !== "boolean" ||
-    (value.preferenceVersion !== undefined && value.preferenceVersion !== 1 && value.preferenceVersion !== 2) ||
+    (value.preferenceVersion !== undefined && value.preferenceVersion !== 1 && value.preferenceVersion !== 2 && value.preferenceVersion !== 3) ||
     typeof value.interests !== "string" || value.interests.length > 1000 ||
     typeof value.readingList !== "string" || value.readingList.length > 2400 ||
     (value.preferenceNotes !== undefined && (typeof value.preferenceNotes !== "string" || value.preferenceNotes.length > 2000)) ||
     (value.mutedTopics !== undefined && (typeof value.mutedTopics !== "string" || value.mutedTopics.length > 240))) return null;
   return { personalized: value.personalized, allowFeeds: value.allowFeeds, interests: value.interests.trim(), readingList: value.readingList.trim(),
-    ...(value.preferenceVersion ? { preferenceVersion: value.preferenceVersion as 1 | 2 } : {}),
+    ...(value.preferenceVersion ? { preferenceVersion: value.preferenceVersion as 1 | 2 | 3 } : {}),
     ...(typeof value.preferenceNotes === "string" ? { preferenceNotes: value.preferenceNotes.trim() } : {}),
     ...(typeof value.mutedTopics === "string" ? { mutedTopics: value.mutedTopics.trim() } : {}) };
 }

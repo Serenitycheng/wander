@@ -12,7 +12,7 @@ const topics: Array<[string, RegExp]> = [
   ["人物故事", /人物.*(?:故事|经历|生活)|角色|传记|访谈|对白/], ["地域生活", /地方生活|地域|民俗|民族|乡土|生活方式/],
   ["诗词", /诗词|纳兰|诗歌|古诗/], ["小说叙事", /小说|叙事|短篇|散文/],
   ["机械原理", /齿轮|机械|传动|发动机|机构运动/],
-  ["AI 生图", /(?:AI|GPT|人工智能|图像生成工具|生图工具).*(?:画面|图片|绘画|生图|场景)|文生图|图像生成/i],
+  ["AI 生图", /(?:AI|GPT|人工智能|图像生成工具|生图工具).*(?:画面|图片|绘画|生图|场景)|(?:画面|图片|绘画|生图|场景).*(?:AI|GPT|人工智能|图像生成工具|生图工具)|文生图|图像生成/i],
   ["AI 写歌", /(?:AI|GPT|人工智能).*(?:歌词|写歌|音乐)|Suno/i],
   ["歌唱表达", /唱歌|唱首|唱一首|跟唱|声乐|演唱/], ["编曲", /编曲|鼓点|采样|作曲|音符/],
   ["配音", /配音|声音表演|声优/], ["舞蹈", /舞蹈|街舞|跳舞/],
@@ -43,29 +43,56 @@ export const resourceId = (idea: ExplorationIdea) => {
   const key = resourceKey(idea.source?.url); return key ? onlineIdeaId(key) : null;
 };
 
+// Work identity survives a different activity, publisher page or video about it.
+// References disambiguate unquoted names; a prefix is not enough (雪国 ≠ 雪国列车).
+export function namedWorkKeys(title: string, references: string[] = []): string[] {
+  const normalized = title.normalize("NFKC").toLowerCase();
+  const compact = normalized.replace(/\s/g, "");
+  const quoted = [...normalized.matchAll(/《([^《》]+)》/g)].map((match) =>
+    contentKey(match[1].replace(/[（(](?:[^）)]*(?:版|edition))[^）)]*[）)]/gi, "")));
+  const mentioned = references.filter((key) => {
+    if (key.length < 2 || !compact.includes(key)) return false;
+    const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`(?:^|[《〈「『“\"'：:、，\\s]|的|读|看|听|翻开|阅读|欣赏|玩|唱|跟唱)${escaped}(?=$|[》〉」』”\"'：:、，。\\s(（]|的|里|中|第|导读|解读|读书)`, "u");
+    return pattern.test(normalized) || pattern.test(compact);
+  });
+  return [...new Set([...quoted, ...mentioned].filter((key) => key.length >= 2 && key.length <= 160))];
+}
+
 export function sameContent(left: ExplorationIdea, right: ExplorationIdea): boolean {
   const resource = resourceKey(left.source?.url);
+  const works = [...namedWorkKeys(left.title), ...namedWorkKeys(right.title)];
+  const leftWorks = namedWorkKeys(left.title, works);
   return left.id === right.id || contentKey(left.title) === contentKey(right.title) ||
-    Boolean(resource && resource === resourceKey(right.source?.url));
+    Boolean(resource && resource === resourceKey(right.source?.url)) ||
+    namedWorkKeys(right.title, works).some((key) => leftWorks.includes(key));
 }
 
 const titleTokens = (title: string) => {
   const text = contentKey(title).replace(/看看|试着|试试|一小段|一段|一个|一首|一部|两分钟|脑海中|脑海里|自己/g, "");
   return new Set(Array.from({ length: Math.max(0, text.length - 1) }, (_, i) => text.slice(i, i + 2)));
 };
+const creativeTask = (idea: ExplorationIdea) => {
+  const features = activityTopics(idea);
+  if (features.includes("AI 写歌") && /歌词|写歌|一首歌|旋律|编曲|音乐|作曲|Suno/i.test(idea.title)) return "AI 写歌";
+  if (features.includes("AI 生图")) return "AI 生图";
+  return features.includes("AI 写歌") ? "AI 写歌" : null;
+};
 
 // Distinct named works remain distinct. A renamed open activity needs a break,
 // even if the generated ID or a tutorial URL changed.
 export function sameExperience(left: ExplorationIdea, right: ExplorationIdea): boolean {
   if (sameContent(left, right)) return true;
-  if (activityKind(left) !== activityKind(right)) return false;
-  if (/《/.test(left.title) && /《/.test(right.title)) return false;
+  if (namedWorkKeys(left.title).length && namedWorkKeys(right.title).length) return false;
+  // Model classifications are not reliable identity boundaries.
+  const task = creativeTask(left);
+  if (left.approach === "open" && right.approach === "open" && task && task === creativeTask(right)) return true;
   const a = titleTokens(left.title), b = titleTokens(right.title);
   const overlap = [...a].filter((token) => b.has(token)).length;
   if (Math.min(a.size, b.size) >= 4 && 2 * overlap / (a.size + b.size) >= 0.65) return true;
+  if (activityKind(left) !== activityKind(right)) return false;
+  if (/《/.test(left.title) && /《/.test(right.title)) return false;
   if (left.approach !== "open" || right.approach !== "open") return false;
-  const sharedCreativeTask = activityTopics(left).filter((topic) => ["AI 生图", "AI 写歌"].includes(topic) && activityTopics(right).includes(topic));
-  if (sharedCreativeTask.length) return true;
   const leftTopics = activityTopics({ title: left.title, description: "" });
   const rightTopics = activityTopics({ title: right.title, description: "" });
   return leftTopics.length > 0 && leftTopics.length === rightTopics.length &&

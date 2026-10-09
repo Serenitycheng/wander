@@ -29,6 +29,7 @@ export async function POST(request: Request) {
     !Number.isSafeInteger(body.seed) || Number(body.seed) < 0 || Number(body.seed) > 2147483647 ||
     !Array.isArray(body.excludeIds) || body.excludeIds.length > 600 || !body.excludeIds.every((id) => typeof id === "string" && id.length <= 100) ||
     !Array.isArray(body.excludeTitles) || body.excludeTitles.length > 60 || !body.excludeTitles.every((title) => typeof title === "string" && title.length <= 160) ||
+    (body.excludeWorks !== undefined && (!Array.isArray(body.excludeWorks) || body.excludeWorks.length > 120 || !body.excludeWorks.every((key) => typeof key === "string" && key.length > 0 && key.length <= 160))) ||
     (body.avoidFormats !== undefined && (!Array.isArray(body.avoidFormats) || body.avoidFormats.length > 1 || !body.avoidFormats.every((format) => format === "feed"))))
     return NextResponse.json({ error: "探索条件不完整。" }, { status: 400 });
   const now = Date.now();
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
   const input: DiscoveryRequest = {
     filters: { mode: body.filters.mode, time: body.filters.time, mood: body.filters.mood },
     seed: Number(body.seed), excludeIds: body.excludeIds, excludeTitles: body.excludeTitles,
+    ...(body.excludeWorks ? { excludeWorks: body.excludeWorks as string[] } : {}),
     avoidFormats: body.avoidFormats as Array<"feed"> | undefined,
     allowFeeds: body.allowFeeds === true,
     ...(Array.isArray(body.recentActivities) ? { recentActivities: body.recentActivities.map((item) => ({ form: item.form, domain: item.domain,

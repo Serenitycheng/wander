@@ -4,16 +4,16 @@ import type { ExplorationFilters, ExplorationIdea } from "./types.ts";
 import { discoveryDirections } from "./discovery-topics.ts";
 import type { DiscoveryDirection } from "./discovery-topics.ts";
 import { activityDomain, hasUsableEntry, isMutedContent } from "./activity-diversity.ts";
-import { readingReferences } from "./profile.ts";
 import type { DiscoveryPersonalization } from "./profile.ts";
 import { interestBookSubjects } from "./interest-discovery.ts";
-import { isPressuringPitch, resourceId, sameContent, sameExperience } from "./activity-affinity.ts";
+import { isPressuringPitch, namedWorkKeys, resourceId, sameContent, sameExperience } from "./activity-affinity.ts";
 
 export type DiscoveryRequest = {
   filters: ExplorationFilters;
   seed: number;
   excludeIds: string[];
   excludeTitles: string[];
+  excludeWorks?: string[];
   avoidFormats?: Array<"feed">;
   allowFeeds?: boolean;
   personalization?: DiscoveryPersonalization;
@@ -43,6 +43,7 @@ const eligible = (idea: ExplorationIdea, request: DiscoveryRequest) =>
   (request.filters.mode === "random" || request.filters.mode === idea.category) &&
   idea.minutes <= timeLimits[request.filters.time] && !request.excludeIds.includes(idea.id) &&
   !request.excludeIds.includes(resourceId(idea) ?? "") && !isPressuringPitch(idea) &&
+  !namedWorkKeys(idea.title, request.excludeWorks).some((key) => request.excludeWorks?.includes(key)) &&
   !isMutedContent(idea, request.personalization?.mutedTopics) && hasUsableEntry(idea) &&
   !((!request.allowFeeds || request.avoidFormats?.includes("feed")) && isFeedIdea(idea));
 
@@ -167,17 +168,15 @@ function podcastIdeas(payload: unknown, request: DiscoveryRequest, topic: string
 
 function bookIdeas(payload: unknown, request: DiscoveryRequest, topic: string): ExplorationIdea[] {
   if (!isObject(payload) || !Array.isArray(payload.docs)) return [];
-  return payload.docs.flatMap((value, index) => {
+  return payload.docs.flatMap((value) => {
     if (!isObject(value) || typeof value.key !== "string" || !/^\/works\/OL\d+W$/.test(value.key) ||
       typeof value.title !== "string" || !Array.isArray(value.author_name)) return [];
     const author = value.author_name.filter((item): item is string => typeof item === "string").join("、").slice(0, 100);
-    const open = Boolean(author) && (request.seed + index) % 3 === 0;
     const idea = materialize({
       category: request.filters.mode === "learn" ? "learn" : "home",
-      title: open ? `读读${author}的作品` : `翻开《${value.title.slice(0, 110)}》`, minutes: 25, domain: "阅读",
-      approach: open ? "open" : "specific",
-      description: open ? `发现了《${value.title.slice(0, 110)}》。可以先看简介、试读，也可以找这位作者其他让你好奇的作品，不必限定读哪一本或读完多少。`
-        : `${author ? `${author}的作品。` : ""}从${topic}里发现的一本书。先看简介、目录或你能找到的试读，再挑一段感兴趣的内容；25 分钟只是选读时间。`,
+      title: `翻开《${value.title.slice(0, 110)}》`, minutes: 25, domain: "阅读",
+      approach: "specific",
+      description: `${author ? `${author}的作品。` : ""}从${topic}里发现的一本书。先看简介、目录或你能找到的试读，再挑一段感兴趣的内容；25 分钟只是选读时间。`,
       moods: ["gentle", "curious", "focused", "flow"],
       why: "给阅读换一个具体入口，不用先决定读完一本。",
       firstStep: "打开书目查看作者、版本与简介。有试读就读几页；否则在自己的书架或图书馆找这个书名，来源页面不保证全文可读。",
@@ -250,10 +249,8 @@ export async function discoverPublicIdeas(request: DiscoveryRequest, signal: Abo
     const preferredSubjects = interestBookSubjects(request.personalization);
     const subjects = preferredSubjects.length ? preferredSubjects : ["poetry", "fiction", "history", "science", "art", "philosophy", "music", "nature", "design", "short stories"];
     const topic = subjects[seed % subjects.length];
-    const references = readingReferences(request.personalization);
-    const reference = references.length && seed % 3 !== 2 ? references[Math.floor(seed / 3) % references.length] : null;
     if (directions.some((direction) => direction.domain === "文学") || seed % 4 === 0) {
-      const params = new URLSearchParams({ q: reference ? `title:${reference}` : `subject:${topic} language:chi`, sort: "random", limit: "8", fields: "key,title,author_name" });
+      const params = new URLSearchParams({ q: `subject:${topic} language:chi`, sort: "random", limit: "8", fields: "key,title,author_name" });
       searches.push(fetchJson(`https://openlibrary.org/search.json?${params}`, signal, fetcher).then((value) => bookIdeas(value, request, topic).slice(0, 3)));
     }
   }

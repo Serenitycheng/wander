@@ -20,6 +20,7 @@ import { selectDiscoveredSuggestions } from "../discovery-client";
 import { DiscoveryBuffer, discoveryScope } from "../discovery-buffer";
 import { discoveryNoteFor } from "../discovery-status";
 import { rememberShown } from "../discovery";
+import { workHistory } from "../work-history";
 import {
   createEmptySpace,
   readStoredSpace,
@@ -254,11 +255,14 @@ function SpaceShell({
       const immediateIds = immediate.map((item) => item.idea.id);
       setSuggestions(immediate);
       previousIdeas.current = immediateIds;
-      setDiscoveryNote(discoveryNoteFor({ ...prepared, issue: undefined }, immediate, current.current.shownIdeaIds));
+      const recentIdeas = current.current.shownIdeaIds.slice(-60).flatMap((id) =>
+        findIdea(id) ?? current.current.discoveredIdeas.find((idea) => idea.id === id) ?? []);
+      setDiscoveryNote(discoveryNoteFor({ ...prepared, issue: undefined }, immediate, current.current.shownIdeaIds, recentIdeas));
       update((value) => ({
         ...value,
         preferences: { ...value.preferences, ...filters },
         shownIdeaIds: rememberShown(value.shownIdeaIds, immediateIds),
+        shownWorkKeys: workHistory(value, immediate.map(({ idea }) => idea)),
       }));
       prepareNext(filters);
     },

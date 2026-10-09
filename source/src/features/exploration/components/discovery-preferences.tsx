@@ -20,7 +20,7 @@ export function DiscoveryPreferences() {
     <section className="exploration-setting exploration-discovery-setting">
       <div>
         <h2>让推荐更懂你一点</h2>
-        <p>喜欢的内容提供线索，也留一部分给陌生领域。书单表示兴趣，不代表已经读过。</p>
+        <p>偏好清单是推荐依据，书单只是参考。也留一部分给陌生领域，都可以随时调整。</p>
       </div>
       <form className="exploration-profile-form" onSubmit={submit}>
         <label>

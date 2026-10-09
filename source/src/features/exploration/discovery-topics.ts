@@ -1,5 +1,4 @@
 import type { ActivityForm, ExplorationMode } from "./types.ts";
-import { readingReferences } from "./profile.ts";
 import type { DiscoveryPersonalization } from "./profile.ts";
 import { isMutedContent } from "./activity-diversity.ts";
 import { interestDirections } from "./interest-discovery.ts";
@@ -88,11 +87,6 @@ export function discoveryDirections(mode: ExplorationMode, seed: number, profile
     if (selected.includes(item) || (varied && selected.some((chosen) => chosen.domain === item.domain))) continue;
     selected.push(item);
   }
-  // A reading list is one occasional route, not the default route for every batch.
-  const references = readingReferences(profile);
-  if (references.length && ["home", "learn", "random"].includes(mode) && seed % 4 === 3 &&
-    !recent.slice(-6).some((past) => past.domain === "文学") && !isMutedContent({ title: "文学", description: "" }, profile?.mutedTopics))
-    selected[0] = direction(`《${references[Math.floor(seed / 4) % references.length]}》 人物 地域 文化`, "文学");
   return selected;
 }
 

@@ -8,6 +8,7 @@ import { profileFor } from "./profile.ts";
 import { feedbackForDiscovery, isPlayable, isRejectedIdea, recentActivitiesForDiscovery, recommendationScore } from "./recommendation-ranking.ts";
 import { activityDomain, hasUsableEntry, isHandsOn } from "./activity-diversity.ts";
 import { resourceId, resourceKey, sameExperience } from "./activity-affinity.ts";
+import { repeatsWork, workHistory } from "./work-history.ts";
 
 export async function requestDiscovery(
   filters: ExplorationFilters,
@@ -34,6 +35,7 @@ export async function requestDiscovery(
           const idea = known.get(item.ideaId); const canonical = idea && resourceId(idea); return [item.ideaId, ...(canonical ? [canonical] : [])];
         })])].slice(-600),
         excludeTitles: [...space.shownIdeaIds.slice(-60).flatMap((id) => known.get(id)?.title ? [known.get(id)!.title] : []), ...feedback.lessTitles].slice(-60),
+        excludeWorks: workHistory(space).slice(-120),
         avoidFormats: avoidFeed ? ["feed"] : [],
         allowFeeds: profile.allowFeeds,
         recentActivities: recentActivitiesForDiscovery(space),
@@ -108,18 +110,19 @@ export function selectDiscoveredSuggestions(
   });
   const seenContent = new Set([...explorationIdeas, ...space.discoveredIdeas].filter((idea) => shown.has(idea.id)).map((idea) => contentKey(idea.title)));
   const seenResources = new Set([...known.values()].filter((idea) => shown.has(idea.id)).flatMap((idea) => resourceKey(idea.source?.url) ?? []));
+  const seenWorks = workHistory(space, previousIds.flatMap((id) => known.get(id) ?? []));
   const eligible = (idea: ExplorationIdea) =>
     (filters.mode === "random" || idea.category === filters.mode) && idea.minutes <= timeLimits[filters.time] &&
     !isChildrensPodcast(idea) && !isLowQualityVideo(idea) && hasUsableEntry(idea) && !(avoidFeed && isFeedIdea(idea)) && !isRejectedIdea(idea, space);
   const onlinePool = [...new Map([...space.discoveredIdeas, ...online].map((idea) => [idea.id, idea])).values()]
-    .filter((idea) => eligible(idea) && (shown.has(idea.id) || (!seenContent.has(contentKey(idea.title)) && !seenResources.has(resourceKey(idea.source?.url) ?? ""))));
+    .filter((idea) => eligible(idea) && (shown.has(idea.id) || (!repeatsWork(idea, seenWorks) && !seenContent.has(contentKey(idea.title)) && !seenResources.has(resourceKey(idea.source?.url) ?? ""))));
   const localPool = explorationIdeas.filter((idea) => eligible(idea) &&
-    (shown.has(idea.id) || !resourceKey(idea.source?.url) || !seenResources.has(resourceKey(idea.source?.url) ?? "")));
+    (shown.has(idea.id) || (!repeatsWork(idea, seenWorks) && (!resourceKey(idea.source?.url) || !seenResources.has(resourceKey(idea.source?.url) ?? "")))));
   const freshOnline = onlinePool.filter((idea) => !shown.has(idea.id));
   const freshLocal = localPool.filter((idea) => !shown.has(idea.id));
   const recentIds = space.records.slice(0, 8).flatMap((item) => item.ideaId ? [item.ideaId] : []);
   const selected: ExplorationSuggestion[] = [];
-  const recentExperiences = rememberShown(space.shownIdeaIds, previousIds).slice(-12).flatMap((id) => known.get(id) ?? []);
+  const recentExperiences = rememberShown(space.shownIdeaIds, previousIds).slice(-60).flatMap((id) => known.get(id) ?? []);
   const cooling = (idea: ExplorationIdea) => recentExperiences.some((previous) => sameExperience(idea, previous));
   const kind = (idea: ExplorationIdea) => idea.category === "outside" ? activityDomain(idea) : activityKind(idea);
   const currentOnlineIds = new Set(online.map((idea) => idea.id));
