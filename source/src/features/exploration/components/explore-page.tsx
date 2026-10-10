@@ -17,7 +17,7 @@ export function ExplorePage({
   initialMode?: ExplorationMode;
   autoStart?: boolean;
 }) {
-  const { space, owner, status, suggestions, generate, prepare, generating, discoveryNote, discoveryProgress, discoveryNeedsLogin, reauthenticate } = useExploration();
+  const { space, owner, status, suggestions, generate, prepare, generating, discoveryNote, discoveryProgress, discoveryNeedsLogin, discoveryFailed, reauthenticate } = useExploration();
   const initialFilters = () => withExplorationAxes(space.preferences,
     initialMode ? settingFor({ ...space.preferences, setting: undefined, mode: initialMode }) : settingFor(space.preferences),
     initialMode ? intentFor({ ...space.preferences, intent: undefined, mode: initialMode }) : intentFor(space.preferences));
@@ -142,7 +142,9 @@ export function ExplorePage({
               className="exploration-primary"
               onClick={explore}
             >
-              {suggestions.length && !changed ? (
+              {discoveryFailed && !generating && !changed ? (
+                <><RefreshCw size={17} />再试一次</>
+              ) : suggestions.length && !changed ? (
                 <>
                   <RefreshCw size={17} />
                   换一组新的可能
@@ -195,9 +197,9 @@ export function ExplorePage({
             <div className="exploration-before-start">
               <Sparkles size={25} strokeWidth={1.2} />
               <p>
-                {generating ? "正在找三个新的选择。" : space.recommendationCleanup?.active ? "当前没有更多匹配的新内容。" : "不用回答很多问题。"}
+                {generating ? "正在找三个新的选择。" : discoveryFailed ? "这次推荐没有完成。" : space.recommendationCleanup?.active ? "当前没有更多匹配的新内容。" : "不用回答很多问题。"}
                 <br />
-                {generating ? "找到后，会放在这里。" : space.recommendationCleanup?.active ? "可以继续发现，旧推荐不会拿来补位。" : "点一下，让新的可能自己出现。"}
+                {generating ? "找到后，会放在这里。" : discoveryFailed ? "请再试一次，已排除的内容仍不会推荐。" : space.recommendationCleanup?.active ? "可以继续发现，旧推荐不会拿来补位。" : "点一下，让新的可能自己出现。"}
               </p>
             </div>
           )}

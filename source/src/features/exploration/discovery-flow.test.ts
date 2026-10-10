@@ -16,6 +16,7 @@ import { defaultProfile } from "./profile.ts";
 import { discoveryModeFor, intentFor, settingFor, withExplorationAxes } from "./exploration-filters.ts";
 import { generateSuggestions } from "./generator.ts";
 import { clearOldRecommendations } from "./recommendation-cleanup.ts";
+import { canRetryDiscovery, isDiscoveryFailure } from "./discovery-status.ts";
 import type { DiscoveryResult } from "./discovery-status.ts";
 
 const date = "2026-10-10T00:00:00.000Z";
@@ -128,12 +129,67 @@ test("refill batches reserve unpublished choices, stop after two continuations, 
   assert.equal(buffer.canRefill(filters, space), false);
   assert.equal(buffer.prepare(filters, space, () => {}, () => {}, true), false);
   buffer.clear();
-  for (const issue of ["key_rejected", "quota_exceeded", "rate_limited", "login_required", "provider_unavailable"] as const) {
+  for (const issue of ["key_rejected", "quota_exceeded", "rate_limited", "login_required", "forbidden", "invalid_request", "request_rejected", "not_configured", "timeout"] as const) {
     const failed = new DiscoveryBuffer(async () => ({ ideas: [], provider: "none", issue }));
     await new Promise<void>((resolve) => failed.prepare(filters, space, () => {}, resolve));
     assert.equal(failed.canRefill(filters, space), false);
     assert.equal(failed.prepare(filters, space, () => {}, () => {}, true), false);
     failed.clear();
+  }
+});
+
+test("one automatic recovery can restore three choices without dropping favorites or dislike exclusions", async () => {
+  const favorite = { ...placeIdea("旧画廊", "https://example.org/saved-gallery", "去已收藏的画廊"), domain: "艺术" };
+  const disliked = { ...placeIdea("旧演出", "https://example.org/rejected-show", "去已排除的演出"), domain: "演出" };
+  const space = { ...clearOldRecommendations(createEmptySpace("serenity"), "2026-10-09T00:00:00.000Z"), discoveredIdeas: [favorite, disliked],
+    favorites: [{ ideaId: favorite.id, soon: false, addedAt: date }], feedback: [{ ideaId: disliked.id, vote: "less" as const, updatedAt: date }] };
+  let calls = 0;
+  const fetcher: typeof fetch = async (_url, init) => {
+    calls++;
+    const body = JSON.parse(String(init?.body));
+    assert.ok(body.excludeIds.includes(favorite.id));
+    assert.ok(body.excludeIds.includes(disliked.id));
+    if (calls === 1) throw new TypeError("connection reset");
+    return new Response(JSON.stringify({ ideas: localIdeas, provider: "deepseek" }) + "\n", { headers: { "Content-Type": "application/x-ndjson" } });
+  };
+  const buffer = new DiscoveryBuffer((conditions, value, signal, _fetcher, publish, reserved) =>
+    requestDiscovery(conditions, value, signal, fetcher, publish, reserved));
+  await new Promise<void>((resolve) => buffer.prepare(filters, space, () => {}, resolve));
+  assert.equal(buffer.peek(filters, space).issue, "network_error");
+  assert.equal(buffer.canRefill(filters, space), true);
+  await new Promise<void>((resolve) => buffer.prepare(filters, space, () => {}, resolve, true));
+  const result = buffer.peek(filters, space);
+  assert.equal(calls, 2);
+  assert.equal(result.issue, undefined);
+  assert.equal(buffer.available(filters, space), 3);
+  const choices = selectDiscoveredSuggestions(filters, space, result.ideas);
+  assert.equal(choices.length, 3);
+  assert.ok(choices.every(({ idea }) => !isRejectedIdea(idea, space)));
+  buffer.clear();
+});
+
+test("transient discovery errors get at most one recovery and never retry once three choices are ready", async () => {
+  const space = clearOldRecommendations(createEmptySpace("serenity"), "2026-10-09T00:00:00.000Z");
+  for (const issue of ["network_error", "service_unavailable", "provider_unavailable", "invalid_response"] as const) {
+    let calls = 0;
+    const buffer = new DiscoveryBuffer(async () => { calls++; return { ideas: [], provider: "none", issue }; });
+    await new Promise<void>((resolve) => buffer.prepare(filters, space, () => {}, resolve));
+    assert.equal(buffer.canRefill(filters, space), true);
+    await new Promise<void>((resolve) => buffer.prepare(filters, space, () => {}, resolve, true));
+    assert.equal(buffer.canRefill(filters, space), false);
+    assert.equal(buffer.prepare(filters, space, () => {}, () => {}, true), false);
+    assert.equal(calls, 2);
+    assert.equal(isDiscoveryFailure(buffer.peek(filters, space)), true);
+    buffer.clear();
+  }
+  const ready = new DiscoveryBuffer(async () => ({ ideas: localIdeas, provider: "deepseek", issue: "network_error" }));
+  await new Promise<void>((resolve) => ready.prepare(filters, space, () => {}, resolve));
+  assert.equal(ready.available(filters, space), 3);
+  assert.equal(ready.canRefill(filters, space), false);
+  ready.clear();
+  for (const issue of ["no_new_results", "no_search_results"] as const) {
+    assert.equal(isDiscoveryFailure({ ideas: [], provider: "none", issue }), false);
+    assert.equal(canRetryDiscovery({ ideas: [], provider: "none", issue }), false);
   }
 });
 

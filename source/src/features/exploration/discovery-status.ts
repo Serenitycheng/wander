@@ -5,14 +5,21 @@ import type { ExplorationIdea, ExplorationSuggestion } from "./types.ts";
 const issues = [
   "not_configured", "login_required", "forbidden", "rate_limited", "timeout", "network_error",
   "key_rejected", "quota_exceeded", "request_rejected", "provider_unavailable",
-  "no_search_results", "invalid_response", "no_new_results",
+  "no_search_results", "invalid_response", "no_new_results", "invalid_request", "service_unavailable",
 ] as const;
 export type DiscoveryIssue = typeof issues[number];
 export type DiscoveryResult = {
   ideas: ExplorationIdea[];
   provider: "deepseek" | "public" | "none" | "unknown";
   issue?: DiscoveryIssue;
+  httpStatus?: number;
 };
+
+export const isDiscoveryFailure = (result: DiscoveryResult): boolean =>
+  !!result.issue && !["no_new_results", "no_search_results"].includes(result.issue);
+
+export const canRetryDiscovery = (result: DiscoveryResult): boolean =>
+  !!result.issue && ["network_error", "service_unavailable", "provider_unavailable", "invalid_response"].includes(result.issue);
 
 export function parseDiscoveryResult(value: unknown): DiscoveryResult {
   if (!isObject(value) || !Array.isArray(value.ideas))
@@ -22,7 +29,8 @@ export function parseDiscoveryResult(value: unknown): DiscoveryResult {
     ? value.provider as DiscoveryResult["provider"] : ideas.length ? "unknown" : "none";
   const issue = value.ideas.length && !ideas.length ? "invalid_response"
     : issues.includes(value.issue as DiscoveryIssue) ? value.issue as DiscoveryIssue : undefined;
-  return { ideas, provider, ...(issue ? { issue } : {}) };
+  return { ideas, provider, ...(issue ? { issue } : {}),
+    ...(Number.isInteger(value.httpStatus) && Number(value.httpStatus) >= 400 && Number(value.httpStatus) <= 599 ? { httpStatus: Number(value.httpStatus) } : {}) };
 }
 
 const issueNotes: Record<DiscoveryIssue, string> = {
@@ -32,6 +40,8 @@ const issueNotes: Record<DiscoveryIssue, string> = {
   rate_limited: "请求太频繁，稍等片刻再试。",
   timeout: "本次联网发现超时。",
   network_error: "本次未能连接到发现服务。",
+  invalid_request: "本次探索信息未被服务接受，请刷新后再试。",
+  service_unavailable: "发现服务暂时无法响应。",
   key_rejected: "DeepSeek 密钥未通过验证。",
   quota_exceeded: "DeepSeek 账户额度不足。",
   request_rejected: "DeepSeek 拒绝了搜索请求，需要检查模型或接口配置。",

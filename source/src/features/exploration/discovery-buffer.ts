@@ -2,6 +2,7 @@ import { mergeDiscoveryResults, requestDiscovery } from "./discovery-client.ts";
 import { profileFor } from "./profile.ts";
 import { isRejectedIdea } from "./recommendation-ranking.ts";
 import type { DiscoveryResult } from "./discovery-status.ts";
+import { canRetryDiscovery } from "./discovery-status.ts";
 import type { ExplorationFilters, ExplorationSpace } from "./types.ts";
 import { timeLimits } from "./generator.ts";
 import { contentKey, isFeedIdea, isLowQualityVideo } from "./discovery.ts";
@@ -25,6 +26,7 @@ export class DiscoveryBuffer {
   private startedAt = -Infinity;
   private sequence = 0;
   private refillAttempts = 0;
+  private recoveryAttempts = 0;
   private readonly load: typeof requestDiscovery;
   private readonly now: () => number;
 
@@ -40,9 +42,10 @@ export class DiscoveryBuffer {
   get preparing() { return this.controller !== null; }
 
   canRefill(filters: ExplorationFilters, space: ExplorationSpace): boolean {
-    return this.scope === discoveryScope(filters, space) && this.refillAttempts < 2 &&
-      this.available(filters, space) < 6 &&
-      (!this.result.issue || ["no_new_results", "no_search_results"].includes(this.result.issue));
+    const ready = this.available(filters, space);
+    return this.scope === discoveryScope(filters, space) && this.refillAttempts < 2 && ready < 6 &&
+      (!this.result.issue || ["no_new_results", "no_search_results"].includes(this.result.issue) ||
+        (ready < 3 && this.recoveryAttempts < 1 && canRetryDiscovery(this.result)));
   }
 
   private usableChoices(filters: ExplorationFilters, space: ExplorationSpace): ExplorationSpace["discoveredIdeas"] {
@@ -79,6 +82,8 @@ export class DiscoveryBuffer {
     }
     if (this.controller || this.available(filters, space) >= 6 || (!refill && this.now() - this.startedAt < 1500)) return false;
     if (refill && !this.canRefill(filters, space)) return false;
+    if (!refill) this.recoveryAttempts = 0;
+    else if (canRetryDiscovery(this.result)) this.recoveryAttempts++;
     this.refillAttempts = refill ? this.refillAttempts + 1 : 0;
     const controller = new AbortController();
     this.controller = controller;
@@ -112,5 +117,6 @@ export class DiscoveryBuffer {
     this.scope = "";
     this.startedAt = -Infinity;
     this.refillAttempts = 0;
+    this.recoveryAttempts = 0;
   }
 }

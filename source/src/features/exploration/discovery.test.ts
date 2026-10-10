@@ -348,7 +348,7 @@ test("open discovery metadata survives a backup while invalid metadata is reject
 
 test("failed online requests fall back; cancellation cannot become a new draw", async () => {
   const space = createEmptySpace("serenity");
-  assert.deepEqual(await requestDiscovery(request.filters, space, new AbortController().signal, async () => Response.json({ error: "busy" }, { status: 429 })), { ideas: [], provider: "none", issue: "rate_limited" });
+  assert.deepEqual(await requestDiscovery(request.filters, space, new AbortController().signal, async () => Response.json({ error: "busy" }, { status: 429 })), { ideas: [], provider: "none", issue: "rate_limited", httpStatus: 429 });
   assert.equal(selectDiscoveredSuggestions(request.filters, space, []).length, 3);
   const controller = new AbortController(); controller.abort();
   await assert.rejects(requestDiscovery(request.filters, space, controller.signal, async () => { throw new Error("aborted"); }));
@@ -438,6 +438,37 @@ test("malformed API success payloads show a parsing issue rather than a quiet lo
   const result = await requestDiscovery(request.filters, createEmptySpace("serenity"), new AbortController().signal,
     async () => new Response("not json", { headers: { "Content-Type": "application/json" } }));
   assert.equal(result.issue, "invalid_response");
+});
+
+test("HTTP validation failures and service outages are not reported as connection failures", async () => {
+  for (const [status, issue] of [[400, "invalid_request"], [413, "invalid_request"], [408, "service_unavailable"], [502, "service_unavailable"], [503, "service_unavailable"]] as const) {
+    const result = await requestDiscovery(request.filters, createEmptySpace("serenity"), new AbortController().signal,
+      async () => Response.json({ error: "private response" }, { status }));
+    assert.equal(result.issue, issue);
+    assert.equal(result.httpStatus, status);
+    assert.equal(result.ideas.length, 0);
+    assert.doesNotMatch(discoveryNoteFor(result, []), /未能连接|新内容不足|private response/);
+  }
+});
+
+test("a disconnected or malformed final stream chunk retains already validated model choices", async () => {
+  for (const malformed of [false, true]) {
+    let output!: ReadableStreamDefaultController<Uint8Array>, received!: () => void;
+    const first = { ...ideaFor(), origin: "deepseek" as const };
+    const arrived = new Promise<void>((resolve) => { received = resolve; });
+    const stream = new ReadableStream<Uint8Array>({ start(controller) { output = controller; } });
+    const pending = requestDiscovery(request.filters, createEmptySpace("serenity"), new AbortController().signal,
+      async () => new Response(stream, { headers: { "Content-Type": "application/x-ndjson" } }), () => received());
+    output.enqueue(new TextEncoder().encode(JSON.stringify({ ideas: [first], provider: "deepseek" }) + "\n"));
+    await arrived;
+    if (malformed) {
+      output.enqueue(new TextEncoder().encode("broken-final-chunk\n")); output.close();
+    } else output.error(new TypeError("connection reset"));
+    const result = await pending;
+    assert.equal(result.issue, malformed ? "invalid_response" : "network_error");
+    assert.equal(result.provider, "deepseek");
+    assert.deepEqual(result.ideas.map((idea) => idea.id), [first.id]);
+  }
 });
 
 test("DeepSeek HTTP failures stay observable without publishing uncurated public search hits", async () => {

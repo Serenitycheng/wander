@@ -20,7 +20,7 @@ import { fillMissingSuggestions, selectDiscoveredSuggestions } from "../discover
 import { DiscoveryBuffer, discoveryScope } from "../discovery-buffer";
 import { withExplorationAxes } from "../exploration-filters";
 import { normalizeFilters } from "../generator";
-import { discoveryNoteFor } from "../discovery-status";
+import { canRetryDiscovery, discoveryNoteFor, isDiscoveryFailure } from "../discovery-status";
 import { rememberShown } from "../discovery";
 import { workHistory } from "../work-history";
 import { isRejectedIdea } from "../recommendation-ranking";
@@ -61,6 +61,7 @@ type ExplorationContextValue = {
   discoveryNote: string;
   discoveryProgress: string;
   discoveryNeedsLogin: boolean;
+  discoveryFailed: boolean;
   reauthenticate: () => void;
   resolveIdea: (id: string | null | undefined) => ExplorationIdea | undefined;
   voteIdea: (ideaId: string, vote: "more" | "less", undo?: boolean) => void;
@@ -120,6 +121,7 @@ function SpaceShell({
   const [discoveryNote, setDiscoveryNote] = useState("");
   const [discoveryProgress, setDiscoveryProgress] = useState("");
   const [discoveryNeedsLogin, setDiscoveryNeedsLogin] = useState(false);
+  const [discoveryFailed, setDiscoveryFailed] = useState(false);
   const [discoveryBuffer] = useState(() => new DiscoveryBuffer());
   const refillTimer = useRef<number | null>(null);
   const cancelRefill = useCallback(() => {
@@ -136,6 +138,7 @@ function SpaceShell({
         awaitingGroup.current = false;
         setGenerating(false);
         setDiscoveryProgress("");
+        setDiscoveryFailed(false);
       }
       current.current = next;
       statusRef.current = nextStatus;
@@ -297,37 +300,47 @@ function SpaceShell({
       const result = discoveryBuffer.peek(filters, current.current);
       if (discoveryBuffer.canRefill(filters, current.current)) {
         setGenerating(ready < 3);
-        setDiscoveryProgress(ready >= 3 ? "下一组已备好，继续补充更多不同的新选择。" : "这批新选择还不够，正在继续补充；收藏和旧内容不会补位。");
+        const recovering = canRetryDiscovery(result);
+        setDiscoveryProgress(recovering ? `${discoveryNoteFor(result, [])}正在自动重试一次，已有选择会保留。`
+          : ready >= 3 ? "下一组已备好，继续补充更多不同的新选择。" : "这批新选择还不够，正在继续补充；收藏和旧内容不会补位。");
         refillTimer.current = window.setTimeout(() => {
           refillTimer.current = null;
           if (preparedFilters.current && scope === discoveryScope(preparedFilters.current, current.current)) prepare(filters, true);
-        }, 0);
+        }, recovering ? 600 : 0);
         return;
       }
       setGenerating(false);
+      const failed = ready < 3 && isDiscoveryFailure(result);
+      setDiscoveryFailed(failed);
       if (ready < 3) {
-        if (awaitingGroup.current) setDiscoveryNote(displayed.current.length === 3
-          ? "暂时还没凑齐新的一组，当前这组三个选择先留着。"
-          : "暂时还没凑齐三个新选择，已清理或排除的内容不会补位。");
-        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}${freshOnly(current.current) ? "当前新内容不足，继续发现后会补充；旧推荐不会重新放回来。" : "暂时没有更多新内容，可以继续换组看看。"}`);
+        if (awaitingGroup.current) setDiscoveryNote(failed
+          ? displayed.current.length === 3 ? "这次换组未能完成，当前三个选择先留着。" : "这次推荐未能完成。"
+          : displayed.current.length === 3 ? "暂时还没凑齐新的一组，当前这组三个选择先留着。"
+            : "暂时还没凑齐三个新选择，已清理或排除的内容不会补位。");
+        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}${failed ? "可以点击「再试一次」，收藏和排除记录都会保留。"
+          : freshOnly(current.current) ? "当前新内容不足，继续发现后会补充；旧推荐不会重新放回来。" : "暂时没有更多新内容，可以继续换组看看。"}`);
       } else {
         setDiscoveryProgress("后面的新选择已备好，换一组就能看到。");
       }
     }, refill);
     if (started) {
       setGenerating(true);
+      setDiscoveryFailed(false);
       setDiscoveryNeedsLogin(false);
       setDiscoveryProgress(displayed.current.length < 3 ? "正在寻找三个新选择，旧内容不会补位。" : "正在提前准备下一组，当前三个可以直接选。");
     } else if (discoveryBuffer.available(filters, current.current) >= 3) {
       setGenerating(false);
+      setDiscoveryFailed(false);
       const result = discoveryBuffer.peek(filters, current.current);
       setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}后面的新选择已备好，换一组就能看到。`);
     } else if (discoveryBuffer.preparing) {
       setGenerating(true);
+      setDiscoveryFailed(false);
       setDiscoveryProgress(displayed.current.length < 3 ? "正在寻找三个新选择，旧内容不会补位。" : "正在提前准备下一组，当前三个可以直接选。");
     } else {
       setGenerating(false);
       const result = discoveryBuffer.peek(filters, current.current);
+      setDiscoveryFailed(isDiscoveryFailure(result));
       setDiscoveryNeedsLogin(result.issue === "login_required");
       setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}可以继续换组，新的联网内容稍后再补充。`);
     }
@@ -470,6 +483,7 @@ function SpaceShell({
         generating,
         discoveryNote,
         discoveryProgress,
+        discoveryFailed,
         discoveryNeedsLogin,
         reauthenticate,
         voteIdea,

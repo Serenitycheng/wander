@@ -30,6 +30,7 @@ export async function requestDiscovery(
     const idea = known.get(id);
     return idea && isFeedIdea(idea);
   });
+  let result: DiscoveryResult = { ideas: [], provider: "none" };
   try {
     const response = await fetcher("/api/exploration/discover", {
       method: "POST", headers: { "Content-Type": "application/json", Accept: "application/x-ndjson" }, signal,
@@ -64,12 +65,13 @@ export async function requestDiscovery(
     if (!response.ok) return {
       ideas: [], provider: "none",
       issue: response.status === 401 ? "login_required" : response.status === 403 ? "forbidden"
-        : response.status === 429 ? "rate_limited" : "network_error",
+        : response.status === 429 ? "rate_limited" : response.status === 408 || response.status >= 500 ? "service_unavailable" : "invalid_request",
+      httpStatus: response.status,
     };
     if (response.headers.get("Content-Type")?.includes("application/x-ndjson") && response.body) {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let pending = "", result: DiscoveryResult = { ideas: [], provider: "none" };
+      let pending = "";
       const accept = (line: string) => {
         if (!line.trim()) return;
         const next = parseDiscoveryResult(JSON.parse(line));
@@ -87,15 +89,19 @@ export async function requestDiscovery(
           for (const line of lines) accept(line);
           if (chunk.done) { accept(pending); break; }
         }
-      } finally { reader.releaseLock(); }
+      } finally {
+        await reader.cancel().catch(() => {});
+        reader.releaseLock();
+      }
       return result;
     }
-    const result = parseDiscoveryResult(await response.json());
+    result = parseDiscoveryResult(await response.json());
     onResult?.(result);
     return result;
   } catch (error) {
     if (signal.aborted) throw error;
-    return { ideas: [], provider: "none", issue: error instanceof SyntaxError ? "invalid_response" : "network_error" };
+    // A broken final chunk must not discard already validated model choices.
+    return { ...result, issue: error instanceof SyntaxError ? "invalid_response" : "network_error" };
   }
 }
 
@@ -105,7 +111,7 @@ export function mergeDiscoveryResults(previous: DiscoveryResult, next: Discovery
   const ideas = [...new Map([...retained, ...next.ideas].map((idea) => [idea.id, idea])).values()].slice(-48);
   const provider = curated ? "deepseek" : !previous.ideas.length ? next.provider : !next.ideas.length ? previous.provider
     : previous.provider === next.provider ? next.provider : "unknown";
-  return { ideas, provider, ...(next.issue ? { issue: next.issue } : {}) };
+  return { ideas, provider, ...(next.issue ? { issue: next.issue } : {}), ...(next.httpStatus ? { httpStatus: next.httpStatus } : {}) };
 }
 
 export function selectDiscoveredSuggestions(
