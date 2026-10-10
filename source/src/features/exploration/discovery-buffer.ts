@@ -45,7 +45,7 @@ export class DiscoveryBuffer {
       (!this.result.issue || ["no_new_results", "no_search_results"].includes(this.result.issue));
   }
 
-  available(filters: ExplorationFilters, space: ExplorationSpace): number {
+  private usableChoices(filters: ExplorationFilters, space: ExplorationSpace): ExplorationSpace["discoveredIdeas"] {
     const seen = new Set(space.shownIdeaIds);
     const known = new Map([...explorationIdeas, ...space.discoveredIdeas].map((idea) => [idea.id, idea]));
     const seenTitles = new Set(space.shownIdeaIds.flatMap((id) => known.get(id) ? [contentKey(known.get(id)!.title)] : []));
@@ -56,13 +56,18 @@ export class DiscoveryBuffer {
       const idea = known.get(id); return idea && isFeedIdea(idea);
     });
     const unique: ExplorationSpace["discoveredIdeas"] = [];
-    for (const idea of this.peek(filters, space).ideas.filter((idea) => !seen.has(idea.id) && !repeatsWork(idea, seenWorks) && !seenTitles.has(contentKey(idea.title)) && !seenResources.has(resourceKey(idea.source?.url) ?? "") && !isRejectedIdea(idea, space) &&
+    const candidates = [...new Map([...space.discoveredIdeas, ...this.peek(filters, space).ideas].map((idea) => [idea.id, idea])).values()];
+    for (const idea of candidates.filter((idea) => !seen.has(idea.id) && !repeatsWork(idea, seenWorks) && !seenTitles.has(contentKey(idea.title)) && !seenResources.has(resourceKey(idea.source?.url) ?? "") && !isRejectedIdea(idea, space) &&
       matchesOutingArea(idea, filters, outingAreaFor(space.owner)) &&
       matchesExplorationSetting(idea, filters) && idea.minutes <= timeLimits[filters.time] &&
       !isLowQualityVideo(idea) && hasUsableEntry(idea) && (!avoidFeeds || !isFeedIdea(idea)))) {
       if (!recent.some((previous) => sameExperience(previous, idea)) && !unique.some((previous) => sameExperience(previous, idea))) unique.push(idea);
     }
-    return unique.length;
+    return unique;
+  }
+
+  available(filters: ExplorationFilters, space: ExplorationSpace): number {
+    return this.usableChoices(filters, space).length;
   }
 
   prepare(filters: ExplorationFilters, space: ExplorationSpace,
@@ -84,7 +89,8 @@ export class DiscoveryBuffer {
       this.result = mergeDiscoveryResults(this.result, result);
       onResult(this.result);
     };
-    void this.load(filters, space, AbortSignal.any([controller.signal, AbortSignal.timeout(35000)]), undefined, accept, this.result.ideas)
+    const reserved = [...new Map([...this.result.ideas, ...this.usableChoices(filters, space)].map((idea) => [idea.id, idea])).values()];
+    void this.load(filters, space, AbortSignal.any([controller.signal, AbortSignal.timeout(35000)]), undefined, accept, reserved)
       .then(accept)
       .catch((error: unknown) => {
         if (controller.signal.aborted || sequence !== this.sequence) return;

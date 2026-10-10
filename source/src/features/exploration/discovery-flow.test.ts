@@ -15,6 +15,7 @@ import { completeIdeaObjects, readModelResponse } from "./model-stream.ts";
 import { defaultProfile } from "./profile.ts";
 import { discoveryModeFor, intentFor, settingFor, withExplorationAxes } from "./exploration-filters.ts";
 import { generateSuggestions } from "./generator.ts";
+import { clearOldRecommendations } from "./recommendation-cleanup.ts";
 import type { DiscoveryResult } from "./discovery-status.ts";
 
 const date = "2026-10-10T00:00:00.000Z";
@@ -136,6 +137,58 @@ test("refill batches reserve unpublished choices, stop after two continuations, 
   }
 });
 
+test("saved unseen choices are already ready after refresh, without another model request", async () => {
+  const home = withExplorationAxes(defaultFilters, "home", "any");
+  const ideas = Array.from({ length: 6 }, (_, index): ExplorationIdea => ({
+    ...localIdeas[index % 3], id: onlineIdeaId(`https://example.org/ready/${index}`), category: "home",
+    title: `试试《缓存新作品${index}》`, source: { name: "已核对的入口", url: `https://example.org/ready/${index}` },
+  }));
+  const space = { ...createEmptySpace("serenity"), discoveredIdeas: ideas };
+  let calls = 0;
+  const buffer = new DiscoveryBuffer(async () => { calls++; return { ideas: [], provider: "none" }; });
+  assert.equal(buffer.available(home, space), 6);
+  assert.equal(buffer.prepare(home, space, () => {}, () => {}), false);
+  assert.equal(calls, 0);
+  assert.equal(selectDiscoveredSuggestions(home, space, []).length, 3);
+  const excluded = { ...space, shownIdeaIds: ideas.slice(0, 3).map((idea) => idea.id),
+    favorites: ideas.slice(3).map((idea) => ({ ideaId: idea.id, soon: false, addedAt: date })) };
+  assert.equal(buffer.available(home, excluded), 0);
+  await new Promise<void>((resolve) => buffer.prepare(home, excluded, () => {}, resolve));
+  assert.equal(calls, 1);
+  buffer.clear();
+});
+
+test("warming and clicking share one request, reserve saved choices, and expose a group before the request ends", async () => {
+  const home = withExplorationAxes(defaultFilters, "home", "any");
+  const make = (index: number): ExplorationIdea => ({ ...localIdeas[index % 3], category: "home",
+    id: onlineIdeaId(`https://example.org/warm/${index}`), title: `试试《提前准备${index}》`,
+    source: { name: "核对入口", url: `https://example.org/warm/${index}` } });
+  let space = { ...clearOldRecommendations(createEmptySpace("serenity"), "2026-10-09T00:00:00.000Z"),
+    discoveredIdeas: [make(0), make(1), make(2)] };
+  let publish!: (result: DiscoveryResult) => void;
+  let finish!: (result: DiscoveryResult) => void;
+  let reserved: ExplorationIdea[] = [], calls = 0;
+  const buffer = new DiscoveryBuffer(async (_filters, _space, _signal, _fetcher, onResult, pending) => {
+    calls++; reserved = pending ?? []; publish = onResult!;
+    return new Promise<DiscoveryResult>((resolve) => { finish = resolve; });
+  });
+  const receive = (result: DiscoveryResult) => { space = { ...space, discoveredIdeas: mergeDiscoveredIdeas(space, result.ideas) }; };
+  assert.equal(buffer.prepare(home, space, receive, () => {}), true);
+  assert.equal(buffer.prepare(home, space, receive, () => {}), false);
+  assert.deepEqual(reserved.map((idea) => idea.id), space.discoveredIdeas.map((idea) => idea.id));
+  const first = selectDiscoveredSuggestions(home, space, []);
+  space = { ...space, shownIdeaIds: first.map(({ idea }) => idea.id) };
+  const fresh = [make(3), make(4), make(5)];
+  publish({ ideas: fresh, provider: "deepseek" });
+  const next = selectDiscoveredSuggestions(home, space, buffer.peek(home, space).ideas, space.shownIdeaIds);
+  assert.equal(next.length, 3);
+  assert.ok(next.every(({ idea }) => fresh.some((item) => item.id === idea.id)));
+  assert.equal(buffer.preparing, true);
+  assert.equal(calls, 1);
+  finish({ ideas: fresh, provider: "deepseek" }); await tick();
+  buffer.clear();
+});
+
 test("only complete streamed objects are parsed, including nested data, escaped quotes and braces in text", () => {
   const first = { title: '画面里有 {风} 和 "雨"', source: { url: "https://example.org/a" }, moods: ["curious"] };
   const text = `{"ideas":[${JSON.stringify(first)}, {"title":"unfinished`;
@@ -150,10 +203,12 @@ test("model SSE publishes a validated first group before completion and retains 
   const stream = new ReadableStream<Uint8Array>({ start(controller) { output = controller; } });
   const encoder = new TextEncoder();
   const updates: DiscoveryResult[] = [];
+  const timings: Array<{ elapsedMs: number; firstGroupMs?: number; firstCandidateMs?: number; modelStartedMs?: number; modelResponseMs?: number }> = [];
   const pending = discoverWithProviders(request, new AbortController().signal, {
     key: "fixture", fetcher: async (url) => String(url).includes("/anthropic/v1/messages")
       ? new Response(stream, { headers: { "Content-Type": "text/event-stream" } }) : Response.json({}),
     onResult: (result) => updates.push(result),
+    log: (entry) => timings.push(entry),
   });
   const send = (value: unknown) => output.enqueue(encoder.encode(frame(value)));
   send({ type: "content_block_start", index: 0, content_block: searched(localIdeas).content[0] });
@@ -169,6 +224,9 @@ test("model SSE publishes a validated first group before completion and retains 
   const result = await pending;
   assert.equal(result.ideas.length, 3);
   assert.equal(result.ideas.some((idea) => idea.id === invented.id), false);
+  assert.ok(timings[0].modelStartedMs !== undefined && timings[0].modelResponseMs !== undefined);
+  assert.ok(timings[0].firstCandidateMs !== undefined && timings[0].firstGroupMs !== undefined);
+  assert.ok(timings[0].firstGroupMs <= timings[0].elapsedMs);
 });
 
 test("a provider stream error preserves only already validated cards, never raw search material", async () => {

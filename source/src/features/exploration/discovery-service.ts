@@ -22,6 +22,10 @@ type DiscoveryLog = {
   elapsedMs: number;
   personalized: boolean;
   preferenceBriefPresent: boolean;
+  modelStartedMs?: number;
+  modelResponseMs?: number;
+  firstCandidateMs?: number;
+  firstGroupMs?: number;
 };
 export type DiscoveryServiceOptions = {
   key?: string;
@@ -64,11 +68,12 @@ export async function discoverWithProviders(
   let upstreamStatus: number | undefined;
   let searchResultCount = 0;
   let curatedIdeas: ExplorationIdea[] = [];
+  const timings: Pick<DiscoveryLog, "modelStartedMs" | "modelResponseMs" | "firstCandidateMs" | "firstGroupMs"> = {};
   const finish = (result: DiscoveryResult) => {
     // Never log credentials, request bodies, personal records or model prose.
     options.log?.({ event: "manyou_discovery", provider: result.provider, issue: result.issue,
       ...(upstreamStatus ? { upstreamStatus } : {}), searchResultCount,
-      ideaCount: result.ideas.length, elapsedMs: Date.now() - started,
+      ideaCount: result.ideas.length, elapsedMs: Date.now() - started, ...timings,
       personalized: Boolean(request.personalization), preferenceBriefPresent: Boolean(request.personalization?.preferenceNotes?.trim()) });
     options.onResult?.(result);
     return result;
@@ -88,14 +93,19 @@ export async function discoverWithProviders(
         clearTimeout(timer);
         signal.removeEventListener("abort", abortWait);
       });
+      timings.modelStartedMs = Date.now() - started;
       const result = await searchWithDeepSeek(request, searchSignal, fetcher, options, candidates, (partial) => {
         searchResultCount = partial.searchResultCount;
         if (partial.ideas.length <= curatedIdeas.length) return;
         curatedIdeas = partial.ideas;
+        timings.firstCandidateMs ??= Date.now() - started;
+        if (curatedIdeas.length >= 3) timings.firstGroupMs ??= Date.now() - started;
         if (!signal.aborted) options.onResult?.({ ideas: curatedIdeas, provider: "deepseek" });
-      });
+      }, () => { timings.modelResponseMs = Date.now() - started; });
       searchResultCount = result.searchResultCount;
       if (result.ideas.length) {
+        timings.firstCandidateMs ??= Date.now() - started;
+        if (result.ideas.length >= 3) timings.firstGroupMs ??= Date.now() - started;
         publicController.abort();
         return finish({ ideas: result.ideas, provider: "deepseek" });
       }
@@ -117,7 +127,7 @@ export async function discoverWithProviders(
 }
 
 async function searchWithDeepSeek(request: DiscoveryRequest, signal: AbortSignal, fetcher: Fetcher, options: DiscoveryServiceOptions,
-  candidates: ExplorationIdea[], onPartial: (result: ReturnType<typeof inspectSearchDiscovery>) => void): Promise<ReturnType<typeof inspectSearchDiscovery>> {
+  candidates: ExplorationIdea[], onPartial: (result: ReturnType<typeof inspectSearchDiscovery>) => void, onResponse: () => void): Promise<ReturnType<typeof inspectSearchDiscovery>> {
   const key = options.key ?? "";
   const base = (options.baseUrl ?? "https://api.deepseek.com")
     .replace(/\/+$/, "").replace(/\/(v1|anthropic)$/, "");
@@ -163,6 +173,7 @@ async function searchWithDeepSeek(request: DiscoveryRequest, signal: AbortSignal
       tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 2 }],
     }),
   });
+  onResponse();
   if (!response.ok) throw new DiscoveryUpstreamError(response.status);
   const payload = await readModelResponse(response, signal, (partial) => onPartial(inspectSearchDiscovery(partial, request, candidates)));
   return inspectSearchDiscovery(payload, request, candidates);

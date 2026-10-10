@@ -11,6 +11,8 @@ import {
 import type { ExplorationRecord } from "./types.ts";
 import { defaultTone, resetSpaceTone, saveColorScheme, spaceTone, withSpaceTone } from "./appearance.ts";
 import { defaultProfile, profileFor } from "./profile.ts";
+import { withExplorationAxes } from "./exploration-filters.ts";
+import { normalizeFilters } from "./generator.ts";
 
 const date = "2026-10-08T10:00:00.000Z";
 const makeStorage = () => {
@@ -112,6 +114,30 @@ test("shared color changes and reset survive reload without affecting records or
   assert.equal(reset.preferences.mode, "home");
   assert.deepEqual(reset.records, reloaded.records);
   assert.deepEqual(reset.favorites, reloaded.favorites);
+});
+
+test("generating from an old filter draft preserves the latest color, schemes and profile", () => {
+  const empty = createEmptySpace("serenity");
+  const oldPreferences = saveColorScheme(withSpaceTone(empty.preferences, "#80769a"), "旧紫色", "purple")!;
+  const draft = withExplorationAxes(oldPreferences, "home", "learn");
+  assert.deepEqual(Object.keys(draft).sort(), ["intent", "mode", "mood", "setting", "time"]);
+  for (const input of [draft, oldPreferences]) {
+    const storage = makeStorage();
+    const profile = { ...defaultProfile("serenity"), interests: "新偏好：摄影和歌唱" };
+    const selected = saveStoredSpace(storage, empty, { ...empty,
+      preferences: { ...withSpaceTone(oldPreferences, "#657f91"), profile },
+      records: [reflection], favorites: [{ ideaId: "home-album", addedAt: date, soon: false }],
+    }).space;
+    assert.equal(saveStoredSpace(storage, selected, { ...selected,
+      preferences: { ...selected.preferences, ...normalizeFilters(input) },
+    }).status, "saved");
+    const reloaded = readStoredSpace(storage, "serenity").space;
+    assert.equal(spaceTone(reloaded.preferences), "#657f91");
+    assert.deepEqual(reloaded.preferences.colorSchemes, oldPreferences.colorSchemes);
+    assert.deepEqual(reloaded.preferences.profile, profile);
+    assert.deepEqual(reloaded.records, selected.records);
+    assert.deepEqual(reloaded.favorites, selected.favorites);
+  }
 });
 
 test("malformed appearance data is rejected without overwriting the stored space", () => {

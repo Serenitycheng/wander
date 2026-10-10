@@ -17,7 +17,7 @@ export function ExplorePage({
   initialMode?: ExplorationMode;
   autoStart?: boolean;
 }) {
-  const { space, owner, status, suggestions, generate, generating, discoveryNote, discoveryProgress, discoveryNeedsLogin, reauthenticate } = useExploration();
+  const { space, owner, status, suggestions, generate, prepare, generating, discoveryNote, discoveryProgress, discoveryNeedsLogin, reauthenticate } = useExploration();
   const initialFilters = () => withExplorationAxes(space.preferences,
     initialMode ? settingFor({ ...space.preferences, setting: undefined, mode: initialMode }) : settingFor(space.preferences),
     initialMode ? intentFor({ ...space.preferences, intent: undefined, mode: initialMode }) : intentFor(space.preferences));
@@ -39,6 +39,11 @@ export function ExplorePage({
     }, 0);
     return () => window.clearTimeout(timer);
   }, [autoStart, initialMode, status, space.preferences, generate]);
+  useEffect(() => {
+    if (status === "loading") return;
+    const timer = window.setTimeout(() => prepare(filters), 300);
+    return () => window.clearTimeout(timer);
+  }, [filters, status, prepare]);
   const changed =
     suggestions.length > 0 &&
     (settingFor(filters) !== settingFor(generatedFilters) || intentFor(filters) !== intentFor(generatedFilters) ||

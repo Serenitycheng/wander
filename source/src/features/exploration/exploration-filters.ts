@@ -11,7 +11,7 @@ export const settingFor = (filters: ExplorationFilters): ExplorationSetting =>
 export const intentFor = (filters: ExplorationFilters): ExplorationIntent =>
   filters.intent ?? (filters.mode === "learn" || filters.mode === "create" ? filters.mode : "any");
 export const withExplorationAxes = (filters: ExplorationFilters, setting = settingFor(filters), intent = intentFor(filters)): ExplorationFilters =>
-  ({ ...filters, setting, intent, mode: setting === "any" ? "random" : setting });
+  ({ time: filters.time, mood: filters.mood, setting, intent, mode: setting === "any" ? "random" : setting });
 
 // Location is a boundary; learning/creating is a preference. A single activity
 // can satisfy both, so changing intent must not split the home candidate pool.
