@@ -42,7 +42,7 @@ export function ExplorationHome() {
         <div className="exploration-section-heading">
           <div>
             <h2 id="home-modes">选择探索方向</h2>
-            <p>出门，或留在家里，都有新的可能。</p>
+            <p>先选场景或体验，进入后可以自由组合。</p>
           </div>
           <Link
             href={`/beijing?space=${owner}`}
@@ -65,7 +65,7 @@ export function ExplorationHome() {
                   <ModeIcon mode={mode.id} size={28} />
                 </span>
                 <strong>{mode.label}</strong>
-                <small>{mode.note}</small>
+                <small>{mode.id === "learn" ? "地点随意，接触一点新东西" : mode.id === "create" ? "在家或出门，试一点创作" : mode.note}</small>
                 <ArrowUpRight
                   className="exploration-mode-arrow"
                   size={20}

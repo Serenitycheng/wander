@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { isObject } from "@/features/exploration/discovery";
-import { isMode, isMood, isTimeWindow } from "@/features/exploration/types";
+import { isMode, isMood, isTimeWindow, isSetting, isIntent } from "@/features/exploration/types";
 import { getSession } from "@/lib/server/session";
 import { discoverOnlineIdeas } from "@/lib/server/exploration-discovery";
 import type { DiscoveryRequest } from "@/lib/server/exploration-discovery";
 import { parsePersonalization } from "@/features/exploration/profile";
 import { parseSuppressedIdea } from "@/features/exploration/recommendation-policy";
+import { localOutingArea } from "@/features/exploration/outing-policy";
 
 export const maxDuration = 45;
 const requests = new Map<string, { startedAt: number; count: number }>();
@@ -24,6 +25,9 @@ export async function POST(request: Request) {
   const excludeExperiences = isObject(body) && body.excludeExperiences !== undefined
     ? Array.isArray(body.excludeExperiences) && body.excludeExperiences.length <= 24 ? body.excludeExperiences.map(parseSuppressedIdea) : null : [];
   if (!isObject(body) || !isObject(body.filters) || !isMode(body.filters.mode) || !isTimeWindow(body.filters.time) || !isMood(body.filters.mood) ||
+    (body.filters.setting !== undefined && !isSetting(body.filters.setting)) ||
+    (body.filters.intent !== undefined && !isIntent(body.filters.intent)) ||
+    (body.outingArea !== undefined && body.outingArea !== localOutingArea) ||
     personalization === null || excludeExperiences === null || excludeExperiences.some((item) => !item) || (body.allowFeeds !== undefined && typeof body.allowFeeds !== "boolean") ||
     (body.recentActivities !== undefined && (!Array.isArray(body.recentActivities) || body.recentActivities.length > 12 ||
       !body.recentActivities.every((item) => isObject(item) && typeof item.form === "string" && item.form.length <= 60 && typeof item.domain === "string" && item.domain.length <= 60 &&
@@ -44,12 +48,15 @@ export async function POST(request: Request) {
   requests.set(key, counter);
   if (requests.size > 1000) requests.delete(requests.keys().next().value!);
   const input: DiscoveryRequest = {
-    filters: { mode: body.filters.mode, time: body.filters.time, mood: body.filters.mood },
+    filters: { mode: body.filters.mode, time: body.filters.time, mood: body.filters.mood,
+      ...(isSetting(body.filters.setting) ? { setting: body.filters.setting } : {}),
+      ...(isIntent(body.filters.intent) ? { intent: body.filters.intent } : {}) },
     seed: Number(body.seed), excludeIds: body.excludeIds, excludeTitles: body.excludeTitles,
     excludeExperiences: excludeExperiences as NonNullable<DiscoveryRequest["excludeExperiences"]>,
     ...(body.excludeWorks ? { excludeWorks: body.excludeWorks as string[] } : {}),
     avoidFormats: body.avoidFormats as Array<"feed"> | undefined,
     allowFeeds: body.allowFeeds === true,
+    ...(body.outingArea === localOutingArea ? { outingArea: localOutingArea } : {}),
     ...(Array.isArray(body.recentActivities) ? { recentActivities: body.recentActivities.map((item) => ({ form: item.form, domain: item.domain,
       ...(item.title ? { title: item.title } : {}), ...(item.approach ? { approach: item.approach } : {}) })) } : {}),
     ...(personalization ? { personalization } : {}),

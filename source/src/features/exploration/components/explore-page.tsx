@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, LoaderCircle, RefreshCw, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { modes, moodOptions, timeOptions } from "../types";
+import { moodOptions, timeOptions } from "../types";
 import type { ExplorationFilters, ExplorationMode } from "../types";
 import { useExploration } from "./exploration-app";
 import { IdeaCard, ModeIcon } from "./idea-card";
+import { outingAreaFor, shortLocalOuting } from "../outing-policy";
+import { intents, intentFor, settings, settingFor, withExplorationAxes } from "../exploration-filters";
 
 export function ExplorePage({
   initialMode,
@@ -15,27 +17,31 @@ export function ExplorePage({
   initialMode?: ExplorationMode;
   autoStart?: boolean;
 }) {
-  const { space, owner, suggestions, generate, generating, discoveryNote, discoveryProgress, discoveryNeedsLogin, reauthenticate } = useExploration();
-  const [filters, setFilters] = useState<ExplorationFilters>(() => ({
-    ...space.preferences,
-    mode: initialMode ?? space.preferences.mode,
-  }));
+  const { space, owner, status, suggestions, generate, generating, discoveryNote, discoveryProgress, discoveryNeedsLogin, reauthenticate } = useExploration();
+  const initialFilters = () => withExplorationAxes(space.preferences,
+    initialMode ? settingFor({ ...space.preferences, setting: undefined, mode: initialMode }) : settingFor(space.preferences),
+    initialMode ? intentFor({ ...space.preferences, intent: undefined, mode: initialMode }) : intentFor(space.preferences));
+  const [filters, setFilters] = useState<ExplorationFilters>(initialFilters);
   const autoStarted = useRef(false);
   const [generatedFilters, setGeneratedFilters] = useState<ExplorationFilters>(
     space.preferences,
   );
   useEffect(() => {
-    if (!autoStart || autoStarted.current) return;
+    if (status === "loading" || autoStarted.current) return;
+    const next = withExplorationAxes(space.preferences,
+      initialMode ? settingFor({ ...space.preferences, setting: undefined, mode: initialMode }) : settingFor(space.preferences),
+      initialMode ? intentFor({ ...space.preferences, intent: undefined, mode: initialMode }) : intentFor(space.preferences));
     const timer = window.setTimeout(() => {
       autoStarted.current = true;
-      generate(filters);
-      setGeneratedFilters(filters);
+      setFilters(next);
+      if (autoStart) generate(next);
+      setGeneratedFilters(next);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [autoStart, filters, generate]);
+  }, [autoStart, initialMode, status, space.preferences, generate]);
   const changed =
     suggestions.length > 0 &&
-    (filters.mode !== generatedFilters.mode ||
+    (settingFor(filters) !== settingFor(generatedFilters) || intentFor(filters) !== intentFor(generatedFilters) ||
       filters.time !== generatedFilters.time ||
       filters.mood !== generatedFilters.mood);
   const explore = () => {
@@ -52,23 +58,35 @@ export function ExplorePage({
       <div className="exploration-workbench">
         <section className="exploration-controls" aria-label="探索条件">
           <fieldset>
-            <legend>你现在想怎么探索？</legend>
+            <legend>这次想在哪里？</legend>
             <div className="exploration-mode-choices">
-              {modes.map((mode) => (
+              {settings.map((setting) => (
                 <button
-                  className={`exploration-mode-choice category-${mode.id}${filters.mode === mode.id ? " selected" : ""}`}
-                  key={mode.id}
+                  className={`exploration-mode-choice category-${setting.id === "any" ? "random" : setting.id}${settingFor(filters) === setting.id ? " selected" : ""}`}
+                  key={setting.id}
                   type="button"
-                  aria-pressed={filters.mode === mode.id}
+                  aria-pressed={settingFor(filters) === setting.id}
                   onClick={() =>
-                    setFilters((value) => ({ ...value, mode: mode.id }))
+                    setFilters((value) => withExplorationAxes(value, setting.id))
                   }
                 >
-                  <ModeIcon mode={mode.id} />
-                  <span>{mode.label}</span>
+                  <ModeIcon mode={setting.id === "any" ? "random" : setting.id} />
+                  <span>{setting.label}</span>
                 </button>
               ))}
             </div>
+          </fieldset>
+          <fieldset className="exploration-intent-choices">
+            <legend>想尝试什么？</legend>
+            <div className="exploration-choice-row">
+              {intents.map((intent) => <button type="button" key={intent.id}
+                className={intentFor(filters) === intent.id ? "selected" : ""}
+                aria-pressed={intentFor(filters) === intent.id}
+                onClick={() => setFilters((value) => withExplorationAxes(value, settingFor(value), intent.id))}>
+                {intent.label}
+              </button>)}
+            </div>
+            <p className="exploration-soft-note">可以和场景组合，也可以随便探索。</p>
           </fieldset>
           <div className="exploration-condition-grid">
             <fieldset>
@@ -88,6 +106,11 @@ export function ExplorePage({
                   </button>
                 ))}
               </div>
+              {owner === "serenity" && settingFor(filters) !== "home" ? <p className="exploration-soft-note">
+                {shortLocalOuting(filters, outingAreaFor(owner))
+                  ? "出门只看良乡阳光邑上附近，逛店、买点吃的也可以。"
+                  : "北京全城都可以，国博、国图等较远的地方也保留。"}
+              </p> : null}
             </fieldset>
             <fieldset>
               <legend>此刻是什么状态？</legend>

@@ -5,8 +5,11 @@ import {
   isMode,
   isMood,
   isTimeWindow,
+  isSetting,
+  isIntent,
   timeOptions,
 } from "./types.ts";
+import { intentScore, matchesExplorationSetting } from "./exploration-filters.ts";
 import type {
   ExplorationFilters,
   ExplorationIdea,
@@ -28,6 +31,8 @@ export function normalizeFilters(
     mode: isMode(value.mode) ? value.mode : defaultFilters.mode,
     time: isTimeWindow(value.time) ? value.time : defaultFilters.time,
     mood: isMood(value.mood) ? value.mood : defaultFilters.mood,
+    ...(isSetting(value.setting) ? { setting: value.setting } : {}),
+    ...(isIntent(value.intent) ? { intent: value.intent } : {}),
   };
 }
 
@@ -66,7 +71,7 @@ export function generateSuggestions(
   const shown = new Map((options.shownIds ?? []).map((id, index) => [id, index]));
   const eligible = (options.ideas ?? explorationIdeas).filter(
     (item) =>
-      (filters.mode === "random" || item.category === filters.mode) &&
+      matchesExplorationSetting(item, filters) &&
       item.minutes <= timeLimits[filters.time],
   );
   // Unseen content comes first, then the least recently shown. Mood never
@@ -81,6 +86,7 @@ export function generateSuggestions(
         (filters.mood === "flow" || item.moods.includes(filters.mood) ? 2 : 0) +
         (recent.has(item.id) ? 0 : 1) +
         (options.score?.(item) ?? 0) +
+        intentScore(item, filters) +
         Math.max(0, Math.min(0.999, random())),
     }))
     .sort((left, right) => Number(left.seen) - Number(right.seen) ||

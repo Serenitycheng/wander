@@ -8,6 +8,9 @@ import type { DiscoveryPersonalization } from "./profile.ts";
 import { interestBookSubjects } from "./interest-discovery.ts";
 import { isPressuringPitch, namedWorkKeys, resourceId, sameContent, sameExperience } from "./activity-affinity.ts";
 import { suppressionIdea } from "./recommendation-policy.ts";
+import { matchesOutingArea, shortLocalOuting } from "./outing-policy.ts";
+import type { OutingArea } from "./outing-policy.ts";
+import { discoveryModeFor, matchesExplorationSetting } from "./exploration-filters.ts";
 
 export type DiscoveryRequest = {
   filters: ExplorationFilters;
@@ -18,6 +21,7 @@ export type DiscoveryRequest = {
   excludeExperiences?: SuppressedIdea[];
   avoidFormats?: Array<"feed">;
   allowFeeds?: boolean;
+  outingArea?: OutingArea;
   personalization?: DiscoveryPersonalization;
   recentActivities?: Array<{ form: string; domain: string; title?: string; approach?: "open" | "specific" }>;
 };
@@ -42,8 +46,9 @@ export async function fetchJson(url: string, signal: AbortSignal, fetcher: Fetch
 }
 
 const eligible = (idea: ExplorationIdea, request: DiscoveryRequest) =>
+  matchesOutingArea(idea, request.filters, request.outingArea) &&
   !(request.excludeExperiences ?? []).some((item) => sameExperience(suppressionIdea(item), idea)) &&
-  (request.filters.mode === "random" || request.filters.mode === idea.category) &&
+  matchesExplorationSetting(idea, request.filters) &&
   idea.minutes <= timeLimits[request.filters.time] && !request.excludeIds.includes(idea.id) &&
   !request.excludeIds.includes(resourceId(idea) ?? "") && !isPressuringPitch(idea) &&
   !namedWorkKeys(idea.title, request.excludeWorks).some((key) => request.excludeWorks?.includes(key)) &&
@@ -231,9 +236,10 @@ function placeIdeas(payload: unknown, request: DiscoveryRequest): ExplorationIde
 export async function discoverPublicIdeas(request: DiscoveryRequest, signal: AbortSignal, fetcher: Fetcher = fetch,
   onIdeas?: (ideas: ExplorationIdea[]) => void): Promise<ExplorationIdea[]> {
   const searches: Array<Promise<ExplorationIdea[]>> = [];
-  const mode = request.filters.mode;
+  const mode = discoveryModeFor(request.filters);
   const seed = Math.abs(request.seed);
-  const directions = discoveryDirections(mode, seed, request.personalization, request.recentActivities);
+  const directions = discoveryDirections(mode, seed, request.personalization, request.recentActivities,
+    shortLocalOuting(request.filters, request.outingArea) ? request.outingArea : undefined);
   if (["home", "learn", "create", "random"].includes(mode)) {
     for (const direction of directions) {
       const params = new URLSearchParams({ search_type: "video", keyword: direction.query, page: String(1 + Math.floor(seed / 17) % 4), order: "totalrank" });
@@ -263,7 +269,8 @@ export async function discoverPublicIdeas(request: DiscoveryRequest, signal: Abo
   }
   if (["outside", "random"].includes(mode)) {
     const kind = ["公园", "图书馆", "博物馆", "美术馆", "植物园"][seed % 5];
-    const params = new URLSearchParams({ action: "query", generator: "search", gsrsearch: `北京 ${kind}`, gsrlimit: "10", gsroffset: String((Math.floor(seed / 5) % 4) * 10), prop: "extracts|info", exintro: "1", explaintext: "1", exchars: "320", inprop: "url", format: "json", formatversion: "2", variant: "zh-cn" });
+    const local = shortLocalOuting(request.filters, request.outingArea);
+    const params = new URLSearchParams({ action: "query", generator: "search", gsrsearch: local ? "昊天公园" : `北京 ${kind}`, gsrlimit: "10", gsroffset: local ? "0" : String((Math.floor(seed / 5) % 4) * 10), prop: "extracts|info", exintro: "1", explaintext: "1", exchars: "320", inprop: "url", format: "json", formatversion: "2", variant: "zh-cn" });
     searches.push(fetchJson(`https://zh.wikipedia.org/w/api.php?${params}`, signal, fetcher).then((value) => placeIdeas(value, request)));
   }
   const completed = new Map<string, ExplorationIdea>();

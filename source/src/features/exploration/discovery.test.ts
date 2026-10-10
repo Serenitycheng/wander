@@ -96,7 +96,8 @@ test("muted fields apply to old cache and model results, preserve saved data and
   assert.equal(isMutedContent({ title: "看看宇宙有多大", description: "", domain: "视频" }, "天文"), true);
   assert.equal(isMutedContent({ title: "画一张宇宙主题的封面", description: "画自己想画的", domain: "设计" }, "天文"), false);
   const allowed = { ...space, preferences: { ...space.preferences, profile: { ...defaultProfile("serenity"), mutedTopics: "" } } };
-  assert.equal(isRejectedIdea(astronomy, allowed), false);
+  assert.equal(isRejectedIdea(astronomy, allowed), true); // Still saved; clearing a muted topic does not re-recommend favorites.
+  assert.equal(isRejectedIdea(astronomy, { ...allowed, favorites: [] }), false);
   assert.equal(profileFor(parseSpace(allowed, "serenity")!).mutedTopics, "");
   assert.equal(profileFor(createEmptySpace("zzz")).mutedTopics, "");
   const payload = { content: [{ type: "web_search_tool_result", content: [{ type: "web_search_result", url: astronomy.source!.url }] }, { type: "text", text: JSON.stringify({ ideas: [astronomy] }) }] };
@@ -301,12 +302,16 @@ test("one source format does not crowd out every other kind of activity", () => 
   assert.equal(selectDiscoveredSuggestions(request.filters, space, [variant]).some(({ idea }) => idea.id === variant.id), false);
 });
 
-test("every filter combination gets three mixed choices even after local content is exhausted", () => {
+test("fallback filters keep three mixed choices, while short local outings never borrow distant presets", () => {
   const empty = createEmptySpace("serenity");
   for (const mode of ["outside", "home", "learn", "create", "random"] as const) {
     for (const time of ["short", "medium", "half-day", "any"] as const) {
       for (const mood of ["gentle", "curious", "focused", "flow"] as const) {
         const first = selectDiscoveredSuggestions({ mode, time, mood }, empty, []);
+        if (mode === "outside" && time === "short") {
+          assert.equal(first.length, 0);
+          continue;
+        }
         assert.equal(first.length, 3);
         assert.equal(new Set(first.map(({ idea }) => idea.id)).size, 3);
         assert.ok(first.some(({ idea }) => idea.approach === "open"));
@@ -593,7 +598,7 @@ test("configured model screens public candidates before publishing, and receives
   assert.equal(updates.length, 0);
   const message = JSON.parse((sent.messages as Array<{ content: string }>)[0].content);
   assert.equal(message.catalogCandidates[0].title, "看看《真实文学视频》");
-  assert.match(message.request, /9 个/);
+  assert.match(message.request, /6 个/);
   assert.match(message.preferences.interests, /故事与人物/);
   assert.match(message.preferences.readingList, /边城/);
   assert.match(message.preferences.preferenceNotes, /故事和人物/);

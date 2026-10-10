@@ -116,11 +116,17 @@ function SpaceShell({
   const [discoveryProgress, setDiscoveryProgress] = useState("");
   const [discoveryNeedsLogin, setDiscoveryNeedsLogin] = useState(false);
   const [discoveryBuffer] = useState(() => new DiscoveryBuffer());
-  useEffect(() => () => discoveryBuffer.clear(), [discoveryBuffer]);
+  const refillTimer = useRef<number | null>(null);
+  const cancelRefill = useCallback(() => {
+    if (refillTimer.current !== null) window.clearTimeout(refillTimer.current);
+    refillTimer.current = null;
+  }, []);
+  useEffect(() => () => { cancelRefill(); discoveryBuffer.clear(); }, [discoveryBuffer, cancelRefill]);
   const apply = useCallback(
     (next: ExplorationSpace, nextStatus: SaveStatus) => {
       const filters = requestedFilters.current;
       if (filters && discoveryScope(filters, current.current) !== discoveryScope(filters, next)) {
+        cancelRefill();
         discoveryBuffer.clear();
         setGenerating(false);
         setDiscoveryProgress("");
@@ -135,7 +141,7 @@ function SpaceShell({
         setSuggestions(retained);
       }
     },
-    [discoveryBuffer],
+    [discoveryBuffer, cancelRefill],
   );
   const load = useCallback(() => {
     try {
@@ -246,12 +252,19 @@ function SpaceShell({
               ...value.favorites,
             ],
       }, ideaId))
-    )
+    ) {
       setMessage(
-        exists ? "已从收藏里移开。" : "已放进收藏，什么时候想试都可以。",
+        exists ? "已从收藏里移开。" : "已放进收藏，后续不再推荐这条，可以去收藏夹看。",
       );
+      if (!exists && requestedFilters.current) {
+        const filters = requestedFilters.current;
+        present(fillMissingSuggestions(filters, current.current, displayed.current, []), { ideas: [], provider: "none" });
+        prepareNext(filters);
+      }
+    }
   };
-  const prepareNext = useCallback((filters: ExplorationFilters) => {
+  const prepareNext = useCallback(function prepare(filters: ExplorationFilters, refill = false) {
+    cancelRefill();
     const scope = discoveryScope(filters, current.current);
     const started = discoveryBuffer.prepare(filters, current.current, (result) => {
       if (scope !== discoveryScope(filters, current.current)) return;
@@ -268,12 +281,24 @@ function SpaceShell({
       if (ready >= 3) setGenerating(false);
     }, () => {
       if (scope !== discoveryScope(filters, current.current)) return;
-      setGenerating(false);
-      if (discoveryBuffer.available(filters, current.current) < 3) {
-        const result = discoveryBuffer.peek(filters, current.current);
-        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}${freshOnly(current.current) ? "当前新内容不足，继续发现后会补充；旧推荐不会重新放回来。" : "暂时没有更多新内容，可以继续换组看看。"}`);
+      const ready = discoveryBuffer.available(filters, current.current);
+      const result = discoveryBuffer.peek(filters, current.current);
+      if (discoveryBuffer.canRefill(filters, current.current)) {
+        setGenerating(ready < 3);
+        setDiscoveryProgress(ready >= 3 ? "下一组已备好，继续补充更多不同的新选择。" : "这批新选择还不够，正在继续补充；收藏和旧内容不会补位。");
+        refillTimer.current = window.setTimeout(() => {
+          refillTimer.current = null;
+          if (requestedFilters.current && scope === discoveryScope(requestedFilters.current, current.current)) prepare(filters, true);
+        }, 1500);
+        return;
       }
-    });
+      setGenerating(false);
+      if (ready < 3) {
+        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}${freshOnly(current.current) ? "当前新内容不足，继续发现后会补充；旧推荐不会重新放回来。" : "暂时没有更多新内容，可以继续换组看看。"}`);
+      } else {
+        setDiscoveryProgress("后面的新选择已备好，换一组就能看到。");
+      }
+    }, refill);
     if (started) {
       setGenerating(true);
       setDiscoveryNeedsLogin(false);
@@ -291,7 +316,7 @@ function SpaceShell({
       setDiscoveryNeedsLogin(result.issue === "login_required");
       setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}可以继续换组，新的联网内容稍后再补充。`);
     }
-  }, [discoveryBuffer, update, present]);
+  }, [discoveryBuffer, update, present, cancelRefill]);
   const generate = useCallback(
     async (filters: ExplorationFilters) => {
       if (needsRecommendationCleanup(current.current)) {

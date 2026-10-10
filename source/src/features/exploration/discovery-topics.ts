@@ -3,6 +3,8 @@ import type { DiscoveryPersonalization } from "./profile.ts";
 import { isMutedContent } from "./activity-diversity.ts";
 import { interestDirections } from "./interest-discovery.ts";
 import { activityTopics } from "./activity-affinity.ts";
+import { localOutingArea } from "./outing-policy.ts";
+import type { OutingArea } from "./outing-policy.ts";
 
 // These are search directions, not a fixed list of activities or titles.
 export type DiscoveryDirection = {
@@ -19,6 +21,9 @@ const topics: Record<Exclude<ExplorationMode, "random">, DiscoveryDirection[]> =
     direction("北京 观鸟 公园", "自然", "出门"), direction("北京 独立书店", "文学", "出门"),
     direction("北京 街头速写", "绘画", "绘画"), direction("北京 即兴戏剧 体验", "戏剧", "社交"),
     direction("北京 市集 手作", "手工", "出门"), direction("北京 博物馆 特展", "历史", "出门"),
+    direction("北京 甜品 蛋糕 店", "甜品", "出门"), direction("北京 有趣 小店 咖啡", "逛店", "出门"),
+    direction("北京 文具 文创 店", "设计", "出门"), direction("北京 商场 逛街", "地方生活", "出门"),
+    direction("北京 摄影 展览", "摄影", "出门"), direction("北京 地方小吃 店", "饮食", "出门"),
   ],
   home: [
     direction("AI 绘画 场景 提示词 创作", "绘画", "绘画", { match: /绘画|生图|文生图|图像生成|场景.*提示词/, start: "在自己可用的图像生成工具里描述一个脑海中的场景，生成后挑一个最想改的细节继续调整。" }),
@@ -66,7 +71,7 @@ const topics: Record<Exclude<ExplorationMode, "random">, DiscoveryDirection[]> =
 };
 
 export function discoveryDirections(mode: ExplorationMode, seed: number, profile?: DiscoveryPersonalization,
-  recent: Array<{ form: string; domain: string }> = []): DiscoveryDirection[] {
+  recent: Array<{ form: string; domain: string }> = [], nearby?: OutingArea): DiscoveryDirection[] {
   const personal = interestDirections(mode, profile);
   const pool = [...personal, ...(mode === "random" ? Object.values(topics).flat() : topics[mode])]
     .filter((item) => !isMutedContent({ title: item.query, domain: item.domain, description: "" }, profile?.mutedTopics));
@@ -87,8 +92,9 @@ export function discoveryDirections(mode: ExplorationMode, seed: number, profile
     if (selected.includes(item) || (varied && selected.some((chosen) => chosen.domain === item.domain))) continue;
     selected.push(item);
   }
-  return selected;
+  return selected.map((item) => nearby === localOutingArea && item.query.startsWith("北京 ")
+    ? { ...item, query: item.query.replace(/^北京 /, "良乡阳光邑上附近 熙悦天街 昊天公园 ") } : item);
 }
 
 export const discoveryTopics = (mode: ExplorationMode, seed: number, profile?: DiscoveryPersonalization,
-  recent: Array<{ form: string; domain: string }> = []) => discoveryDirections(mode, seed, profile, recent).map((item) => item.query);
+  recent: Array<{ form: string; domain: string }> = [], nearby?: OutingArea) => discoveryDirections(mode, seed, profile, recent, nearby).map((item) => item.query);

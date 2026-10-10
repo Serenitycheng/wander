@@ -4,6 +4,8 @@ import {
   isMode,
   isMood,
   isTimeWindow,
+  isSetting,
+  isIntent,
 } from "./types.ts";
 import type {
   ExplorationFavorite,
@@ -127,6 +129,8 @@ export function parseSpace(
     !isMode(value.preferences.mode) ||
     !isTimeWindow(value.preferences.time) ||
     !isMood(value.preferences.mood) ||
+    (value.preferences.setting !== undefined && !isSetting(value.preferences.setting)) ||
+    (value.preferences.intent !== undefined && !isIntent(value.preferences.intent)) ||
     (value.preferences.theme !== "sage" &&
       value.preferences.theme !== "lavender") ||
     !Array.isArray(value.favorites) ||
@@ -158,6 +162,8 @@ export function parseSpace(
       mode: value.preferences.mode,
       time: value.preferences.time,
       mood: value.preferences.mood,
+      ...(isSetting(value.preferences.setting) ? { setting: value.preferences.setting } : {}),
+      ...(isIntent(value.preferences.intent) ? { intent: value.preferences.intent } : {}),
       theme: value.preferences.theme as "sage" | "lavender",
       ...appearance,
       ...(profile ? { profile } : {}),

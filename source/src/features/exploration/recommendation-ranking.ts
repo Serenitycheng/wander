@@ -47,7 +47,7 @@ export function recommendationScore(idea: ExplorationIdea, space: ExplorationSpa
   const recent = new Map([...explorationIdeas, ...space.discoveredIdeas].map((item) => [item.id, item]));
   const sameKind = space.shownIdeaIds.slice(-6).filter((id) => {
     const previous = recent.get(id);
-    return previous && activityKind(previous) === activityKind(idea);
+    return previous && idea.category !== "outside" && activityKind(previous) === activityKind(idea);
   }).length;
   const sameDomain = space.shownIdeaIds.slice(-12).filter((id) => {
     const previous = recent.get(id);
@@ -64,12 +64,16 @@ export function recommendationScore(idea: ExplorationIdea, space: ExplorationSpa
 }
 
 export function isRejectedIdea(idea: ExplorationIdea, space: ExplorationSpace): boolean {
+  const known = knownSpaceIdeas(space);
+  if (space.favorites.some((favorite) => {
+    const saved = known.get(favorite.ideaId);
+    return favorite.ideaId === idea.id || (saved && sameContent(saved, idea));
+  })) return true;
   if (isUncuratedPublicIdea(idea)) return true;
   if (isPressuringPitch(idea)) return true;
   if (isMutedContent(idea, profileFor(space).mutedTopics)) return true;
   const rejected = (space.feedback ?? []).filter((item) => item.vote === "less");
   if (rejected.some((item) => item.ideaId === idea.id)) return true;
-  const known = knownSpaceIdeas(space);
   return isRemovedRecommendation(idea, space) || rejected.some((item) => {
     const previous = known.get(item.ideaId);
     return previous && (sameContent(previous, idea) || sameExperience(previous, idea));

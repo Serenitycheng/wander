@@ -47,6 +47,9 @@
   gap: 24px;
   margin-top: 24px;
 }
+.exploration-controls .exploration-intent-choices {
+  margin-top: 24px;
+}
 .exploration-choice-row {
   display: flex;
   flex-wrap: wrap;
@@ -297,7 +300,7 @@
     padding: 24px;
   }
   .exploration-mode-choices {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .exploration-mode-choice {
     flex-direction: column;

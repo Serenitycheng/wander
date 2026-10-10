@@ -9,9 +9,11 @@ import { explorationIdeas } from "./ideas.ts";
 import { hasUsableEntry } from "./activity-diversity.ts";
 import { resourceKey, sameExperience } from "./activity-affinity.ts";
 import { repeatsWork, workHistory } from "./work-history.ts";
+import { matchesOutingArea, outingAreaFor } from "./outing-policy.ts";
+import { matchesExplorationSetting } from "./exploration-filters.ts";
 
 export const discoveryScope = (filters: ExplorationFilters, space: ExplorationSpace) =>
-  JSON.stringify([space.owner, filters.mode, filters.time, filters.mood, profileFor(space),
+  JSON.stringify([space.owner, filters.mode, filters.setting, filters.intent, filters.time, filters.mood, profileFor(space),
     space.favorites.map((item) => item.ideaId), space.feedback ?? [], space.recommendationCleanup ?? null]);
 
 // One background batch serves several clicks. Showing a round never waits for
@@ -22,6 +24,7 @@ export class DiscoveryBuffer {
   private controller: AbortController | null = null;
   private startedAt = -Infinity;
   private sequence = 0;
+  private refillAttempts = 0;
   private readonly load: typeof requestDiscovery;
   private readonly now: () => number;
 
@@ -36,6 +39,12 @@ export class DiscoveryBuffer {
 
   get preparing() { return this.controller !== null; }
 
+  canRefill(filters: ExplorationFilters, space: ExplorationSpace): boolean {
+    return this.scope === discoveryScope(filters, space) && this.refillAttempts < 2 &&
+      this.available(filters, space) < 6 &&
+      (!this.result.issue || ["no_new_results", "no_search_results"].includes(this.result.issue));
+  }
+
   available(filters: ExplorationFilters, space: ExplorationSpace): number {
     const seen = new Set(space.shownIdeaIds);
     const known = new Map([...explorationIdeas, ...space.discoveredIdeas].map((idea) => [idea.id, idea]));
@@ -48,7 +57,8 @@ export class DiscoveryBuffer {
     });
     const unique: ExplorationSpace["discoveredIdeas"] = [];
     for (const idea of this.peek(filters, space).ideas.filter((idea) => !seen.has(idea.id) && !repeatsWork(idea, seenWorks) && !seenTitles.has(contentKey(idea.title)) && !seenResources.has(resourceKey(idea.source?.url) ?? "") && !isRejectedIdea(idea, space) &&
-      (filters.mode === "random" || idea.category === filters.mode) && idea.minutes <= timeLimits[filters.time] &&
+      matchesOutingArea(idea, filters, outingAreaFor(space.owner)) &&
+      matchesExplorationSetting(idea, filters) && idea.minutes <= timeLimits[filters.time] &&
       !isLowQualityVideo(idea) && hasUsableEntry(idea) && (!avoidFeeds || !isFeedIdea(idea)))) {
       if (!recent.some((previous) => sameExperience(previous, idea)) && !unique.some((previous) => sameExperience(previous, idea))) unique.push(idea);
     }
@@ -56,13 +66,15 @@ export class DiscoveryBuffer {
   }
 
   prepare(filters: ExplorationFilters, space: ExplorationSpace,
-    onResult: (result: DiscoveryResult) => void, onSettled: () => void): boolean {
+    onResult: (result: DiscoveryResult) => void, onSettled: () => void, refill = false): boolean {
     const scope = discoveryScope(filters, space);
     if (scope !== this.scope) {
       this.clear();
       this.scope = scope;
     }
-    if (this.controller || this.available(filters, space) >= 6 || this.now() - this.startedAt < 10000) return false;
+    if (this.controller || this.available(filters, space) >= 6 || (!refill && this.now() - this.startedAt < 1500)) return false;
+    if (refill && !this.canRefill(filters, space)) return false;
+    this.refillAttempts = refill ? this.refillAttempts + 1 : 0;
     const controller = new AbortController();
     this.controller = controller;
     this.startedAt = this.now();
@@ -72,7 +84,7 @@ export class DiscoveryBuffer {
       this.result = mergeDiscoveryResults(this.result, result);
       onResult(this.result);
     };
-    void this.load(filters, space, AbortSignal.any([controller.signal, AbortSignal.timeout(35000)]), undefined, accept)
+    void this.load(filters, space, AbortSignal.any([controller.signal, AbortSignal.timeout(35000)]), undefined, accept, this.result.ideas)
       .then(accept)
       .catch((error: unknown) => {
         if (controller.signal.aborted || sequence !== this.sequence) return;
@@ -93,5 +105,6 @@ export class DiscoveryBuffer {
     this.result = { ideas: [], provider: "none" };
     this.scope = "";
     this.startedAt = -Infinity;
+    this.refillAttempts = 0;
   }
 }

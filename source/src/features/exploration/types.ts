@@ -1,6 +1,8 @@
 export type SpaceOwner = "serenity" | "zzz";
 export type ExplorationCategory = "outside" | "home" | "learn" | "create";
 export type ExplorationMode = ExplorationCategory | "random";
+export type ExplorationSetting = "outside" | "home" | "any";
+export type ExplorationIntent = "any" | "learn" | "create";
 export type TimeWindow = "short" | "medium" | "half-day" | "any";
 export type ExplorationMood = "gentle" | "curious" | "focused" | "flow";
 export type ExplorationTheme = "sage" | "lavender";
@@ -32,6 +34,9 @@ export type ExplorationFilters = {
   mode: ExplorationMode;
   time: TimeWindow;
   mood: ExplorationMood;
+  // Optional so existing spaces and backups keep their original behavior.
+  setting?: ExplorationSetting;
+  intent?: ExplorationIntent;
 };
 
 export type ExplorationIdea = {
@@ -150,6 +155,10 @@ export const isTimeWindow = (value: unknown): value is TimeWindow =>
   timeOptions.some((item) => item.id === value);
 export const isMood = (value: unknown): value is ExplorationMood =>
   moodOptions.some((item) => item.id === value);
+export const isSetting = (value: unknown): value is ExplorationSetting =>
+  value === "outside" || value === "home" || value === "any";
+export const isIntent = (value: unknown): value is ExplorationIntent =>
+  value === "any" || value === "learn" || value === "create";
 
 export function minutesLabel(minutes: number) {
   if (minutes < 60) return `约 ${minutes} 分钟`;
