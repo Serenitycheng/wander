@@ -1,35 +1,27 @@
 # 漫游
 
-给日常一点新的可能：出去走走、在家探索、学点东西、做点东西，或者完全随机。
+给日常一点新的可能：出去走走、在家探索、学点东西、做点东西，或者随机开始。每次提供几个可参与的入口，收藏留给以后，记录留给想记住的片刻。原“北京去哪儿玩”保留为独立出行子模块。
 
-每次只给几个可立即开始的小入口。收藏留给以后，记录留给想记住的片刻。“北京去哪儿玩”保留为独立的北京出行子模块。
+## 现有能力与边界
 
-首页集中展示随机开始按钮和四个探索方向。右上角和“我的”都可调整整个空间的配色，所有页面保持一致，支持七种预设、自定义颜色和命名保存的配色方案，并按账号保存。
+- 四个探索方向、每组三个选择、随机推荐、收藏与记录；支持偏好、反馈、排除领域和空间配色。
+- 联网发现视频、书目、食谱和地点资料，提供实际来源；可选 DeepSeek 筛选与原生网页搜索，失败时使用公共来源与本地活动。
+- 探索收藏、记录、偏好、配色和历史按账号保存在当前浏览器，支持导入、导出；尚无跨设备云同步。北京模块沿用独立云空间。
+- 来源可能暂时不可用；书目不保证全文可读，地点资料不代表当天开放，推荐仍需使用者判断。
+- 开启个性化会使用偏好、收藏标题与反馈摘要。账号访问限制取决于部署配置；当前不提供公开注册流程。
 
-推荐联网发现作品、教程和活动，附可打开的来源；每组给出 3 个选择，混合具体推荐与可以自行选题的活动。看这一组时提前准备后面的选择，换组直接使用已准备的内容；后台结果不会替换正在看的卡片。同一批内容供多次换组使用，不足时从已发现内容和 90 个本地活动中补足。
+## 技术栈与运行
 
-领域和参与方式分别轮换：同一领域换标题、同一形式换作品，也会降低重复排序。书目与食谱不再每批必查；合并在线与本地候选后保留可参与的入口，例如互动游戏、编曲、配音、运动、排版和 AI 共创。开放建议给工具、材料或可用做法，保留自己选题的空间，既用于休闲，也用于接触陌生领域。
+Next.js 16、React 19、TypeScript、pnpm 工作区；北京云空间使用 Neon PostgreSQL 与 Drizzle，地图使用高德服务。
 
-“我的”可编辑暂不推荐的领域。Serenity 默认暂不推荐天文，清空即可恢复；不删除已有收藏，也不影响另一账号。
-
-公开来源包含 B 站视频、书目、食谱和地点资料，先交错汇总再限制数量。播客和博客默认关闭；在“我的”主动开启后，每组合计最多 1 条，出现后休息两组。推荐区显示本轮真实来源与数量，登录失效或搜索失败时显示对应原因。
-
-“我的”可以编辑偏好清单、兴趣、阅读清单和推荐开关。Serenity 以原书单的口味分析与本次对话的明确爱好为依据，书单只作辅助，见 [推荐偏好清单](docs/product/推荐偏好清单.md)；另一账号不继承它。卡片的“多来点类似的／没兴趣”影响后续选择，“我的”可以查看和撤销反馈。
-
-旧推荐清理保留收藏、正反馈和已有记录，提供可恢复备份。点踩立即移开卡片，并排除同一行动的可识别改写；清理后新内容不足时等待补充，不再用旧候选凑数。机制与验证边界见 [重复机制排查](docs/recommendation-repetition-audit.md)。
-
-DeepSeek 每次为后面几组挑选最多 9 个活动，参考真实候选简介，混合顺着兴趣、带来意外和亲自参与的体验；要求说清具体吸引点。公共来源先分批送达，模型继续在后台筛选，夸张营销标题会跳过，推荐不固定成书、视频和菜谱的组合。
-
-## 本地运行
-
-需要 Node.js 24+ 与 pnpm 11。所有命令从这个仓库根目录执行：
+需要 Node.js 24+ 与 pnpm 11。所有命令从仓库根目录执行：
 
 ```powershell
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-打开 http://localhost:3000 。主产品的探索、收藏和记录可直接在本机使用，无需配置第三方密钥。
+访问 `http://localhost:3000`。验证与生产运行：
 
 ```powershell
 pnpm test
@@ -37,48 +29,21 @@ pnpm lint
 pnpm typecheck
 pnpm build
 pnpm verify:archive
+pnpm start
 ```
 
-## 从哪里改
+## 环境变量与部署
 
-- `source/`：唯一开发应用；包含 Next.js 16、React 19 和 TypeScript。
-- `source/src/features/exploration/`：新探索内容、推荐生成、收藏、记录及页面组件。
-- `source/src/features/exploration/content/`：探索活动内容；`ideas.ts` 管理推荐池及旧条目查询。
-- `source/src/features/exploration/online-discovery.ts`：在线来源解析；`discovery-client.ts`：候选合并、轮换与本地回退；`src/lib/server/exploration-discovery.ts`：服务端检索。
-- `source/src/features/exploration/styles/`：基础布局、首页、探索、内容页与配色控件的独立样式。
-- `source/src/features/beijing/`：保留的原北京出行功能。
-- `docs/`：产品原文、架构说明、更新记录、验证结果和界面参考。
-- `archive/recovery-2026-09-09/`：完整原始恢复快照，只做保存与核验。
-- `scripts/`：恢复快照校验工具。
+参考 [`source/.env.example`](source/.env.example)，自己的值放在 `source/.env.local`，不要提交。
 
-详细结构见 [架构说明](docs/architecture.md)，本次范围见 [重构实现](docs/implementation.md)，验证结果见 [验证记录](docs/validation.md)。
+- 可选在线 AI：`DEEPSEEK_API_KEY`；`EXPLORATION_DEEPSEEK_MODEL`、`EXPLORATION_DEEPSEEK_BASE_URL` 单独覆盖探索接口，默认模型为 `deepseek-flash`。
+- 北京地图：`NEXT_PUBLIC_AMAP_JS_KEY`、`AMAP_SECURITY_JS_CODE`、`AMAP_WEB_SERVICE_KEY`。
+- 北京 AI：`DEEPSEEK_BASE_URL`、`DEEPSEEK_MODEL`，与服务端 `DEEPSEEK_API_KEY` 配合。
+- 北京云空间：`DATABASE_URL`。
+- 登录：`AUTH_SECRET`、`NEXT_PUBLIC_REQUIRE_AUTH`、`SERENITY_PASSWORD_SCRYPT`、`ZZZ_PASSWORD_SCRYPT`。密码配置只保存 scrypt 哈希。
 
-## 数据与账号
+本地探索流程不依赖第三方密钥；地图、AI、云空间与限制登录需相应配置。不要用 `NEXT_PUBLIC_` 变量保存服务端密钥。
 
-- 新收藏和记录按 Serenity/zzz 分别保存在本机浏览器中；“我的”支持导入、导出。
-- 漫游的反馈、偏好、配色和已看历史也仅存本机，尚无跨设备云同步；检查结果与接入方案见 [云同步检查](docs/cloud-sync-audit.md)。
-- 原北京浏览器草稿和 Neon 云空间保留，新的探索数据不会覆盖它们。
-- 北京模块的天气、地图、AI 检索和云同步需要原服务配置，模板在 `source/.env.example`。
-- 登录沿用原 scrypt 密码验证；启用 `NEXT_PUBLIC_REQUIRE_AUTH=true` 后继续限制账号访问。
-- 本地密钥放在 `source/.env.local`，不要提交；本次重构没有读取或更改线上密钥、生产数据。
+已有 Vercel 项目名为 `beijing-qu-na-er-wan`。应用在 `source/`，依赖锁文件与 pnpm 工作区在仓库根目录；部署使用 Next.js 和现有 Git 关联，需保留仓库根目录的工作区文件。以仓库根目录构建时执行 `pnpm install --frozen-lockfile` 与 `pnpm build`，Next.js 输出位于 `source/.next`。现有项目的 Root Directory 与构建覆盖项应在部署前核对，本次没有改动这些设置。仓库改名不要求更改项目名或域名；环境变量改动需通过新部署生效。
 
-## 在线发现
-
-- 有 `DEEPSEEK_API_KEY` 时，使用 DeepSeek 的 Anthropic 兼容接口调用原生网页搜索；推荐网址必须出现在本轮检索结果中。新接口不使用旧北京模块的 Responses 搜索实现。
-- 没有密钥或模型搜索失败时，继续查询 B 站、Open Library、TheMealDB 与维基百科地点资料；主动允许播客后才查询 Apple Podcasts。视频标题、创作者与 BV 链接来自实际公开检索结果。每组固定 3 条，混合具体作品与阅读、唱歌、手工等开放方向，并分散活动形式。
-- 公共书目不保证全文可读，英文食谱会明确标注语言；地点资料不代表当天开放。在线来源也可能暂时不可访问。
-- 开启个性化时，发送偏好清单、兴趣、阅读清单、当前账号收藏标题及分析用反馈摘要；关闭后不发送这些分析信息。探索条件、最近展示标题与明确排除样例仍用于去重，防止已点踩内容重新出现；始终不发送记录里的感受、账号姓名或出发地址。
-- 在线条目、收藏和展示历史保存在当前浏览器对应账号中，随备份导出/导入；跨设备打开在线详情需要导入包含该条目的备份。
-- 新检索默认模型为 `deepseek-flash`；如需覆盖，使用独立的 `EXPLORATION_DEEPSEEK_MODEL`，避免影响北京模块。接口、超时与来源边界见 [架构说明](docs/architecture.md)。
-
-### Vercel 配置入口
-
-打开 [本项目的环境变量设置](https://vercel.com/sereni1/beijing-qu-na-er-wan/settings/environment-variables)，添加或更新服务端变量 `DEEPSEEK_API_KEY`，勾选需要使用的 Production / Preview 环境。探索默认使用 `deepseek-flash`，可选覆盖为 `EXPLORATION_DEEPSEEK_MODEL`；官方接口地址默认无需另填。
-
-保存环境变量后重新部署，设置才会应用到新部署；见 [Vercel 环境变量说明](https://vercel.com/docs/environment-variables)。不要使用公开给浏览器的 `NEXT_PUBLIC_` 前缀存放密钥。
-
-## 关于恢复备份
-
-原 `data/`、`history/`、`recovered/`、压缩包和校验文件均集中到带日期的恢复目录，并保留重构前的 `source/` 完整副本。
-
-原清单 310 个文件可继续逐个核验。恢复细节见 [备份说明](archive/README.md)；历史快照中的线上状态属于 2026-09-09，不能等同于今天的部署状态。
+代码入口为 `source/src/features/exploration/` 与 `source/src/features/beijing/`；详见[架构说明](docs/architecture.md)和[云同步检查](docs/cloud-sync-audit.md)。`archive/recovery-2026-09-09/` 保留原源码及出行数据库快照，另有个人偏好文档；公开前需要确认这些内容的公开范围。
