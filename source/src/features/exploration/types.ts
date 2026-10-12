@@ -3,7 +3,7 @@ export type ExplorationCategory = "outside" | "home" | "learn" | "create";
 export type ExplorationMode = ExplorationCategory | "random";
 export type ExplorationSetting = "outside" | "home" | "any";
 export type ExplorationIntent = "any" | "learn" | "create";
-export type TimeWindow = "short" | "medium" | "half-day" | "any";
+export type TimeWindow = "short" | "hour" | "medium" | "half-day" | "any";
 export type ExplorationMood = "gentle" | "curious" | "focused" | "flow";
 export type ExplorationTheme = "sage" | "lavender";
 export type ExplorationPage =
@@ -119,6 +119,7 @@ export const categoryLabels: Record<ExplorationCategory, string> = {
 };
 export const timeOptions: Array<{ id: TimeWindow; label: string }> = [
   { id: "short", label: "10～30 分钟" },
+  { id: "hour", label: "30 分钟～1.5 小时" },
   { id: "medium", label: "1～2 小时" },
   { id: "half-day", label: "半天" },
   { id: "any", label: "无所谓" },

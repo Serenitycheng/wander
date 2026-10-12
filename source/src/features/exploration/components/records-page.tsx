@@ -59,8 +59,8 @@ function RecordForm({
     if (saveRecord(record)) {
       notify(
         initial
-          ? "这段感受已经更新。"
-          : "留下了一个片刻。什么时候想继续，都可以。",
+          ? "记录已更新。"
+          : "记录已保存。",
       );
       onClose();
     }
@@ -68,7 +68,7 @@ function RecordForm({
   return (
     <form className="exploration-record-form" onSubmit={submit}>
       <div className="exploration-section-heading">
-        <h2>{initial ? "再添一点感受" : "留住一个片刻"}</h2>
+        <h2>{initial ? "编辑记录" : "新建记录"}</h2>
         <button
           className="exploration-icon-button"
           type="button"
@@ -86,7 +86,6 @@ function RecordForm({
           maxLength={160}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="哪怕只是在新路口拐了个弯"
         />
       </label>
       <label className="exploration-field">
@@ -155,7 +154,7 @@ function RecordForm({
         </div>
       </fieldset>
       <details className="exploration-optional-fields">
-        <summary>想多留一点：日期和地点</summary>
+        <summary>日期和地点</summary>
         <div className="exploration-form-two-col">
           <label className="exploration-field">
             日期
@@ -178,7 +177,7 @@ function RecordForm({
       </details>
       <div className="exploration-form-actions">
         <button type="submit" className="exploration-primary">
-          {initial ? "保存这段感受" : "把这个片刻留下"}
+          保存记录
           <ArrowRight size={17} />
         </button>
         <button
@@ -207,9 +206,7 @@ export function RecordsPage({ initialIdeaId }: { initialIdeaId?: string }) {
     <div className="exploration-page">
       <header className="exploration-page-heading exploration-heading-with-action">
         <div>
-          <span className="exploration-eyebrow">留几句生活的回声</span>
-          <h1>原来，我也走了这么一小段。</h1>
-          <p>记下做过的事和当时的感受，想记的时候再记。</p>
+          <h1>记录</h1>
         </div>
         {form === null ? (
           <button
@@ -218,7 +215,7 @@ export function RecordsPage({ initialIdeaId }: { initialIdeaId?: string }) {
             onClick={() => setForm("new")}
           >
             <Plus size={17} />
-            随手记一笔
+            新建记录
           </button>
         ) : null}
       </header>
@@ -293,12 +290,7 @@ export function RecordsPage({ initialIdeaId }: { initialIdeaId?: string }) {
       ) : !form ? (
         <div className="exploration-empty-page">
           <NotebookPen size={35} strokeWidth={1.1} />
-          <h2>不写日记，也没有关系。</h2>
-          <p>
-            哪天想留下一点感受，
-            <br />
-            一句话就可以是一个片刻。
-          </p>
+          <h2>暂无记录</h2>
           <Link href="/explore" className="exploration-secondary">
             先去探索 <ArrowRight size={16} />
           </Link>

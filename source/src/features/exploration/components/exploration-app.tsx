@@ -18,6 +18,7 @@ import { LoginView } from "@/components/auth/space-login";
 import { findIdea } from "../ideas";
 import { fillMissingSuggestions, selectDiscoveredSuggestions } from "../discovery-client";
 import { DiscoveryBuffer, discoveryScope } from "../discovery-buffer";
+import { DiscoveryReserve, reserveContext, reserveIntervalMs } from "../discovery-reserve";
 import { withExplorationAxes } from "../exploration-filters";
 import { normalizeFilters } from "../generator";
 import { canRetryDiscovery, discoveryNoteFor, isDiscoveryFailure } from "../discovery-status";
@@ -123,14 +124,33 @@ function SpaceShell({
   const [discoveryNeedsLogin, setDiscoveryNeedsLogin] = useState(false);
   const [discoveryFailed, setDiscoveryFailed] = useState(false);
   const [discoveryBuffer] = useState(() => new DiscoveryBuffer());
+  const [discoveryReserve] = useState(() => new DiscoveryReserve());
+  const reserveTimer = useRef<number | null>(null);
+  const reserveTick = useRef<() => void>(() => {});
+  const cancelReserve = useCallback(() => {
+    if (reserveTimer.current !== null) window.clearTimeout(reserveTimer.current);
+    reserveTimer.current = null;
+  }, []);
+  const scheduleReserve = useCallback(() => {
+    if (reserveTimer.current !== null) return;
+    reserveTimer.current = window.setTimeout(() => {
+      reserveTimer.current = null;
+      reserveTick.current();
+    }, reserveIntervalMs);
+  }, []);
   const refillTimer = useRef<number | null>(null);
   const cancelRefill = useCallback(() => {
     if (refillTimer.current !== null) window.clearTimeout(refillTimer.current);
     refillTimer.current = null;
   }, []);
-  useEffect(() => () => { cancelRefill(); discoveryBuffer.clear(); }, [discoveryBuffer, cancelRefill]);
+  useEffect(() => () => {
+    cancelRefill(); cancelReserve(); discoveryBuffer.clear(); discoveryReserve.clear();
+  }, [discoveryBuffer, discoveryReserve, cancelRefill, cancelReserve]);
   const apply = useCallback(
     (next: ExplorationSpace, nextStatus: SaveStatus) => {
+      if (reserveContext(current.current) !== reserveContext(next) || nextStatus !== "saved") {
+        cancelReserve(); discoveryReserve.clear();
+      }
       const filters = requestedFilters.current;
       if (filters && discoveryScope(filters, current.current) !== discoveryScope(filters, next)) {
         cancelRefill();
@@ -150,7 +170,7 @@ function SpaceShell({
         setSuggestions(retained);
       }
     },
-    [discoveryBuffer, cancelRefill],
+    [discoveryBuffer, discoveryReserve, cancelRefill, cancelReserve],
   );
   const load = useCallback(() => {
     try {
@@ -240,13 +260,46 @@ function SpaceShell({
     displayed.current = next;
     setSuggestions(next);
     previousIdeas.current = next.map(({ idea }) => idea.id);
-    setDiscoveryNote(!next.length ? "正在寻找新选择，已清理或排除的内容不会拿来补位。"
-      : next.length > added.length ? added.length ? `保留其余选择，已补充 ${added.length} 个新建议。` : "保留其余选择，正在补充新的建议。"
+    setDiscoveryNote(!next.length ? ""
+      : next.length > added.length ? added.length ? `已补充 ${added.length} 个新建议。` : ""
         : discoveryNoteFor({ ...result, issue: undefined }, next, current.current.shownIdeaIds, recent));
     if (added.length) update((value) => ({ ...value,
       shownIdeaIds: rememberShown(value.shownIdeaIds, added.map(({ idea }) => idea.id)),
       shownWorkKeys: workHistory(value, added.map(({ idea }) => idea)) }));
   }, [update]);
+  const prepareReserve = useCallback(() => {
+    if (statusRef.current !== "saved" || needsRecommendationCleanup(current.current) || document.hidden) return;
+    if (discoveryBuffer.preparing) { scheduleReserve(); return; }
+    const filters = preparedFilters.current ?? withExplorationAxes(current.current.preferences);
+    const context = reserveContext(current.current);
+    const started = discoveryReserve.prepare(filters, current.current, (result) => {
+      if (context !== reserveContext(current.current) || statusRef.current !== "saved") return;
+      const accepted = result.ideas.filter((idea) => !isRejectedIdea(idea, current.current));
+      if (!accepted.length || !update((value) => ({ ...value, discoveredIdeas: mergeDiscoveredIdeas(value, accepted) }))) return;
+      const requested = requestedFilters.current;
+      if (requested && (awaitingGroup.current || displayed.current.length < 3)) {
+        const next = awaitingGroup.current
+          ? selectDiscoveredSuggestions(requested, current.current, [], previousIdeas.current)
+          : fillMissingSuggestions(requested, current.current, displayed.current, []);
+        if (next.length === 3) {
+          awaitingGroup.current = false;
+          present(next, { ideas: accepted, provider: result.provider });
+          setGenerating(false); setDiscoveryFailed(false); setDiscoveryProgress("");
+        }
+      }
+    }, scheduleReserve);
+    if (!started && !discoveryReserve.preparing && !discoveryReserve.stopped &&
+      displayed.current.length < 3 && requestedFilters.current) {
+      const ready = discoveryBuffer.available(requestedFilters.current, current.current);
+      setDiscoveryProgress(`已准备 ${Math.min(3, ready)}/3，本轮尚未凑齐，请重试。`);
+    }
+  }, [discoveryBuffer, discoveryReserve, scheduleReserve, update, present]);
+  useEffect(() => { reserveTick.current = prepareReserve; }, [prepareReserve]);
+  useEffect(() => {
+    const resume = () => { if (!document.hidden) scheduleReserve(); };
+    document.addEventListener("visibilitychange", resume);
+    return () => document.removeEventListener("visibilitychange", resume);
+  }, [scheduleReserve]);
   const toggleFavorite = (ideaId: string) => {
     const exists = current.current.favorites.some(
       (item) => item.ideaId === ideaId,
@@ -274,6 +327,7 @@ function SpaceShell({
   };
   const prepareNext = useCallback(function prepare(filters: ExplorationFilters, refill = false) {
     cancelRefill();
+    cancelReserve(); discoveryReserve.pause();
     preparedFilters.current = filters;
     const scope = discoveryScope(filters, current.current);
     const started = discoveryBuffer.prepare(filters, current.current, (result) => {
@@ -292,17 +346,18 @@ function SpaceShell({
       const ready = discoveryBuffer.available(filters, current.current);
       setDiscoveryNeedsLogin(result.issue === "login_required");
       const issue = result.issue ? discoveryNoteFor(result, []) : "";
-      setDiscoveryProgress(`${issue}${ready >= 3 ? "后面的新选择已备好，换一组就能看到。" : displayed.current.length < 3 ? "正在补充三个新选择，旧内容不会补位。" : "正在提前准备下一组，当前三个可以直接选。"}`);
-      if (ready >= 3) setGenerating(false);
+      setDiscoveryProgress(`${issue}${ready >= 3 ? "下一组已准备好。" : displayed.current.length < 3 ? `正在准备：${Math.min(3, ready)}/3` : "正在准备下一组…"}`);
+      if (ready >= 3 || (displayed.current.length === 3 && !awaitingGroup.current)) setGenerating(false);
     }, () => {
       if (scope !== discoveryScope(filters, current.current)) return;
       const ready = discoveryBuffer.available(filters, current.current);
       const result = discoveryBuffer.peek(filters, current.current);
+      discoveryReserve.stopOnFailure(result, current.current);
       if (discoveryBuffer.canRefill(filters, current.current)) {
-        setGenerating(ready < 3);
+        setGenerating(displayed.current.length < 3 || awaitingGroup.current);
         const recovering = canRetryDiscovery(result);
-        setDiscoveryProgress(recovering ? `${discoveryNoteFor(result, [])}正在自动重试一次，已有选择会保留。`
-          : ready >= 3 ? "下一组已备好，继续补充更多不同的新选择。" : "这批新选择还不够，正在继续补充；收藏和旧内容不会补位。");
+        setDiscoveryProgress(recovering ? `${discoveryNoteFor(result, [])}正在重试…`
+          : ready >= 3 ? "正在准备下一组…" : `正在准备：${Math.min(3, ready)}/3`);
         refillTimer.current = window.setTimeout(() => {
           refillTimer.current = null;
           if (preparedFilters.current && scope === discoveryScope(preparedFilters.current, current.current)) prepare(filters, true);
@@ -310,45 +365,50 @@ function SpaceShell({
         return;
       }
       setGenerating(false);
+      scheduleReserve();
       const failed = ready < 3 && isDiscoveryFailure(result);
       setDiscoveryFailed(failed);
       if (ready < 3) {
         if (awaitingGroup.current) setDiscoveryNote(failed
-          ? displayed.current.length === 3 ? "这次换组未能完成，当前三个选择先留着。" : "这次推荐未能完成。"
-          : displayed.current.length === 3 ? "暂时还没凑齐新的一组，当前这组三个选择先留着。"
-            : "暂时还没凑齐三个新选择，已清理或排除的内容不会补位。");
-        setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}${failed ? "可以点击「再试一次」，收藏和排除记录都会保留。"
-          : freshOnly(current.current) ? "当前新内容不足，继续发现后会补充；旧推荐不会重新放回来。" : "暂时没有更多新内容，可以继续换组看看。"}`);
+          ? displayed.current.length === 3 ? "换组失败，当前选择已保留。" : "推荐未完成。"
+          : displayed.current.length === 3 ? "下一组尚未备齐。" : "");
+        setDiscoveryProgress(failed ? `${discoveryNoteFor(result, [])}请重试。`
+          : `已准备 ${Math.min(3, ready)}/3，后台继续补充。`);
       } else {
-        setDiscoveryProgress("后面的新选择已备好，换一组就能看到。");
+        setDiscoveryProgress("下一组已准备好。");
       }
     }, refill);
     if (started) {
-      setGenerating(true);
+      const ready = discoveryBuffer.available(filters, current.current);
+      setGenerating(ready < 3 && (displayed.current.length < 3 || awaitingGroup.current));
       setDiscoveryFailed(false);
       setDiscoveryNeedsLogin(false);
-      setDiscoveryProgress(displayed.current.length < 3 ? "正在寻找三个新选择，旧内容不会补位。" : "正在提前准备下一组，当前三个可以直接选。");
+      setDiscoveryProgress(ready >= 3 ? "下一组已准备好。"
+        : displayed.current.length < 3 ? `正在准备：${ready}/3` : "正在准备下一组…");
     } else if (discoveryBuffer.available(filters, current.current) >= 3) {
       setGenerating(false);
       setDiscoveryFailed(false);
-      const result = discoveryBuffer.peek(filters, current.current);
-      setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}后面的新选择已备好，换一组就能看到。`);
+      setDiscoveryProgress("下一组已准备好。");
+      scheduleReserve();
     } else if (discoveryBuffer.preparing) {
-      setGenerating(true);
+      setGenerating(displayed.current.length < 3 || awaitingGroup.current);
       setDiscoveryFailed(false);
-      setDiscoveryProgress(displayed.current.length < 3 ? "正在寻找三个新选择，旧内容不会补位。" : "正在提前准备下一组，当前三个可以直接选。");
+      setDiscoveryProgress(displayed.current.length < 3 ? "正在准备三个选择…" : "正在准备下一组…");
     } else {
       setGenerating(false);
       const result = discoveryBuffer.peek(filters, current.current);
       setDiscoveryFailed(isDiscoveryFailure(result));
       setDiscoveryNeedsLogin(result.issue === "login_required");
-      setDiscoveryProgress(`${result.issue ? discoveryNoteFor(result, []) : ""}可以继续换组，新的联网内容稍后再补充。`);
+      setDiscoveryProgress(result.issue ? discoveryNoteFor(result, []) : "正在后台补充。");
+      scheduleReserve();
     }
-  }, [discoveryBuffer, update, present, cancelRefill]);
+  }, [discoveryBuffer, discoveryReserve, update, present, cancelRefill, cancelReserve, scheduleReserve]);
   const prepare = useCallback((filters: ExplorationFilters) => {
     if (statusRef.current !== "saved" || needsRecommendationCleanup(current.current)) return;
+    if (awaitingGroup.current && discoveryBuffer.preparing && requestedFilters.current &&
+      discoveryScope(filters, current.current) !== discoveryScope(requestedFilters.current, current.current)) return;
     prepareNext(filters);
-  }, [prepareNext]);
+  }, [prepareNext, discoveryBuffer]);
   useEffect(() => {
     if (pathname !== "/" || status !== "saved") return;
     const timer = window.setTimeout(() => prepare(withExplorationAxes(current.current.preferences)), 300);
@@ -366,6 +426,7 @@ function SpaceShell({
       }
       const prepared = discoveryBuffer.peek(filters, current.current);
       const immediate = selectDiscoveredSuggestions(filters, current.current, prepared.ideas, previousIdeas.current);
+      if (immediate.length < 3) discoveryReserve.retry();
       const keepCurrent = displayed.current.length === 3 && requestedFilters.current &&
         discoveryScope(filters, current.current) === discoveryScope(requestedFilters.current, current.current);
       requestedFilters.current = filters;
@@ -375,11 +436,11 @@ function SpaceShell({
       }));
       awaitingGroup.current = freshOnly(current.current) && immediate.length < 3;
       if (awaitingGroup.current && keepCurrent) {
-        setDiscoveryNote("新的一组还在准备，当前这组三个选择先留着。");
+        setDiscoveryNote("下一组正在准备，当前选择已保留。");
       } else present(awaitingGroup.current ? [] : immediate, prepared);
       prepareNext(filters);
     },
-    [discoveryBuffer, update, prepareNext, present],
+    [discoveryBuffer, discoveryReserve, update, prepareNext, present],
   );
   const voteIdea = (ideaId: string, vote: "more" | "less", undo = false) => {
     const existing = current.current.feedback?.find((item) => item.ideaId === ideaId);
@@ -407,7 +468,7 @@ function SpaceShell({
       present(next, { ideas: [], provider: "none" });
     }
     prepareNext(current.current.preferences);
-    setMessage(undo ? "已撤销这次反馈。" : vote === "more" ? "记住了，会多找一些内容或风格相近的新建议，也留一点意外。" : "记住了，这条和同一活动的改写不再推荐。可以在“我的”撤销反馈。");
+    setMessage(undo ? "已撤销反馈。" : vote === "more" ? "已标记感兴趣。" : "已排除此活动。");
   };
   const cleanupRecommendations = () => {
     const result = cleanupStoredRecommendations(window.localStorage, current.current);
@@ -519,7 +580,6 @@ function SpaceShell({
             </span>
             <span>
               <strong>漫游</strong>
-              <small>给日常一点新的可能</small>
             </span>
           </Link>
           <nav className="exploration-nav" aria-label="主要导航">
@@ -576,7 +636,7 @@ function SpaceShell({
           {status === "loading" ? (
             <div className="exploration-loading" role="status">
               <Compass size={28} strokeWidth={1.2} />
-              <p>给新的可能留一点空白…</p>
+              <p>正在读取…</p>
             </div>
           ) : (
             children

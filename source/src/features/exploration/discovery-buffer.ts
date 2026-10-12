@@ -17,6 +17,9 @@ export const discoveryScope = (filters: ExplorationFilters, space: ExplorationSp
   JSON.stringify([space.owner, filters.mode, filters.setting, filters.intent, filters.time, filters.mood, profileFor(space),
     space.favorites.map((item) => item.ideaId), space.feedback ?? [], space.recommendationCleanup ?? null]);
 
+// All continuations share this deadline; three 35s requests used to stack.
+export const discoveryWaitLimitMs = 30000;
+
 // One background batch serves several clicks. Showing a round never waits for
 // this buffer, and only the owning account/filter/profile may consume it.
 export class DiscoveryBuffer {
@@ -24,6 +27,7 @@ export class DiscoveryBuffer {
   private result: DiscoveryResult = { ideas: [], provider: "none" };
   private controller: AbortController | null = null;
   private startedAt = -Infinity;
+  private cycleStartedAt = -Infinity;
   private sequence = 0;
   private refillAttempts = 0;
   private recoveryAttempts = 0;
@@ -43,12 +47,12 @@ export class DiscoveryBuffer {
 
   canRefill(filters: ExplorationFilters, space: ExplorationSpace): boolean {
     const ready = this.available(filters, space);
-    return this.scope === discoveryScope(filters, space) && this.refillAttempts < 2 && ready < 6 &&
+    return this.scope === discoveryScope(filters, space) && this.now() - this.cycleStartedAt < discoveryWaitLimitMs && this.refillAttempts < 2 && ready < 6 &&
       (!this.result.issue || ["no_new_results", "no_search_results"].includes(this.result.issue) ||
         (ready < 3 && this.recoveryAttempts < 1 && canRetryDiscovery(this.result)));
   }
 
-  private usableChoices(filters: ExplorationFilters, space: ExplorationSpace): ExplorationSpace["discoveredIdeas"] {
+  eligibleChoices(filters: ExplorationFilters, space: ExplorationSpace): ExplorationSpace["discoveredIdeas"] {
     const seen = new Set(space.shownIdeaIds);
     const known = new Map([...explorationIdeas, ...space.discoveredIdeas].map((idea) => [idea.id, idea]));
     const seenTitles = new Set(space.shownIdeaIds.flatMap((id) => known.get(id) ? [contentKey(known.get(id)!.title)] : []));
@@ -58,13 +62,20 @@ export class DiscoveryBuffer {
     const avoidFeeds = !profileFor(space).allowFeeds || space.shownIdeaIds.slice(-6).some((id) => {
       const idea = known.get(id); return idea && isFeedIdea(idea);
     });
-    const unique: ExplorationSpace["discoveredIdeas"] = [];
     const candidates = [...new Map([...space.discoveredIdeas, ...this.peek(filters, space).ideas].map((idea) => [idea.id, idea])).values()];
-    for (const idea of candidates.filter((idea) => !seen.has(idea.id) && !repeatsWork(idea, seenWorks) && !seenTitles.has(contentKey(idea.title)) && !seenResources.has(resourceKey(idea.source?.url) ?? "") && !isRejectedIdea(idea, space) &&
-      matchesOutingArea(idea, filters, outingAreaFor(space.owner)) &&
+    return candidates.filter((idea) =>
       matchesExplorationSetting(idea, filters) && idea.minutes <= timeLimits[filters.time] &&
-      !isLowQualityVideo(idea) && hasUsableEntry(idea) && (!avoidFeeds || !isFeedIdea(idea)))) {
-      if (!recent.some((previous) => sameExperience(previous, idea)) && !unique.some((previous) => sameExperience(previous, idea))) unique.push(idea);
+      matchesOutingArea(idea, filters, outingAreaFor(space.owner)) &&
+      !seen.has(idea.id) && !repeatsWork(idea, seenWorks) && !seenTitles.has(contentKey(idea.title)) &&
+      !seenResources.has(resourceKey(idea.source?.url) ?? "") && !isRejectedIdea(idea, space) &&
+      !isLowQualityVideo(idea) && hasUsableEntry(idea) && (!avoidFeeds || !isFeedIdea(idea)) &&
+      !recent.some((previous) => sameExperience(previous, idea)));
+  }
+
+  usableChoices(filters: ExplorationFilters, space: ExplorationSpace): ExplorationSpace["discoveredIdeas"] {
+    const unique: ExplorationSpace["discoveredIdeas"] = [];
+    for (const idea of this.eligibleChoices(filters, space)) {
+      if (!unique.some((previous) => sameExperience(previous, idea))) unique.push(idea);
     }
     return unique;
   }
@@ -82,7 +93,7 @@ export class DiscoveryBuffer {
     }
     if (this.controller || this.available(filters, space) >= 6 || (!refill && this.now() - this.startedAt < 1500)) return false;
     if (refill && !this.canRefill(filters, space)) return false;
-    if (!refill) this.recoveryAttempts = 0;
+    if (!refill) { this.recoveryAttempts = 0; this.cycleStartedAt = this.now(); }
     else if (canRetryDiscovery(this.result)) this.recoveryAttempts++;
     this.refillAttempts = refill ? this.refillAttempts + 1 : 0;
     const controller = new AbortController();
@@ -95,7 +106,8 @@ export class DiscoveryBuffer {
       onResult(this.result);
     };
     const reserved = [...new Map([...this.result.ideas, ...this.usableChoices(filters, space)].map((idea) => [idea.id, idea])).values()];
-    void this.load(filters, space, AbortSignal.any([controller.signal, AbortSignal.timeout(35000)]), undefined, accept, reserved)
+    const remaining = Math.max(1, discoveryWaitLimitMs - (this.now() - this.cycleStartedAt));
+    void this.load(filters, space, AbortSignal.any([controller.signal, AbortSignal.timeout(remaining)]), undefined, accept, reserved)
       .then(accept)
       .catch((error: unknown) => {
         if (controller.signal.aborted || sequence !== this.sequence) return;
@@ -116,6 +128,7 @@ export class DiscoveryBuffer {
     this.result = { ideas: [], provider: "none" };
     this.scope = "";
     this.startedAt = -Infinity;
+    this.cycleStartedAt = -Infinity;
     this.refillAttempts = 0;
     this.recoveryAttempts = 0;
   }

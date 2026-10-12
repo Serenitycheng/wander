@@ -36,9 +36,7 @@ export function FavoritesPage() {
   return (
     <div className="exploration-page">
       <header className="exploration-page-heading">
-        <span className="exploration-eyebrow">什么时候想试，都可以</span>
-        <h1>先放在这里。</h1>
-        <p>一些让你好奇的事，没有截止日期。</p>
+        <h1>收藏</h1>
       </header>
       <div
         className="exploration-choice-row exploration-favorite-filters"
@@ -109,17 +107,8 @@ export function FavoritesPage() {
         <div className="exploration-empty-page">
           <Bookmark size={35} strokeWidth={1.1} />
           <h2>
-            {filter === "soon"
-              ? "想起哪件事时，再放到前面。"
-              : space.favorites.length
-                ? "这个方向还留着一点空白。"
-                : "把好奇心，先留在这里。"}
+            {filter === "soon" ? "暂无最近想试的收藏" : "暂无收藏"}
           </h2>
-          <p>
-            {filter === "soon"
-              ? "在收藏下面点「最近想试」，就能把它放到前面。"
-              : "遇见一个感兴趣的小入口，点一下收藏就好。"}
-          </p>
           <Link href="/explore" className="exploration-secondary">
             去探索看看 <ArrowRight size={16} />
           </Link>

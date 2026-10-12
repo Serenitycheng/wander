@@ -7,7 +7,6 @@ import {
   isTimeWindow,
   isSetting,
   isIntent,
-  timeOptions,
 } from "./types.ts";
 import { intentScore, matchesExplorationSetting } from "./exploration-filters.ts";
 import type {
@@ -16,13 +15,7 @@ import type {
   ExplorationSuggestion,
 } from "./types.ts";
 
-export const timeLimits = { short: 30, medium: 120, "half-day": 240, any: Infinity };
-const moodReasons = {
-  gentle: "从轻松的小动作开始，随时停下也可以。",
-  curious: "给熟悉的日常一点新鲜感。",
-  focused: "有一点可以认真投入的空间。",
-  flow: "不用先想好结果，跟着此刻的兴趣走。",
-};
+export const timeLimits = { short: 30, hour: 90, medium: 120, "half-day": 240, any: Infinity };
 
 export function normalizeFilters(
   value: Partial<ExplorationFilters>,
@@ -38,19 +31,8 @@ export function normalizeFilters(
 
 export function reasonsFor(
   idea: ExplorationIdea,
-  filters: ExplorationFilters,
 ): string[] {
-  return [
-    idea.why,
-    ...(idea.moods.includes(filters.mood) || filters.mood === "flow"
-      ? [moodReasons[filters.mood]]
-      : []),
-    ...(filters.time === "any" || idea.minutes > timeLimits[filters.time]
-      ? []
-      : [
-          `可以在你留出的${timeOptions.find((item) => item.id === filters.time)?.label}里试一试。`,
-        ]),
-  ].slice(0, 3);
+  return [idea.why];
 }
 
 export function generateSuggestions(
@@ -106,5 +88,5 @@ export function generateSuggestions(
       }
     }
   }
-  return selected.map((idea) => ({ idea, reasons: reasonsFor(idea, filters) }));
+  return selected.map((idea) => ({ idea, reasons: reasonsFor(idea) }));
 }

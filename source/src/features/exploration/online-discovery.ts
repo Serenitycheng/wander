@@ -15,6 +15,7 @@ import { discoveryModeFor, matchesExplorationSetting } from "./exploration-filte
 export type DiscoveryRequest = {
   filters: ExplorationFilters;
   seed: number;
+  preparation?: boolean;
   excludeIds: string[];
   excludeTitles: string[];
   excludeWorks?: string[];
@@ -72,6 +73,7 @@ export function parseSearchDiscovery(payload: unknown, request: DiscoveryRequest
 export function inspectSearchDiscovery(payload: unknown, request: DiscoveryRequest, catalogIdeas: ExplorationIdea[] = []): {
   ideas: ExplorationIdea[];
   searchResultCount: number;
+  rejected?: Record<string, number>;
   issue?: "no_search_results" | "invalid_response" | "no_new_results";
 } {
   if (!isObject(payload) || !Array.isArray(payload.content))
@@ -95,18 +97,27 @@ export function inspectSearchDiscovery(payload: unknown, request: DiscoveryReque
       const decoded: unknown = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
       if (!isObject(decoded) || !Array.isArray(decoded.ideas)) continue;
       const ideas = new Map<string, ExplorationIdea>();
+      const rejected: Record<string, number> = {};
+      const reject = (reason: string) => { rejected[reason] = (rejected[reason] ?? 0) + 1; };
       for (const value of decoded.ideas.slice(0, 12)) {
         const idea = materialize(value, new Date().toISOString(), "deepseek");
-        if (idea && (!idea.source || verified.has(idea.source.url)) && !isLowQualityVideo(idea) && eligible(idea, request) &&
-          !request.excludeTitles.some((title) => contentKey(title) === contentKey(idea.title)) &&
-          ![...ideas.values()].some((previous) => sameExperience(previous, idea)) &&
-          !(request.recentActivities ?? []).some((previous) => previous.title && sameExperience({
+        if (!idea) { reject("invalid_fields"); continue; }
+        if (idea.source && !verified.has(idea.source.url)) { reject("unverified_source"); continue; }
+        if (isLowQualityVideo(idea)) { reject("low_quality"); continue; }
+        if (!matchesOutingArea(idea, request.filters, request.outingArea)) { reject("outing_area"); continue; }
+        if (!matchesExplorationSetting(idea, request.filters) || idea.minutes > timeLimits[request.filters.time]) { reject("setting_or_time"); continue; }
+        if (!eligible(idea, request)) { reject("excluded_or_unusable"); continue; }
+        if (request.excludeTitles.some((title) => contentKey(title) === contentKey(idea.title)) ||
+          [...ideas.values()].some((previous) => sameExperience(previous, idea)) ||
+          (request.recentActivities ?? []).some((previous) => previous.title && sameExperience({
             ...idea, id: "recent", title: previous.title, description: "", source: undefined,
             form: previous.form as ExplorationIdea["form"], domain: previous.domain, approach: previous.approach,
-          }, idea)) &&
-          !(request.personalization?.feedback?.lessExamples ?? []).some((previous) => sameContent({ ...idea, id: "feedback", title: previous.title, source: undefined }, idea))) ideas.set(idea.id, idea);
+          }, idea)) || (request.personalization?.feedback?.lessExamples ?? []).some((previous) => sameContent({ ...idea, id: "feedback", title: previous.title, source: undefined }, idea))) {
+          reject("repeated_experience"); continue;
+        }
+        ideas.set(idea.id, idea);
       }
-      return { ideas: [...ideas.values()], searchResultCount,
+      return { ideas: [...ideas.values()], searchResultCount, rejected,
         ...(ideas.size ? {} : { issue: verified.size ? "no_new_results" as const : "no_search_results" as const }) };
     } catch { /* A preamble or malformed JSON is not a usable discovery. */ }
   }

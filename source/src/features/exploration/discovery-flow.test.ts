@@ -1,20 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { localOutingArea, matchesOutingArea, outingAreaFor, outingGuidance } from "./outing-policy.ts";
-import { defaultFilters } from "./types.ts";
+import { defaultFilters, timeOptions, moodOptions } from "./types.ts";
 import type { ExplorationIdea } from "./types.ts";
 import { createEmptySpace, mergeDiscoveredIdeas, parseSpace } from "./storage.ts";
-import { onlineIdeaId } from "./discovery.ts";
+import { onlineIdeaId, inspirationIdeaId, parseDiscoveredIdea } from "./discovery.ts";
 import { requestDiscovery, selectDiscoveredSuggestions, fillMissingSuggestions } from "./discovery-client.ts";
 import { isRejectedIdea } from "./recommendation-ranking.ts";
-import { DiscoveryBuffer } from "./discovery-buffer.ts";
+import { DiscoveryBuffer, discoveryWaitLimitMs } from "./discovery-buffer.ts";
+import { DiscoveryReserve, preparationTargets } from "./discovery-reserve.ts";
 import { discoveryDirections } from "./discovery-topics.ts";
 import { inspectSearchDiscovery } from "./online-discovery.ts";
 import { discoverWithProviders } from "./discovery-service.ts";
 import { completeIdeaObjects, readModelResponse } from "./model-stream.ts";
 import { defaultProfile } from "./profile.ts";
 import { discoveryModeFor, intentFor, settingFor, withExplorationAxes } from "./exploration-filters.ts";
-import { generateSuggestions } from "./generator.ts";
+import { generateSuggestions, timeLimits, normalizeFilters } from "./generator.ts";
 import { clearOldRecommendations } from "./recommendation-cleanup.ts";
 import { canRetryDiscovery, isDiscoveryFailure } from "./discovery-status.ts";
 import type { DiscoveryResult } from "./discovery-status.ts";
@@ -38,6 +39,169 @@ const searched = (ideas: ExplorationIdea[]) => ({ content: [
   { type: "text", text: JSON.stringify({ ideas }) },
 ] });
 const tick = () => new Promise<void>((resolve) => setImmediate(resolve));
+
+test("the intermediate time window survives storage and applies a 90-minute cap on both sides", () => {
+  const hour = withExplorationAxes({ ...defaultFilters, time: "hour" }, "outside");
+  assert.equal(normalizeFilters(hour).time, "hour");
+  const base = createEmptySpace("serenity");
+  assert.equal(parseSpace({ ...base, preferences: { ...base.preferences, ...hour } }, "serenity")?.preferences.time, "hour");
+  const ideas = [60, 90, 91, 150].map((minutes, index) => ({ ...placeIdea("国家博物馆", `https://example.org/hour/${index}`, `时段作品${index}`), minutes }));
+  for (const idea of ideas) assert.equal(inspectSearchDiscovery(searched([idea]), { ...request, filters: hour }).ideas.length, idea.minutes <= 90 ? 1 : 0);
+  assert.ok(selectDiscoveredSuggestions(hour, createEmptySpace("serenity"), ideas).every(({ idea }) => idea.minutes <= 90));
+});
+
+test("nearby open outings form three fresh options without inventing a school or venue source", () => {
+  const make = (title: string, form: ExplorationIdea["form"], domain: string): ExplorationIdea => ({
+    ...localIdeas[0], id: inspirationIdeaId("outside", title), title, form, domain, source: undefined,
+    place: "阳光邑上附近学校周边", approach: "open", description: "在附近选一个允许使用的公共空间。",
+    firstStep: "带上需要的物品，在校外或明确允许公众进入的空间开始。",
+  });
+  const ideas = [make("带个球和朋友玩一会儿", "运动", "球类"), make("和朋友拍一段街头短片", "出门", "摄影"), make("逛街时挑一家自己想进的小店", "出门", "逛店")];
+  const payload = { content: [{ type: "text", text: JSON.stringify({ ideas }) }] };
+  const discovered = inspectSearchDiscovery(payload, request).ideas;
+  assert.equal(discovered.length, 3);
+  assert.equal(selectDiscoveredSuggestions(filters, clearOldRecommendations(createEmptySpace("serenity"), "2026-10-09T00:00:00.000Z"), discovered).length, 3);
+  assert.equal(parseDiscoveredIdea({ ...ideas[0], place: "某个未经核实的中学" }), null);
+  assert.equal(parseDiscoveredIdea({ ...ideas[0], description: "这里每天开放，无需预约。" }), null);
+  assert.equal(parseDiscoveredIdea({ ...ideas[0], title: "读《虚构作品》" }), null);
+  assert.equal(inspectSearchDiscovery(payload, { ...request, excludeIds: [ideas[0].id] }).ideas.length, 2);
+  const home = withExplorationAxes(filters, "home");
+  assert.equal(inspectSearchDiscovery(payload, { ...request, filters: home }).ideas.length, 0);
+});
+
+test("all continuations share a 30-second budget rather than stacking three timeouts", async () => {
+  let now = 0, calls = 0;
+  const buffer = new DiscoveryBuffer(async () => {
+    calls++; now += 16000;
+    return { ideas: [localIdeas[(calls - 1) % 3]], provider: "deepseek" };
+  }, () => now);
+  const space = createEmptySpace("serenity");
+  await new Promise<void>((resolve) => buffer.prepare(filters, space, () => {}, resolve));
+  assert.equal(buffer.canRefill(filters, space), true);
+  await new Promise<void>((resolve) => buffer.prepare(filters, space, () => {}, resolve, true));
+  assert.ok(now >= discoveryWaitLimitMs);
+  assert.equal(buffer.canRefill(filters, space), false);
+  assert.equal(calls, 2);
+  assert.equal(buffer.peek(filters, space).ideas.length, 2);
+  buffer.clear();
+});
+
+test("aborting a stalled discovery body stops the reader immediately", async () => {
+  let cancelled = false;
+  const controller = new AbortController();
+  const response = new Response(new ReadableStream({ cancel() { cancelled = true; } }), { headers: { "Content-Type": "application/x-ndjson" } });
+  const pending = requestDiscovery(filters, createEmptySpace("serenity"), controller.signal, async () => response);
+  await tick(); controller.abort();
+  await assert.rejects(pending);
+  assert.equal(cancelled, true);
+});
+
+test("shared validated reserves cover every setting, intent, time and mood after reload", () => {
+  const home = ["home", "learn", "create"].flatMap((category, group) => localIdeas.map((idea, index): ExplorationIdea => ({
+    ...idea, category: category as ExplorationIdea["category"], place: undefined,
+    id: onlineIdeaId(`https://example.org/matrix/${group}/${index}`), title: `试试《新入口${group}-${index}》`,
+    source: { name: "已核实", url: `https://example.org/matrix/${group}/${index}` },
+  })));
+  const base = clearOldRecommendations(createEmptySpace("serenity"), "2026-10-09T00:00:00.000Z");
+  const space = parseSpace({ ...base, discoveredIdeas: [...home, ...localIdeas] }, "serenity")!;
+  assert.ok(preparationTargets(defaultFilters).length <= 25);
+  const buffer = new DiscoveryBuffer();
+  for (const setting of ["outside", "home", "any"] as const)
+    for (const intent of ["any", "learn", "create"] as const)
+      for (const { id: time } of timeOptions)
+        for (const { id: mood } of moodOptions) {
+          const conditions = withExplorationAxes({ ...defaultFilters, time, mood }, setting, intent);
+          const choices = selectDiscoveredSuggestions(conditions, space, [], [], { random: () => 0.5 });
+          assert.equal(choices.length, 3, JSON.stringify(conditions));
+          assert.ok(choices.every(({ idea }) => idea.minutes <= timeLimits[time]));
+          assert.ok(buffer.available(conditions, space) >= 3);
+        }
+  const excluded = { ...space, shownIdeaIds: localIdeas.map((idea) => idea.id), favorites: home.map((idea) => ({ ideaId: idea.id, soon: false, addedAt: date })) };
+  assert.equal(buffer.available(withExplorationAxes(defaultFilters, "any"), excluded), 0);
+});
+
+test("background preparation rotates pools, preserves preferences and isolates late account responses", async () => {
+  let publish!: (result: DiscoveryResult) => void;
+  let finish!: (result: DiscoveryResult) => void;
+  let calls = 0;
+  const scopes: string[] = [];
+  let space = clearOldRecommendations(createEmptySpace("serenity"), "2026-10-09T00:00:00.000Z");
+  const preferences = space.preferences;
+  const reserve = new DiscoveryReserve(async (conditions, _space, _signal, _fetcher, receive, _reserved, preparation) => {
+    calls++; assert.equal(preparation, true); scopes.push(JSON.stringify(conditions)); publish = receive!;
+    return new Promise<DiscoveryResult>((resolve) => { finish = resolve; });
+  });
+  const receive = (result: DiscoveryResult) => { space = { ...space, discoveredIdeas: mergeDiscoveredIdeas(space, result.ideas) }; };
+  assert.equal(reserve.prepare(filters, space, receive, () => {}), true);
+  assert.equal(reserve.prepare(filters, space, receive, () => {}), false);
+  const late = publish;
+  finish({ ideas: [], provider: "none", issue: "no_new_results" }); await tick();
+  assert.equal(reserve.prepare(filters, space, receive, () => {}), true);
+  assert.notEqual(scopes[0], scopes[1]);
+  finish({ ideas: localIdeas, provider: "deepseek" }); await tick();
+  assert.deepEqual(space.preferences, preferences);
+  assert.deepEqual(space.shownIdeaIds, []);
+  assert.equal(calls, 2);
+  assert.equal(reserve.prepare(filters, space, receive, () => {}), true);
+  const other = createEmptySpace("zzz");
+  reserve.prepare(filters, other, () => {}, () => {});
+  const before = space.discoveredIdeas.length;
+  late({ ideas: [placeIdea("阳光邑上周边街区", "https://example.org/stale")], provider: "deepseek" });
+  assert.equal(space.discoveredIdeas.length, before);
+  reserve.clear();
+});
+
+test("terminal failures block automatic preparation and sparse batches have a finite attempt budget", async () => {
+  const space = createEmptySpace("serenity");
+  let calls = 0;
+  const reserve = new DiscoveryReserve(async () => { calls++; return { ideas: [], provider: "none", issue: "no_new_results" }; });
+  while (reserve.prepare(defaultFilters, space, () => {}, () => {})) await tick();
+  assert.equal(calls, preparationTargets(defaultFilters).length * 2);
+  assert.equal(reserve.prepare(defaultFilters, space, () => {}, () => {}), false);
+  reserve.retry();
+  assert.equal(reserve.prepare(defaultFilters, space, () => {}, () => {}), true);
+  await tick();
+  assert.equal(calls, preparationTargets(defaultFilters).length * 2 + 1);
+  reserve.clear();
+  for (const issue of ["key_rejected", "quota_exceeded", "rate_limited", "login_required", "forbidden", "invalid_request", "not_configured"] as const) {
+    reserve.stopOnFailure({ ideas: [], provider: "none", issue }, space);
+    assert.equal(reserve.prepare(defaultFilters, space, () => {}, () => {}), false);
+    reserve.clear();
+  }
+});
+
+test("preparation skips filled time and intent pools but refills a depleted nearby pool", async () => {
+  const make = (category: ExplorationIdea["category"], minutes: number, index: number): ExplorationIdea => ({
+    ...localIdeas[index % 3], category, minutes,
+    id: onlineIdeaId(`https://example.org/stock/${category}/${minutes}/${index}`),
+    title: `试试《储备作品${category}-${minutes}-${index}》`,
+    source: { name: "核对入口", url: `https://example.org/stock/${category}/${minutes}/${index}` },
+  });
+  const ideas = (["home", "learn", "create", "outside"] as const).flatMap((category) =>
+    [20, 60, 110, 150].flatMap((minutes) => Array.from({ length: 6 }, (_, index) => make(category, minutes, index))));
+  const space = { ...clearOldRecommendations(createEmptySpace("serenity"), "2026-10-09T00:00:00.000Z"), discoveredIdeas: ideas };
+  let calls = 0;
+  const reserve = new DiscoveryReserve(async (conditions) => {
+    calls++;
+    assert.equal(settingFor(conditions), "outside");
+    assert.equal(conditions.time, "short");
+    return { ideas: [], provider: "none" };
+  });
+  assert.equal(reserve.prepare(defaultFilters, space, () => {}, () => {}), false);
+  assert.equal(calls, 0);
+  const excluded = { ...space, favorites: ideas.filter((idea) => idea.category === "outside" && idea.minutes === 20)
+    .map((idea) => ({ ideaId: idea.id, soon: false, addedAt: date })) };
+  assert.equal(reserve.prepare(defaultFilters, excluded, () => {}, () => {}), true);
+  await tick();
+  assert.equal(calls, 1);
+  reserve.clear();
+});
+
+test("rejection diagnostics distinguish area, time and missing evidence without logging personal text", () => {
+  const bad = [placeIdea("国家图书馆", "https://example.org/far"), { ...localIdeas[0], minutes: 90 }, placeIdea("昊天公园", "https://example.org/unverified")];
+  const payload = { content: [{ type: "web_search_tool_result", content: bad.slice(0, 2).map((idea) => ({ type: "web_search_result", url: idea.source!.url })) }, { type: "text", text: JSON.stringify({ ideas: bad }) }] };
+  assert.deepEqual(inspectSearchDiscovery(payload, request).rejected, { outing_area: 1, setting_or_time: 1, unverified_source: 1 });
+});
 
 test("short outings restrict the destination, while longer outings and other accounts keep the whole city", () => {
   const far = ["国家博物馆", "国家图书馆", "龙湖北京房山天街", "朝阳公园", "良乡"].map((place, i) => placeIdea(place, `https://example.org/far/${i}`));

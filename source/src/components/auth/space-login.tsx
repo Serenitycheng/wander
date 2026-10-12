@@ -30,7 +30,7 @@ export function LoginView({
         error?: string;
       };
       if (!response.ok || !payload.user?.id)
-        setError(payload.error || "暂时没有登录成功，再试一次吧。");
+        setError(payload.error || "登录失败，请重试。");
       else onAuthenticated(payload.user.id);
     } catch {
       setError("暂时无法连接，请稍后再试。");
@@ -47,16 +47,9 @@ export function LoginView({
           </span>
           <span>
             <strong>漫游</strong>
-            <small>给日常一点新的可能</small>
           </span>
         </div>
-        <span className="exploration-eyebrow">回来，继续随便看看</span>
-        <h1>
-          新的可能，
-          <br />
-          从这里开始。
-        </h1>
-        <p>登录自己的空间，放一些想试的事，留几句探索后的感受。</p>
+        <h1>登录</h1>
         <form onSubmit={submit}>
           <label>
             账号
@@ -89,11 +82,10 @@ export function LoginView({
             disabled={pending}
             type="submit"
           >
-            {pending ? "正在打开…" : "进入我的空间"}
+            {pending ? "正在登录…" : "登录"}
             <ArrowRight size={17} />
           </button>
         </form>
-        <small>Serenity 与 zzz 的独立空间 · 沿用原来的账号</small>
       </main>
     </div>
   );

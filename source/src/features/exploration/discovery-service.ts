@@ -19,6 +19,7 @@ type DiscoveryLog = {
   upstreamStatus?: number;
   searchResultCount: number;
   ideaCount: number;
+  rejected?: Record<string, number>;
   elapsedMs: number;
   personalized: boolean;
   preferenceBriefPresent: boolean;
@@ -68,12 +69,13 @@ export async function discoverWithProviders(
   let upstreamStatus: number | undefined;
   let searchResultCount = 0;
   let curatedIdeas: ExplorationIdea[] = [];
+  let rejected: Record<string, number> | undefined;
   const timings: Pick<DiscoveryLog, "modelStartedMs" | "modelResponseMs" | "firstCandidateMs" | "firstGroupMs"> = {};
   const finish = (result: DiscoveryResult) => {
     // Never log credentials, request bodies, personal records or model prose.
     options.log?.({ event: "manyou_discovery", provider: result.provider, issue: result.issue,
       ...(upstreamStatus ? { upstreamStatus } : {}), searchResultCount,
-      ideaCount: result.ideas.length, elapsedMs: Date.now() - started, ...timings,
+      ideaCount: result.ideas.length, rejected, elapsedMs: Date.now() - started, ...timings,
       personalized: Boolean(request.personalization), preferenceBriefPresent: Boolean(request.personalization?.preferenceNotes?.trim()) });
     options.onResult?.(result);
     return result;
@@ -96,6 +98,7 @@ export async function discoverWithProviders(
       timings.modelStartedMs = Date.now() - started;
       const result = await searchWithDeepSeek(request, searchSignal, fetcher, options, candidates, (partial) => {
         searchResultCount = partial.searchResultCount;
+        rejected = partial.rejected;
         if (partial.ideas.length <= curatedIdeas.length) return;
         curatedIdeas = partial.ideas;
         timings.firstCandidateMs ??= Date.now() - started;
@@ -103,6 +106,7 @@ export async function discoverWithProviders(
         if (!signal.aborted) options.onResult?.({ ideas: curatedIdeas, provider: "deepseek" });
       }, () => { timings.modelResponseMs = Date.now() - started; });
       searchResultCount = result.searchResultCount;
+      rejected = result.rejected;
       if (result.ideas.length) {
         timings.firstCandidateMs ??= Date.now() - started;
         if (result.ideas.length >= 3) timings.firstGroupMs ??= Date.now() - started;
@@ -160,6 +164,9 @@ async function searchWithDeepSeek(request: DiscoveryRequest, signal: AbortSignal
         photographyRule: "实际偏好包含摄影时，可以检索 Instagram 摄影师公开作品页、B 站摄影师作品集或创作记录。先找作品和作者，说明作品呈现的画面与风格；技术教程和器材评测不是默认入口。没有已知风格时探索不同摄影师，不猜用户一定喜欢街拍或胶片。Instagram 必须给检索核实的公开页面，遇到登录限制换可访问的作品或平台，不编造账号。",
         fitRule: "视频和书可以推荐，但必须讲清内容里的兴趣连接。优先理解 preferenceNotes 中的口味分析与明确兴趣，再参考实际反馈、interests；readingList 只是次要证据，不能用某一本书反向定义用户。不要用‘提高知识、很有趣、播放量高’当适合的理由。故事与人物可以延伸到角色对白、人物访谈、地方生活、歌曲叙事；文字和画面气氛可以延伸到影像、设计或创作，但不要求所有活动都与书相连。陌生领域也给自然的桥梁，别生硬塞术语。作品简介缺失时不能编造剧情。尊重可编辑的实际偏好，这些例子不是对所有账号的默认喜好。why 写一个具体、可信的连接，描述先说这条的内容，不抄平台营销文案。不要为了满足领域数量硬塞原理动画，不得把泛泛的秩序感、审美或增长知识当兴趣桥梁；找不到真实吸引点就换候选。陌生体验可以诚实说明哪里可试，不声称一定符合兴趣。标题不要使用认真补、别只看、你应该等教育或训诫口吻。",
         maximumMinutes: Number.isFinite(timeLimits[request.filters.time]) ? timeLimits[request.filters.time] : 240,
+        ...(request.preparation ? { preparation: {
+          rule: "这是后台准备其他组合的候选，不是改用户偏好。保持内容质量与去重；时长档 short 优先准备5～30分钟、hour 优先准备30～90分钟、medium 优先准备90～120分钟、half-day/any 优先准备120～240分钟的实际体验，避免储备全是短活动。intent=learn/create 时自然给学习/创作活动，不改变场景边界。先给可用活动，来源不足时允许普通开放活动。",
+        } } : {}),
         avoid: request.excludeTitles.slice(-60),
         avoidWorks: request.excludeWorks ?? [],
         excludedExperiences: request.excludeExperiences ?? [],
@@ -168,7 +175,7 @@ async function searchWithDeepSeek(request: DiscoveryRequest, signal: AbortSignal
         workRotationRule: "avoidWorks 是已出现作品的规范名称，同一本书、歌曲、片子即使换出版社网址、平台、标题、章节或变成解读也不能算新内容。换真正不同的作品或行动，不得把这份历史再当兴趣线索。",
         variety: "开放指保留用户选择，不是空话。比如配音可自己选片段，但给一个实际参考或工具；探索游戏设计可以玩一个可用原型、看一个机制，不能只说搜索相关资料。firstStep 指向本条实际找到的内容、可打开的工具或手边可准备的材料与玩法；不能假装视频链接就是可玩游戏，不得编造资源功能。说明准备要求，但不写课程计划、固定练习量、强迫打卡或感想。why 说清来源支持的吸引点。有来源时每条引用不同的真实资源；普通开放活动可以不附网页。喜欢不代表只推同类，近期出现过的作品和活动做法即使换标题、换链接也不要再给。",
         avoidFormats: !request.allowFeeds || request.avoidFormats?.includes("feed") ? "本轮禁止播客和博客，优先视频、书籍、游戏、音乐与实际活动。" : "播客与博客合计最多 1 条。",
-        output: { ideas: [{ category: "outside|home|learn|create。有 setting 时：outside 只允许 outside，home 允许 home/learn/create，any 可跨类；无 setting 时遵守旧 mode。intent 是倾向，不是类别限制", angle: "familiar=顺着兴趣；surprise=有兴趣桥梁的陌生体验；play=亲自参与，不固定每组顺序", form: activityForms.join("|"), approach: "specific=指定真实资源；open=题材或做法自行选", title: "先说做什么，自然简明，40字以内", description: "具体内容或体验，普通人能理解，70字以内", minutes: "整数5~240，仅一次尝试参考", moods: ["gentle|curious|focused|flow"], domain: "用日常语言写领域", why: "真实内容怎样连接兴趣或带来可理解的新体验，40字以内", firstStep: "可直接开始，80字以内", place: "outside 必填目标地点或准确分店和街区，不能只写出发地；其他类别可省略", source: "指定资源、工具或地点时必须填 {name,url,action}，url 必须来自本轮检索或公共候选。仅 home/learn/create 的普通开放活动可省略 source 或填 null；不得以此编造命名作品、外部网址或实时地点信息。" }] },
+        output: { ideas: [{ category: "outside|home|learn|create。有 setting 时：outside 只允许 outside，home 允许 home/learn/create，any 可跨类；无 setting 时遵守旧 mode。intent 是倾向，不是类别限制", angle: "familiar=顺着兴趣；surprise=有兴趣桥梁的陌生体验；play=亲自参与，不固定每组顺序", form: activityForms.join("|"), approach: "specific=指定真实资源；open=题材或做法自行选", title: "先说做什么，自然简明，40字以内", description: "具体内容或体验，普通人能理解，70字以内", minutes: "整数5~240，仅一次尝试参考", moods: ["gentle|curious|focused|flow"], domain: "用日常语言写领域", why: "真实内容怎样连接兴趣或带来可理解的新体验，40字以内", firstStep: "可直接开始，80字以内", place: "outside 必填。指定地点须准确；不依赖命名地点的开放活动使用 outing.openActivities 的地点词。其他类别可省略", source: "指定资源、工具或地点时必须填 {name,url,action}，url 必须来自本轮检索或公共候选。普通开放活动，包括 outing.openActivities 中不依赖命名地点的出门活动，可省略 source 或填 null；不得以此编造命名作品、外部网址、学校准入或实时地点信息。" }] },
       }) }],
       tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 2 }],
     }),

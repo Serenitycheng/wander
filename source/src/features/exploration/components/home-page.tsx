@@ -17,13 +17,9 @@ export function ExplorationHome() {
           <span />
         </div>
         <div className="exploration-hero-copy">
-          <span className="exploration-eyebrow">
-            从一点好奇，走出熟悉的日常
-          </span>
           <h1 id="home-heading">
-            今天，<span>探索一点新鲜的。</span>
+            今天做点什么？
           </h1>
-          <p>选个方向，或让偶然带路。每次只给几个可立即开始的小建议。</p>
           <Link
             className="exploration-primary"
             href="/explore?mode=random"
@@ -32,7 +28,6 @@ export function ExplorationHome() {
             随机开始探索
             <ArrowRight size={18} aria-hidden="true" />
           </Link>
-          <small>跟着此刻的兴趣，随时可以换个方向。</small>
         </div>
       </section>
       <section
@@ -42,7 +37,6 @@ export function ExplorationHome() {
         <div className="exploration-section-heading">
           <div>
             <h2 id="home-modes">选择探索方向</h2>
-            <p>先选场景或体验，进入后可以自由组合。</p>
           </div>
           <Link
             href={`/beijing?space=${owner}`}
@@ -65,7 +59,6 @@ export function ExplorationHome() {
                   <ModeIcon mode={mode.id} size={28} />
                 </span>
                 <strong>{mode.label}</strong>
-                <small>{mode.id === "learn" ? "地点随意，接触一点新东西" : mode.id === "create" ? "在家或出门，试一点创作" : mode.note}</small>
                 <ArrowUpRight
                   className="exploration-mode-arrow"
                   size={20}

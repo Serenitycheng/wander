@@ -184,13 +184,12 @@ export function PageColorPicker({
         aria-label="页面颜色设置"
       >
         <div className="exploration-color-panel-heading">
-          <strong>给漫游换个颜色</strong>
+          <strong>页面配色</strong>
           <span
             className="exploration-color-current"
             style={{ background: color }}
           />
         </div>
-        <p>所有页面一起换色，会自动记住。</p>
         <ToneOptions color={color} choose={choose} label="预设页面颜色" />
         <CustomTone color={color} choose={choose} />
         <SavedColorSchemes />
@@ -220,8 +219,7 @@ export function AppearanceSettings() {
   return (
     <section className="exploration-setting exploration-appearance-setting">
       <div>
-        <h2>给空间选个底色</h2>
-        <p>首页、探索、收藏和记录使用同一配色，右上角也能随时调整。</p>
+        <h2>页面配色</h2>
       </div>
       <div className="exploration-appearance-controls">
         <ToneOptions color={color} choose={choose} label="空间预设颜色" />

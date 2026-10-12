@@ -99,11 +99,7 @@ test("invalid filters fall back safely and the content library is not mutated", 
 });
 test("a saved longer idea does not falsely claim to fit a short time window", () => {
   const idea = explorationIdeas.find((item) => item.id === "outside-798")!;
-  const reasons = reasonsFor(idea, {
-    mode: "outside",
-    time: "short",
-    mood: "curious",
-  });
+  const reasons = reasonsFor(idea);
   assert.ok(reasons.every((reason) => !reason.includes("10～30 分钟")));
 });
 

@@ -7,7 +7,6 @@ import { moodOptions, timeOptions } from "../types";
 import type { ExplorationFilters, ExplorationMode } from "../types";
 import { useExploration } from "./exploration-app";
 import { IdeaCard, ModeIcon } from "./idea-card";
-import { outingAreaFor, shortLocalOuting } from "../outing-policy";
 import { intents, intentFor, settings, settingFor, withExplorationAxes } from "../exploration-filters";
 
 export function ExplorePage({
@@ -56,9 +55,7 @@ export function ExplorePage({
   return (
     <div className="exploration-page">
       <header className="exploration-page-heading">
-        <span className="exploration-eyebrow">跟着一点好奇心</span>
-        <h1>把好奇心，交给这一刻。</h1>
-        <p>选一个方向，剩下的让新的可能慢慢出现。</p>
+        <h1>探索</h1>
       </header>
       <div className="exploration-workbench">
         <section className="exploration-controls" aria-label="探索条件">
@@ -91,7 +88,6 @@ export function ExplorePage({
                 {intent.label}
               </button>)}
             </div>
-            <p className="exploration-soft-note">可以和场景组合，也可以随便探索。</p>
           </fieldset>
           <div className="exploration-condition-grid">
             <fieldset>
@@ -111,11 +107,6 @@ export function ExplorePage({
                   </button>
                 ))}
               </div>
-              {owner === "serenity" && settingFor(filters) !== "home" ? <p className="exploration-soft-note">
-                {shortLocalOuting(filters, outingAreaFor(owner))
-                  ? "出门只看良乡阳光邑上附近，逛店、买点吃的也可以。"
-                  : "北京全城都可以，国博、国图等较远的地方也保留。"}
-              </p> : null}
             </fieldset>
             <fieldset>
               <legend>此刻是什么状态？</legend>
@@ -147,15 +138,14 @@ export function ExplorePage({
               ) : suggestions.length && !changed ? (
                 <>
                   <RefreshCw size={17} />
-                  换一组新的可能
+                  换一组
                 </>
               ) : (
                 <>
-                  给我一点灵感 <ArrowRight size={17} />
+                  查找推荐 <ArrowRight size={17} />
                 </>
               )}
             </button>
-            <span>每次 3 个选择，挑一个感兴趣的。</span>
           </div>
         </section>
         <section
@@ -176,12 +166,7 @@ export function ExplorePage({
             <>
               <div className="exploration-section-heading">
                 <div>
-                  <span className="exploration-eyebrow">也许，试试这些</span>
-                  <h2>
-                    {changed
-                      ? "想换方向？重新给我一点灵感。"
-                      : "从一个让你好奇的开始。"}
-                  </h2>
+                  <h2>{changed ? "条件已修改" : "推荐"}</h2>
                 </div>
                 <span className="exploration-soft-note">
                   时长只是活动参考，不含往返路程
@@ -197,9 +182,7 @@ export function ExplorePage({
             <div className="exploration-before-start">
               <Sparkles size={25} strokeWidth={1.2} />
               <p>
-                {generating ? "正在找三个新的选择。" : discoveryFailed ? "这次推荐没有完成。" : space.recommendationCleanup?.active ? "当前没有更多匹配的新内容。" : "不用回答很多问题。"}
-                <br />
-                {generating ? "找到后，会放在这里。" : discoveryFailed ? "请再试一次，已排除的内容仍不会推荐。" : space.recommendationCleanup?.active ? "可以继续发现，旧推荐不会拿来补位。" : "点一下，让新的可能自己出现。"}
+                {generating ? "正在查找…" : discoveryFailed ? "推荐未完成，请重试。" : "暂无推荐"}
               </p>
             </div>
           )}
@@ -208,7 +191,6 @@ export function ExplorePage({
       <div className="exploration-city-entry">
         <span>
           <ModeIcon mode="outside" size={20} />
-          想在北京约朋友出门？
         </span>
         <Link
           href={`/beijing?space=${owner}`}

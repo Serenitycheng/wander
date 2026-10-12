@@ -74,7 +74,6 @@ export function IdeaCard({
         {idea.place ? " · 北京" : ""}
         {idea.discoveredAt ? ` · ${idea.domain ?? "在线发现"}` : ""}
       </span>
-      {idea.angle ? <span className="exploration-card-angle">{idea.angle === "familiar" ? "顺着兴趣" : idea.angle === "surprise" ? "换个方向" : "随手试试"}</span> : null}
       <h3>
         <Link href={`/explore/${idea.id}`}>{idea.title}</Link>
       </h3>

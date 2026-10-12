@@ -27,6 +27,7 @@ export async function POST(request: Request) {
   if (!isObject(body) || !isObject(body.filters) || !isMode(body.filters.mode) || !isTimeWindow(body.filters.time) || !isMood(body.filters.mood) ||
     (body.filters.setting !== undefined && !isSetting(body.filters.setting)) ||
     (body.filters.intent !== undefined && !isIntent(body.filters.intent)) ||
+    (body.preparation !== undefined && typeof body.preparation !== "boolean") ||
     (body.outingArea !== undefined && body.outingArea !== localOutingArea) ||
     personalization === null || excludeExperiences === null || excludeExperiences.some((item) => !item) || (body.allowFeeds !== undefined && typeof body.allowFeeds !== "boolean") ||
     (body.recentActivities !== undefined && (!Array.isArray(body.recentActivities) || body.recentActivities.length > 12 ||
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
       ...(isSetting(body.filters.setting) ? { setting: body.filters.setting } : {}),
       ...(isIntent(body.filters.intent) ? { intent: body.filters.intent } : {}) },
     seed: Number(body.seed), excludeIds: body.excludeIds, excludeTitles: body.excludeTitles,
+    ...(body.preparation === true ? { preparation: true } : {}),
     excludeExperiences: excludeExperiences as NonNullable<DiscoveryRequest["excludeExperiences"]>,
     ...(body.excludeWorks ? { excludeWorks: body.excludeWorks as string[] } : {}),
     avoidFormats: body.avoidFormats as Array<"feed"> | undefined,

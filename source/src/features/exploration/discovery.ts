@@ -1,5 +1,6 @@
 import { activityForms, isCategory, isMood } from "./types.ts";
 import type { ExplorationIdea } from "./types.ts";
+import { isOpenOutingPlace } from "./outing-policy.ts";
 
 export const isOnlineIdeaId = (id: string) => /^(online|inspiration)-[a-f0-9]{16}$/.test(id);
 export const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -94,7 +95,9 @@ export function parseDiscoveredIdea(value: unknown): ExplorationIdea | null {
   const url = source ? sourceUrl(source.url) : null;
   const openActivity = !hasSource && value.origin === "deepseek" && value.approach === "open" &&
     activityForms.includes(value.form as typeof activityForms[number]) &&
-    value.category !== "outside" && typeof value.title === "string" && !/《|https?:\/\//.test(`${value.title} ${value.description} ${value.firstStep}`);
+    (value.category !== "outside" || (isOpenOutingPlace(value.place) &&
+      !/营业时间|开放时间|无需预约|库存|现价|每天开放|对外开放的[\u4e00-\u9fff]+[中大]学/.test(`${value.title} ${value.description} ${value.firstStep}`))) &&
+    typeof value.title === "string" && !/《|https?:\/\//.test(`${value.title} ${value.description} ${value.firstStep}`);
   const expectedId = url ? onlineIdeaId(url) : openActivity ? inspirationIdeaId(String(value.category), String(value.title)) : null;
   if (!expectedId || value.id !== expectedId || !isCategory(value.category) ||
     !boundedText(value.title, 160) || !boundedText(value.description, 700) ||

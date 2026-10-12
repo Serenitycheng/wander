@@ -85,17 +85,13 @@ export function MePage() {
   return (
     <div className="exploration-page exploration-me">
       <header className="exploration-page-heading">
-        <span className="exploration-eyebrow">这里留一点属于自己的空间</span>
-        <h1>按自己的方式，慢慢来。</h1>
-        <p>一些偏好，一些想试的事。其余的，留给生活。</p>
+        <h1>我的</h1>
       </header>
       <section className="exploration-setting">
         <div>
           <h2>我的空间</h2>
           <p>
-            {authenticated
-              ? "沿用原来的账号；每个人的收藏和记录分别保存。"
-              : "当前是本机预览，Serenity 和 zzz 的内容分别保存。"}
+            {authenticated ? "已登录" : "本机预览"}
           </p>
         </div>
         <label className="exploration-space-select">
@@ -116,9 +112,9 @@ export function MePage() {
       <DiscoveryPreferences />
       <section className="exploration-setting exploration-setting-wrap">
         <div>
-          <h2>把这些小片刻带走</h2>
+          <h2>数据备份</h2>
           <p>
-            收藏和记录保存在这个浏览器里。换设备前，可以导出一份；导入时会补充内容，保留已有的感受。
+            数据保存在当前浏览器，尚未自动同步到其他设备。
           </p>
         </div>
         <div className="exploration-backup-actions">
@@ -151,7 +147,6 @@ export function MePage() {
       <section className="exploration-setting">
         <div>
           <h2>北京去哪儿玩</h2>
-          <p>想和朋友一起出门时，原来的偏好问答、地点推荐和路线仍在这里。</p>
         </div>
         <Link
           className="exploration-text-link"
@@ -175,7 +170,6 @@ export function MePage() {
           {signingOut ? "正在退出…" : "退出登录"}
         </button>
       ) : null}
-      <p className="exploration-me-note">漫游 · 给入口，留余地。</p>
     </div>
   );
 }

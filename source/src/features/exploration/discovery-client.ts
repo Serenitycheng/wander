@@ -20,6 +20,7 @@ export async function requestDiscovery(
   fetcher: typeof fetch = fetch,
   onResult?: (result: DiscoveryResult) => void,
   reserved: ExplorationIdea[] = [],
+  preparation = false,
 ): Promise<DiscoveryResult> {
   const known = knownSpaceIdeas(space);
   const profile = profileFor(space);
@@ -36,6 +37,7 @@ export async function requestDiscovery(
       method: "POST", headers: { "Content-Type": "application/json", Accept: "application/x-ndjson" }, signal,
       body: JSON.stringify({
         filters, seed: Math.floor(Math.random() * 2147483647),
+        ...(preparation ? { preparation: true } : {}),
         ...(outingAreaFor(space.owner) ? { outingArea: outingAreaFor(space.owner) } : {}),
         excludeIds: [...new Set([...space.shownIdeaIds, ...space.shownIdeaIds.flatMap((id) => {
           const idea = known.get(id); const canonical = idea && resourceId(idea); return canonical ? [canonical] : [];
@@ -70,6 +72,8 @@ export async function requestDiscovery(
     };
     if (response.headers.get("Content-Type")?.includes("application/x-ndjson") && response.body) {
       const reader = response.body.getReader();
+      const cancel = () => { void reader.cancel().catch(() => {}); };
+      signal.addEventListener("abort", cancel, { once: true });
       const decoder = new TextDecoder();
       let pending = "";
       const accept = (line: string) => {
@@ -87,9 +91,11 @@ export async function requestDiscovery(
           const lines = pending.split("\n");
           pending = lines.pop() ?? "";
           for (const line of lines) accept(line);
+          signal.throwIfAborted();
           if (chunk.done) { accept(pending); break; }
         }
       } finally {
+        signal.removeEventListener("abort", cancel);
         await reader.cancel().catch(() => {});
         reader.releaseLock();
       }

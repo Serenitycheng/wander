@@ -38,7 +38,7 @@ export function IdeaDetail({ idea }: { idea: ExplorationIdea }) {
         <h1>{idea.title}</h1>
         <span className="exploration-duration">
           {minutesLabel(idea.minutes)}
-          {idea.place ? " · 北京 · 不含往返" : " · 随时可以停下"}
+          {idea.place ? " · 北京 · 不含往返" : ""}
         </span>
       </header>
       <section className="exploration-detail-block">
@@ -46,9 +46,9 @@ export function IdeaDetail({ idea }: { idea: ExplorationIdea }) {
         <p>{idea.description}</p>
       </section>
       <section className="exploration-detail-block">
-        <span className="exploration-eyebrow">为什么适合你现在</span>
+        <span className="exploration-eyebrow">推荐理由</span>
         <ul>
-          {reasonsFor(idea, space.preferences).map((reason) => (
+          {reasonsFor(idea).map((reason) => (
             <li key={reason}>
               <Check size={15} strokeWidth={1.5} />
               <span>{reason}</span>
@@ -57,7 +57,7 @@ export function IdeaDetail({ idea }: { idea: ExplorationIdea }) {
         </ul>
       </section>
       <section className="exploration-first-step">
-        <span className="exploration-eyebrow">如何开始 · 只要一个小动作</span>
+        <span className="exploration-eyebrow">开始方式</span>
         <p>{idea.firstStep}</p>
         {link ? (
           <a
@@ -69,13 +69,6 @@ export function IdeaDetail({ idea }: { idea: ExplorationIdea }) {
             {idea.source?.action ?? (idea.place ? "打开地图" : "搜索这个主题")}
             <ArrowUpRight size={17} />
           </a>
-        ) : (
-          <span className="exploration-soft-note">
-            现在就可以开始。不必做完，也可以临时换个方向。
-          </span>
-        )}
-        {idea.place ? (
-          <small>出门前看看距离、天气和当日开放信息，再决定要不要去。</small>
         ) : null}
       </section>
       <div className="exploration-detail-actions">
@@ -86,14 +79,14 @@ export function IdeaDetail({ idea }: { idea: ExplorationIdea }) {
           onClick={() => toggleFavorite(idea.id)}
         >
           <Bookmark size={17} fill={saved ? "currentColor" : "none"} />
-          {saved ? "已收藏 · 随时再来" : "收藏，以后也许想试"}
+          {saved ? "已收藏" : "收藏"}
         </button>
         <Link
           className="exploration-text-link"
           href={`/records?idea=${idea.id}`}
         >
           <NotebookPen size={17} />
-          回来后，随手记一笔
+          添加记录
         </Link>
       </div>
       {idea.source ? (
